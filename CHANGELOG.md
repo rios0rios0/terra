@@ -18,7 +18,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
-- created the first version working properly and installing all dependencies
+-
 
 ### Changed
 
@@ -27,3 +27,9 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ### Removed
 
 -
+
+## [1.0.0] - 2023-11-10
+
+### Added
+
+- created the first version working properly and installing all dependencies
