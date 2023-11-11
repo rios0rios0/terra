@@ -66,6 +66,4 @@ We hope `terra` makes your infrastructure management smoother and more intuitive
 4. https://terragrunt.gruntwork.io/
 
 ## TODO
-- [ ] Ensure the newest dependencies when Terraform and Terragrunt are installed with the previous versions
-- [ ] Complete the `clear` command
-- [ ] Complete the `fmt` command
+- Ensure the newest dependencies when Terraform and Terragrunt are installed with the previous versions
