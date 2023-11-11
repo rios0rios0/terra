@@ -18,7 +18,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
--
+- added the `clear` command to remove the cache and temporary files
+- added the `fmt` command to format all Terraform and Terragrunt files
 
 ### Changed
 

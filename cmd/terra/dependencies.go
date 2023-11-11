@@ -28,6 +28,7 @@ func isCommandAvailable(name string) bool {
 func installCommand(url, name string) {
 	tempFilePath := "/tmp/" + name
 	logger.Infof("Downloading %s from %s...", name, url)
+	// TODO: it should be decoupled from the Operating System
 	curlCmd := exec.Command("curl", "-Ls", "-o", tempFilePath, url)
 	curlCmd.Stderr = os.Stderr
 	curlCmd.Stdout = os.Stdout

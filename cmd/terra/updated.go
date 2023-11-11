@@ -26,6 +26,7 @@ func fetchLatestVersion(url, regexPattern string) string {
 		return matches[1]
 	}
 
+	// TODO: it should be better
 	logger.Fatalf("No version match found")
 	return ""
 }
