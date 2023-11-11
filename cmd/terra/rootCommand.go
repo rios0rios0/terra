@@ -9,7 +9,7 @@ import (
 
 // Main command logic
 var rootCmd = &cobra.Command{
-	Use:   "terra [flags] [directory] [terragrunt command]",
+	Use:   "terra [flags] [terragrunt command] [directory]",
 	Short: "Terra is a CLI wrapper for Terragrunt",
 	Long:  "Terra is a CLI wrapper for Terragrunt that allows changing directory before executing the command.",
 	Args:  cobra.MinimumNArgs(1),
