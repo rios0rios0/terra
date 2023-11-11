@@ -18,8 +18,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
-- added the `clear` command to remove the cache and temporary files
-- added the `fmt` command to format all Terraform and Terragrunt files
+-
 
 ### Changed
 
@@ -28,6 +27,13 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ### Removed
 
 -
+
+## [1.2.0] - 2023-11-10
+
+### Added
+
+- added the `clear` command to remove the cache and temporary files
+- added the `fmt` command to format all Terraform and Terragrunt files
 
 ## [1.0.0] - 2023-11-10
 
