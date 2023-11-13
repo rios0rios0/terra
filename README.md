@@ -23,19 +23,7 @@ make install
 ```
 
 ## Usage
-Here's how to use `terra` (Terraform basics):
-```bash
-# Applying a specific Terraform module
-terra apply /path/to/module
-
-# Destroying a module
-terra destroy /path/to/module
-
-# Plan a module
-terra plan /path/to/module
-```
-
-Here's how to use `terra` with Terragrunt:
+Here's how to use `terra` with Terraform/Terragrunt:
 ```bash
 # it's going to apply all subdirectories inside "path"
 terra run-all apply /path
@@ -45,7 +33,30 @@ terra run-all plan /path/to
 
 # it's going to plan just the "module" subdirectory inside "to"
 terra run-all plan /path/to/module
+
+# or using Terraform approach, plan just the "module" subdirectory inside "to"
+terra plan /path/to/module
 ```
+
+The commands available are:
+```bash
+clear       Clear all cache and modules directories
+fmt         Format all files in the current directory
+install     Install Terraform and Terragrunt (they are pre-requisites)
+```
+
+If you have some input variables, you can use environment variables (`.env`) with the prefix `TF_VAR_`:
+```bash
+# .env
+TF_VAR_foo=bar
+
+
+# command (that depends on the environment variable called "foo")
+terra run-all apply /path /path/to/module
+```
+More about it in:
+- [Terraform documentation](https://www.terraform.io/docs/language/values/variables.html#environment-variables).
+- [Terragrunt documentation](https://terragrunt.gruntwork.io/docs/features/inputs/).
 
 ## Contributing
 Contributions to `terra` are welcome! Whether it's bug reports, feature requests, or code contributions, please feel free to contribute.
@@ -67,3 +78,5 @@ We hope `terra` makes your infrastructure management smoother and more intuitive
 
 ## TODO
 - Ensure the newest dependencies when Terraform and Terragrunt are installed with the previous versions
+- Forward unknown flags to Terraform and Terragrunt
+- Run format always when any command is executed
