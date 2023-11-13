@@ -21,7 +21,7 @@ var rootCmd = &cobra.Command{
 		if err != nil {
 			logger.Warnf("Error loading .env file: %s", err)
 		}
-		// TODO: run the format command here
+		format()
 		err = runInDir("terragrunt", terraArgs, absDir)
 		if err != nil {
 			logger.Fatalf("Terragrunt command failed: %s", err)
