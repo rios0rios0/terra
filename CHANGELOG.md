@@ -18,11 +18,11 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
--
+- added the `godotenv` to handle the environment variables
 
 ### Changed
 
--
+- changed the main command to accept input from the user and wait for the `stdin` to be closed
 
 ### Removed
 

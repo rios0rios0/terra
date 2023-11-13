@@ -79,4 +79,3 @@ We hope `terra` makes your infrastructure management smoother and more intuitive
 ## TODO
 - Ensure the newest dependencies when Terraform and Terragrunt are installed with the previous versions
 - Forward unknown flags to Terraform and Terragrunt
-- Run format always when any command is executed
