@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"os"
@@ -16,7 +17,12 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		ensureToolsInstalled()
 		terraArgs, absDir := findAbsDirectory(args)
-		err := runInDir("terragrunt", terraArgs, absDir)
+		err := godotenv.Load()
+		if err != nil {
+			logger.Warnf("Error loading .env file: %s", err)
+		}
+		// TODO: run the format command here
+		err = runInDir("terragrunt", terraArgs, absDir)
 		if err != nil {
 			logger.Fatalf("Terragrunt command failed: %s", err)
 		}
