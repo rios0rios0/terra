@@ -22,11 +22,30 @@ var rootCmd = &cobra.Command{
 			logger.Warnf("Error loading .env file: %s", err)
 		}
 		format()
+		changeWorkspace(absDir) // TODO: create a flag to disable this
 		err = runInDir("terragrunt", terraArgs, absDir)
 		if err != nil {
 			logger.Fatalf("Terragrunt command failed: %s", err)
 		}
 	},
+}
+
+func changeWorkspace(dir string) {
+	workspace := ""
+	acceptedEnvs := []string{"TF_VAR_env", "TF_VAR_environment"}
+	for _, env := range acceptedEnvs {
+		workspace = os.Getenv(env)
+		if workspace != "" {
+			break
+		}
+	}
+
+	if workspace != "" {
+		err := runInDir("terragrunt", []string{"workspace", "select", "-or-create", workspace}, dir)
+		if err != nil {
+			logger.Fatalf("Error changing workspace: %s", err)
+		}
+	}
 }
 
 func findAbsDirectory(args []string) ([]string, string) {
