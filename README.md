@@ -75,9 +75,3 @@ We hope `terra` makes your infrastructure management smoother and more intuitive
 2. https://www.terraform-best-practices.com/naming
 3. https://www.terraform.io/docs/state/workspaces.html
 4. https://terragrunt.gruntwork.io/
-
-## TODO
-- Ensure the newest dependencies when Terraform and Terragrunt are installed with the previous versions
-- Forward unknown flags to Terraform and Terragrunt
-- It's not deleting all cache directories, some of them are still there
-- Add the feature to read the env variable and set terraform workspace
