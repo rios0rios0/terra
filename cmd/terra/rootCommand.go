@@ -10,10 +10,11 @@ import (
 
 // Main command logic
 var rootCmd = &cobra.Command{
-	Use:   "terra [flags] [terragrunt command] [directory]",
-	Short: "Terra is a CLI wrapper for Terragrunt",
-	Long:  "Terra is a CLI wrapper for Terragrunt that allows changing directory before executing the command.",
-	Args:  cobra.MinimumNArgs(1),
+	Use:                "terra [flags] [terragrunt command] [directory]",
+	Short:              "Terra is a CLI wrapper for Terragrunt",
+	Long:               "Terra is a CLI wrapper for Terragrunt that allows changing directory before executing the command.",
+	Args:               cobra.MinimumNArgs(1),
+	DisableFlagParsing: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		ensureToolsInstalled()
 		terraArgs, absDir := findAbsDirectory(args)
@@ -22,7 +23,10 @@ var rootCmd = &cobra.Command{
 			logger.Warnf("Error loading .env file: %s", err)
 		}
 		format()
-		changeWorkspace(absDir) // TODO: create a flag to disable this
+		// if the command to be executed is "init" don't change the workspace
+		if terraArgs[0] != "init" {
+			changeWorkspace(absDir) // TODO: create a flag to disable this
+		}
 		err = runInDir("terragrunt", terraArgs, absDir)
 		if err != nil {
 			logger.Fatalf("Terragrunt command failed: %s", err)
