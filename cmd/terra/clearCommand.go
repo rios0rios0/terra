@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+var dirsFound []string
 var dirsToDelete = []string{".terraform", ".terragrunt-cache"}
 
 var clearCmd = &cobra.Command{
@@ -24,11 +25,18 @@ var clearCmd = &cobra.Command{
 				}
 
 				if info.IsDir() && strings.HasSuffix(path, dir) {
-					logger.Infof("Removing directory: %s", path)
-					return os.RemoveAll(path)
+					dirsFound = append(dirsFound, path)
 				}
 				return nil
 			})
+
+			for _, dirPath := range dirsFound {
+				logger.Infof("Removing directory: %s", dirPath)
+				err := os.RemoveAll(dirPath)
+				if err != nil {
+					logger.Errorf("Failed to remove directory: %s, error: %v", dirPath, err)
+				}
+			}
 		}
 	},
 }
