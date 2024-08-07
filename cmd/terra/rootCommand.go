@@ -24,9 +24,12 @@ var rootCmd = &cobra.Command{
 		}
 		format()
 
-		if terraArgs[0] != "init" {
+		changeSubscription(absDir)
+
+		// TODO: it should be a mapping with all undesired commands
+		if terraArgs[0] != "init" && terraArgs[0] != "run-all" {
 			_ = runInDir("terragrunt", []string{"init"}, absDir)
-			// TODO: this is not working with tfvars file
+			// TODO: this is not working with "tfvars" file
 			changeWorkspace(absDir)
 		}
 
@@ -39,7 +42,7 @@ var rootCmd = &cobra.Command{
 
 func changeWorkspace(dir string) {
 	workspace := ""
-	acceptedEnvs := []string{"TF_VAR_env", "TF_VAR_environment"}
+	acceptedEnvs := []string{"TERRA_WORKSPACE"}
 	for _, env := range acceptedEnvs {
 		workspace = os.Getenv(env)
 		if workspace != "" {
@@ -51,6 +54,24 @@ func changeWorkspace(dir string) {
 		err := runInDir("terragrunt", []string{"workspace", "select", "-or-create", workspace}, dir)
 		if err != nil {
 			logger.Fatalf("Error changing workspace: %s", err)
+		}
+	}
+}
+
+func changeSubscription(dir string) {
+	subscriptionId := ""
+	acceptedEnvs := []string{"TERRA_AZURE_SUBSCRIPTION_ID"}
+	for _, env := range acceptedEnvs {
+		subscriptionId = os.Getenv(env)
+		if subscriptionId != "" {
+			break
+		}
+	}
+
+	if subscriptionId != "" {
+		err := runInDir("az", []string{"account", "set", "--subscription", subscriptionId}, dir)
+		if err != nil {
+			logger.Fatalf("Error changing subscription: %s", err)
 		}
 	}
 }
