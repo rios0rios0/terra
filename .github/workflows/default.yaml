@@ -1,0 +1,22 @@
+name: 'default'
+
+on:
+  push:
+    branches:
+      - 'main'
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - 'main'
+  workflow_dispatch:
+
+permissions:
+  checks: 'write' # code_check-style_golangci_lint
+  contents: 'write' # delivery-release
+
+jobs:
+  default:
+    uses: 'rios0rios0/pipelines/.github/workflows/go-binary.yaml@main'
+    with:
+      binary_name: 'terra'
