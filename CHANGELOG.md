@@ -16,6 +16,14 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added a new environment to handle Azure subscriptions
+
+### Fixed
+
+- fixed the required workspace flag to be optional
+
 ## [1.3.0] - 2024-07-08
 
 ### Added
@@ -25,7 +33,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ### Changed
 
 - changed the main command to accept input from the user and wait for the `stdin` to be closed
-- hanged to forward unknown flags to Terraform and Terragrunt - [#3](https://github.com/rios0rios0/terra/issues/3)
+- changed to forward unknown flags to Terraform and Terragrunt - [#3](https://github.com/rios0rios0/terra/issues/3)
 
 ## [1.2.0] - 2023-11-10
 
