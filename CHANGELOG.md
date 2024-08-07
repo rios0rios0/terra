@@ -16,6 +16,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Changed
+
+- changed the documentation with pipelines and minor change to template files
+
 ## [1.4.0] - 2024-08-07
 
 ### Added
