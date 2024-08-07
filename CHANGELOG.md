@@ -16,9 +16,11 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.4.0] - 2024-08-07
+
 ### Added
 
-- added a new environment to handle Azure subscriptions
+- added a new environment variable to handle Azure subscriptions
 
 ### Fixed
 
