@@ -1,10 +1,11 @@
 package main
 
 import (
-	logger "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"strings"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 // Run commands in the specified directory

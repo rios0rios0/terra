@@ -1,10 +1,11 @@
 package main
 
 import (
-	logger "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"regexp"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 // Fetch the latest version of software from a URL
