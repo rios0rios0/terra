@@ -1,11 +1,12 @@
 package main
 
 import (
+	"os"
+	"path/filepath"
+
 	"github.com/joho/godotenv"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"os"
-	"path/filepath"
 )
 
 // Main command logic

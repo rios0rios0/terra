@@ -2,15 +2,18 @@ package main
 
 import (
 	"fmt"
-	logger "github.com/sirupsen/logrus"
-	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
 	"strings"
+
+	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
-var dirsFound []string
-var dirsToDelete = []string{".terraform", ".terragrunt-cache"}
+var (
+	dirsFound    []string
+	dirsToDelete = []string{".terraform", ".terragrunt-cache"}
+)
 
 var clearCmd = &cobra.Command{
 	Use:   "clear",

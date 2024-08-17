@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	logger "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"strings"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 const (
@@ -68,7 +69,7 @@ func installCommand(url, name string) {
 	}
 
 	// Make the binary executable
-	err = os.Chmod("/usr/local/bin/"+name, 0755)
+	err = os.Chmod("/usr/local/bin/"+name, 0o755)
 	if err != nil {
 		logger.Fatalf("Failed to make %s executable: %s", name, err)
 	}
