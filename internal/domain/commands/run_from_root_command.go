@@ -5,55 +5,35 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/repositories"
 	logger "github.com/sirupsen/logrus"
 	"os"
-	"path/filepath"
 	"slices"
 )
 
 type RunFromRootCommand struct {
-	formatCommand FormatFilesCommand
-	repository    repositories.ShellRepository
+	installCommand InstallDependenciesCommand
+	formatCommand  FormatFilesCommand
+	repository     repositories.ShellRepository
 }
 
-func (it RunFromRootCommand) Execute(dependencies []entities.Dependency) {
-	ensureDependenciesInstallation()
+func (it RunFromRootCommand) Execute(targetDirectory string, dependencies []entities.Dependency) {
+	// ensure that all dependencies are installed
+	it.installCommand.Execute(dependencies)
 
-	terraArgs, absDir := findAbsDirectory(args)
+	terraArgs, _ := findAbsDirectory(args)
 
 	it.formatCommand.Execute(dependencies)
-	changeSubscription(absDir)
+	changeSubscription(targetDirectory)
 
 	undesiredCommands := []string{"init", "run-all"}
 	if !slices.Contains(undesiredCommands, terraArgs[0]) {
-		_ = it.repository.ExecuteCommand("terragrunt", []string{"init"}, absDir)
+		_ = it.repository.ExecuteCommand("terragrunt", []string{"init"}, targetDirectory)
 
-		changeWorkspace(absDir)
+		changeWorkspace(targetDirectory)
 	}
 
-	err := it.repository.ExecuteCommand("terragrunt", terraArgs, absDir)
+	err := it.repository.ExecuteCommand("terragrunt", terraArgs, targetDirectory)
 	if err != nil {
 		logger.Fatalf("Terragrunt command failed: %s", err)
 	}
-}
-
-func findAbsDirectory(args []string) ([]string, string) {
-	dir := "."
-	terraArgs := args
-
-	// check if the first or last argument is a directory
-	if _, err := os.Stat(args[0]); err == nil {
-		dir = args[0]
-		terraArgs = args[1:]
-	} else if _, err := os.Stat(args[len(args)-1]); err == nil {
-		dir = args[len(args)-1]
-		terraArgs = args[:len(args)-1]
-	}
-
-	// convert to the absolute path TODO: it might not be necessary
-	absDir, err := filepath.Abs(dir)
-	if err != nil {
-		logger.Fatalf("Error resolving directory path: %s", err)
-	}
-	return terraArgs, absDir
 }
 
 func changeWorkspace(dir string) {
