@@ -1,5 +1,5 @@
 package entities
 
-type Cloud interface {
+type CloudCLI interface {
 	ChangeAccount(accountName string) error
 }
