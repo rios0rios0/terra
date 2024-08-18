@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -10,16 +9,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var (
-	dirsFound    []string
-	dirsToDelete = []string{".terraform", ".terragrunt-cache"}
-)
-
 var clearCmd = &cobra.Command{
 	Use:   "clear",
 	Short: "Clear all cache and modules directories",
-	Long:  fmt.Sprintf("Clear all the [%s] directories.", strings.Join(dirsToDelete, ", ")),
-	Run: func(cmd *cobra.Command, args []string) {
+	Long:  "Clear all temporary directories and cache folders created during the Terraform and Terragrunt execution.",
+	Run: func(_ *cobra.Command, _ []string) {
+		var (
+			dirsFound    []string
+			dirsToDelete = []string{".terraform", ".terragrunt-cache"}
+		)
+
 		for _, dir := range dirsToDelete {
 			logger.Infof("Clearing all %s directories...", dir)
 			_ = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {

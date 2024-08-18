@@ -9,7 +9,7 @@ var formatCmd = &cobra.Command{
 	Use:   "fmt",
 	Short: "Format all files in the current directory",
 	Long:  "Format all the Terraform and Terragrunt files in the current directory.",
-	Run: func(cmd *cobra.Command, args []string) {
+	Run: func(_ *cobra.Command, _ []string) {
 		format()
 	},
 }
