@@ -1,5 +1,5 @@
 package commands
 
-type ClearCache interface {
+type DeleteCache interface {
 	Execute(toBeDeleted []string)
 }

@@ -7,10 +7,14 @@ import (
 	"strings"
 )
 
-type ClearCacheCommand struct {
+type DeleteCacheCommand struct {
 }
 
-func (it ClearCacheCommand) Execute(toBeDeleted []string) {
+func NewDeleteCacheCommand() *DeleteCacheCommand {
+	return &DeleteCacheCommand{}
+}
+
+func (it DeleteCacheCommand) Execute(toBeDeleted []string) {
 	var foundDirectories []string
 	for _, dir := range toBeDeleted {
 		logger.Infof("Clearing all %s directories...", dir)
