@@ -1,8 +1,8 @@
 package commands
 
 import (
-	"github.com/rios0rios0/terra/cmd/terra/domain/entities"
-	"github.com/rios0rios0/terra/cmd/terra/domain/repositories"
+	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/internal/domain/repositories"
 	logger "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
@@ -19,7 +19,7 @@ func (it RunFromRootCommand) Execute(dependencies []entities.Dependency) {
 
 	terraArgs, absDir := findAbsDirectory(args)
 
-	it.formatCommand.Execute()
+	it.formatCommand.Execute(dependencies)
 	changeSubscription(absDir)
 
 	undesiredCommands := []string{"init", "run-all"}
@@ -39,7 +39,7 @@ func findAbsDirectory(args []string) ([]string, string) {
 	dir := "."
 	terraArgs := args
 
-	// Check if the first or last argument is a directory
+	// check if the first or last argument is a directory
 	if _, err := os.Stat(args[0]); err == nil {
 		dir = args[0]
 		terraArgs = args[1:]
@@ -48,10 +48,29 @@ func findAbsDirectory(args []string) ([]string, string) {
 		terraArgs = args[:len(args)-1]
 	}
 
-	// Convert to the absolute path TODO: it might not be necessary
+	// convert to the absolute path TODO: it might not be necessary
 	absDir, err := filepath.Abs(dir)
 	if err != nil {
 		logger.Fatalf("Error resolving directory path: %s", err)
 	}
 	return terraArgs, absDir
+}
+
+func changeWorkspace(dir string) {
+	// TODO: this is not working with "tfvars" file
+	workspace := ""
+	acceptedEnvs := []string{"TERRA_WORKSPACE"}
+	for _, env := range acceptedEnvs {
+		workspace = os.Getenv(env)
+		if workspace != "" {
+			break
+		}
+	}
+
+	if workspace != "" {
+		err := runInDir("terragrunt", []string{"workspace", "select", "-or-create", workspace}, dir)
+		if err != nil {
+			logger.Fatalf("Error changing workspace: %s", err)
+		}
+	}
 }

@@ -2,7 +2,7 @@ package commands
 
 import (
 	"fmt"
-	"github.com/rios0rios0/terra/cmd/terra/domain/entities"
+	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
@@ -14,6 +14,10 @@ import (
 )
 
 type InstallDependenciesCommand struct {
+}
+
+func NewInstallDependenciesCommand() InstallDependenciesCommand {
+	return InstallDependenciesCommand{}
 }
 
 func (it InstallDependenciesCommand) Execute(dependencies []entities.Dependency) {

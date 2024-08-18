@@ -10,6 +10,10 @@ import (
 type ShellRepository struct {
 }
 
+func NewShellRepository() *ShellRepository {
+	return &ShellRepository{}
+}
+
 func (it ShellRepository) ExecuteCommand(command string, arguments []string, directory string) error {
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(arguments, " "), directory)
 	cmd := exec.Command(command, arguments...)

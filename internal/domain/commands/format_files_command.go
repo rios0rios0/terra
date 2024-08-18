@@ -1,13 +1,17 @@
 package commands
 
 import (
-	"github.com/rios0rios0/terra/cmd/terra/domain/entities"
-	"github.com/rios0rios0/terra/cmd/terra/domain/repositories"
+	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/internal/domain/repositories"
 	logger "github.com/sirupsen/logrus"
 )
 
 type FormatFilesCommand struct {
 	repository repositories.ShellRepository
+}
+
+func NewFormatFilesCommand(repository repositories.ShellRepository) FormatFilesCommand {
+	return FormatFilesCommand{repository: repository}
 }
 
 func (it FormatFilesCommand) Execute(dependencies []entities.Dependency) {
