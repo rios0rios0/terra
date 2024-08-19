@@ -1,5 +1,5 @@
 package entities
 
-type App interface {
+type AppContext interface {
 	GetControllers() []Controller
 }

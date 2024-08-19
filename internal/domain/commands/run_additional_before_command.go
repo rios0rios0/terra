@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"os"
 	"slices"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
@@ -10,24 +9,27 @@ import (
 )
 
 type RunAdditionalBeforeCommand struct {
-	cloudCLI   entities.CloudCLI
+	settings   *entities.Settings
+	cli        entities.CLI
 	repository repositories.ShellRepository
 }
 
 func NewRunAdditionalBeforeCommand(
-	cloudCLI entities.CloudCLI,
+	settings *entities.Settings,
+	cli entities.CLI,
 	repository repositories.ShellRepository,
 ) *RunAdditionalBeforeCommand {
 	return &RunAdditionalBeforeCommand{
-		cloudCLI:   cloudCLI,
+		settings:   settings,
+		cli:        cli,
 		repository: repository,
 	}
 }
 
-func (it RunAdditionalBeforeCommand) Execute(targetPath string, arguments []string) {
+func (it *RunAdditionalBeforeCommand) Execute(targetPath string, arguments []string) {
 	// change account if necessary
-	if it.cloudCLI != nil && it.cloudCLI.CanChangeAccount() {
-		err := it.repository.ExecuteCommand(it.cloudCLI.GetCLIName(), it.cloudCLI.GetCommandChangeAccount(), targetPath)
+	if it.cli != nil && it.cli.CanChangeAccount() {
+		err := it.repository.ExecuteCommand(it.cli.GetName(), it.cli.GetCommandChangeAccount(), targetPath)
 		if err != nil {
 			logger.Fatalf("Error changing account: %s", err)
 		}
@@ -39,7 +41,7 @@ func (it RunAdditionalBeforeCommand) Execute(targetPath string, arguments []stri
 	}
 
 	// change workspace if necessary
-	if value, ok := shouldChangeWorkspace(); ok {
+	if value, ok := it.shouldChangeWorkspace(); ok {
 		err := it.repository.ExecuteCommand("terragrunt", []string{"workspace", "select", "-or-create", value}, targetPath)
 		if err != nil {
 			logger.Fatalf("Error changing workspace: %s", err)
@@ -47,12 +49,12 @@ func (it RunAdditionalBeforeCommand) Execute(targetPath string, arguments []stri
 	}
 }
 
+func (it *RunAdditionalBeforeCommand) shouldChangeWorkspace() (string, bool) {
+	workspace := it.settings.TerraTerraformWorkspace
+	return workspace, workspace != ""
+}
+
 func shouldInitEnvironment(arguments []string) bool {
 	undesiredCommands := []string{"init", "run-all"}
 	return !slices.Contains(undesiredCommands, arguments[0])
-}
-
-func shouldChangeWorkspace() (string, bool) {
-	workspace := os.Getenv("TERRA_WORKSPACE")
-	return workspace, workspace != ""
 }

@@ -1,6 +1,8 @@
 package commands
 
-import "github.com/google/wire"
+import (
+	"github.com/google/wire"
+)
 
 //nolint:gochecknoglobals
 var Container = wire.NewSet(

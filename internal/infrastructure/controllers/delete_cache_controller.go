@@ -14,7 +14,7 @@ func NewDeleteCacheController(command commands.DeleteCache) *DeleteCacheControll
 	return &DeleteCacheController{command: command}
 }
 
-func (it DeleteCacheController) GetBind() entities.ControllerBind {
+func (it *DeleteCacheController) GetBind() entities.ControllerBind {
 	return entities.ControllerBind{
 		Use:   "clear",
 		Short: "Clear all cache and modules directories",
@@ -22,6 +22,6 @@ func (it DeleteCacheController) GetBind() entities.ControllerBind {
 	}
 }
 
-func (it DeleteCacheController) Execute(_ *cobra.Command, _ []string) {
+func (it *DeleteCacheController) Execute(_ *cobra.Command, _ []string) {
 	it.command.Execute([]string{".terraform", ".terragrunt-cache"})
 }

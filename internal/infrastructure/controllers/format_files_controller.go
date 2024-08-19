@@ -21,7 +21,7 @@ func NewFormatFilesController(
 	}
 }
 
-func (it FormatFilesController) GetBind() entities.ControllerBind {
+func (it *FormatFilesController) GetBind() entities.ControllerBind {
 	return entities.ControllerBind{
 		Use:   "format",
 		Short: "Format all files in the current directory",
@@ -29,6 +29,6 @@ func (it FormatFilesController) GetBind() entities.ControllerBind {
 	}
 }
 
-func (it FormatFilesController) Execute(_ *cobra.Command, _ []string) {
+func (it *FormatFilesController) Execute(_ *cobra.Command, _ []string) {
 	it.command.Execute(it.dependencies)
 }

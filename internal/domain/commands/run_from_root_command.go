@@ -7,15 +7,15 @@ import (
 )
 
 type RunFromRootCommand struct {
-	installCommand   InstallDependenciesCommand
-	formatCommand    FormatFilesCommand
+	installCommand   InstallDependencies
+	formatCommand    FormatFiles
 	additionalBefore RunAdditionalBefore
 	repository       repositories.ShellRepository
 }
 
 func NewRunFromRootCommand(
-	installCommand InstallDependenciesCommand,
-	formatCommand FormatFilesCommand,
+	installCommand InstallDependencies,
+	formatCommand FormatFiles,
 	additionalBefore RunAdditionalBefore,
 	repository repositories.ShellRepository,
 ) *RunFromRootCommand {
@@ -27,7 +27,7 @@ func NewRunFromRootCommand(
 	}
 }
 
-func (it RunFromRootCommand) Execute(targetPath string, arguments []string, dependencies []entities.Dependency) {
+func (it *RunFromRootCommand) Execute(targetPath string, arguments []string, dependencies []entities.Dependency) {
 	// ensure that all dependencies are installed
 	it.installCommand.Execute(dependencies)
 	it.formatCommand.Execute(dependencies)

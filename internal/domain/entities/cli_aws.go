@@ -1,21 +1,21 @@
 package entities
 
-import "os"
+type CLIAws struct {
+	settings *Settings
+}
 
-type CLIAws struct{}
+func NewCLIAws(settings *Settings) *CLIAws {
+	return &CLIAws{settings: settings}
+}
 
-func (it CLIAws) GetCLIName() string {
+func (it *CLIAws) GetName() string {
 	return "aws"
 }
 
-func (it CLIAws) GetCommandChangeAccount() []string {
-	return []string{"sts", "assume-role", "--role-arn", getRoleArn(), "--role-session-name", "session1"}
+func (it *CLIAws) CanChangeAccount() bool {
+	return it.settings.TerraAwsRoleArn != ""
 }
 
-func (it CLIAws) CanChangeAccount() bool {
-	return getRoleArn() != ""
-}
-
-func getRoleArn() string {
-	return os.Getenv("TERRA_AWS_ROLE_ARN")
+func (it *CLIAws) GetCommandChangeAccount() []string {
+	return []string{"sts", "assume-role", "--role-arn", it.settings.TerraAwsRoleArn, "--role-session-name", "session1"}
 }

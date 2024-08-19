@@ -10,11 +10,11 @@ type FormatFilesCommand struct {
 	repository repositories.ShellRepository
 }
 
-func NewFormatFilesCommand(repository repositories.ShellRepository) FormatFilesCommand {
-	return FormatFilesCommand{repository: repository}
+func NewFormatFilesCommand(repository repositories.ShellRepository) *FormatFilesCommand {
+	return &FormatFilesCommand{repository: repository}
 }
 
-func (it FormatFilesCommand) Execute(dependencies []entities.Dependency) {
+func (it *FormatFilesCommand) Execute(dependencies []entities.Dependency) {
 	logger.Info("Formatting the code...")
 	for _, dependency := range dependencies {
 		err := it.repository.ExecuteCommand(dependency.CLI, dependency.FormattingCommand, ".")

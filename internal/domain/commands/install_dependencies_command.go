@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,18 +10,21 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
 )
 
+const contextTimeout = 10 * time.Second
+
 type InstallDependenciesCommand struct{}
 
-func NewInstallDependenciesCommand() InstallDependenciesCommand {
-	return InstallDependenciesCommand{}
+func NewInstallDependenciesCommand() *InstallDependenciesCommand {
+	return &InstallDependenciesCommand{}
 }
 
-func (it InstallDependenciesCommand) Execute(dependencies []entities.Dependency) {
+func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency) {
 	for _, dependency := range dependencies {
 		latestVersion := fetchLatestVersion(dependency.VersionURL, dependency.RegexVersion)
 
@@ -34,8 +38,15 @@ func (it InstallDependenciesCommand) Execute(dependencies []entities.Dependency)
 
 // fetch the latest version of software from a URL
 func fetchLatestVersion(url, regexPattern string) string {
-	//nolint:gosec // no security issue here all URL are HTTPS
-	resp, err := http.Get(url)
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		logger.Fatalf("Error creating request: %s", err)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		logger.Fatalf("Error fetching version info: %s", err)
 	}
