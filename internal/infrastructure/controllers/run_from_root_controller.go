@@ -22,7 +22,7 @@ func NewRunFromRootController(
 	}
 }
 
-func (it RunFromRootController) GetBind() entities.ControllerBind {
+func (it *RunFromRootController) GetBind() entities.ControllerBind {
 	return entities.ControllerBind{
 		Use:   "terra [flags] [terragrunt command] [directory]",
 		Short: "Terra is a CLI wrapper for Terragrunt",
@@ -31,7 +31,7 @@ func (it RunFromRootController) GetBind() entities.ControllerBind {
 	}
 }
 
-func (it RunFromRootController) Execute(_ *cobra.Command, arguments []string) {
+func (it *RunFromRootController) Execute(_ *cobra.Command, arguments []string) {
 	absolutePath := helpers.ArgumentsHelper{}.FindAbsolutePath(arguments)
 	filteredArguments := helpers.ArgumentsHelper{}.RemovePathFromArguments(arguments)
 	it.command.Execute(absolutePath, filteredArguments, it.dependencies)

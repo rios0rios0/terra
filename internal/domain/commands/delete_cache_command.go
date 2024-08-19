@@ -14,7 +14,7 @@ func NewDeleteCacheCommand() *DeleteCacheCommand {
 	return &DeleteCacheCommand{}
 }
 
-func (it DeleteCacheCommand) Execute(toBeDeleted []string) {
+func (it *DeleteCacheCommand) Execute(toBeDeleted []string) {
 	var foundDirectories []string
 	for _, dir := range toBeDeleted {
 		logger.Infof("Clearing all %s directories...", dir)

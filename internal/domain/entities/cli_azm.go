@@ -1,23 +1,21 @@
 package entities
 
-import (
-	"os"
-)
+type CLIAzm struct {
+	settings *Settings
+}
 
-type CLIAzm struct{}
+func NewCLIAzm(settings *Settings) *CLIAzm {
+	return &CLIAzm{settings: settings}
+}
 
-func (it CLIAzm) GetCLIName() string {
+func (it *CLIAzm) GetName() string {
 	return "az"
 }
 
-func (it CLIAzm) GetCommandChangeAccount() []string {
-	return []string{"account", "set", "--subscription", getSubscriptionID()}
+func (it *CLIAzm) CanChangeAccount() bool {
+	return it.settings.TerraAzureSubscriptionID != ""
 }
 
-func (it CLIAzm) CanChangeAccount() bool {
-	return getSubscriptionID() != ""
-}
-
-func getSubscriptionID() string {
-	return os.Getenv("TERRA_AZURE_SUBSCRIPTION_ID")
+func (it *CLIAzm) GetCommandChangeAccount() []string {
+	return []string{"account", "set", "--subscription", it.settings.TerraAzureSubscriptionID}
 }

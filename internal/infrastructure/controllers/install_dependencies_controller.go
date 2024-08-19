@@ -21,7 +21,7 @@ func NewInstallDependenciesController(
 	}
 }
 
-func (it InstallDependenciesController) GetBind() entities.ControllerBind {
+func (it *InstallDependenciesController) GetBind() entities.ControllerBind {
 	return entities.ControllerBind{
 		Use:   "install",
 		Short: "Install Terraform and Terragrunt (they are pre-requisites)",
@@ -29,6 +29,6 @@ func (it InstallDependenciesController) GetBind() entities.ControllerBind {
 	}
 }
 
-func (it InstallDependenciesController) Execute(_ *cobra.Command, _ []string) {
+func (it *InstallDependenciesController) Execute(_ *cobra.Command, _ []string) {
 	it.command.Execute(it.dependencies)
 }
