@@ -1,14 +1,14 @@
 package repositories
 
 import (
-	logger "github.com/sirupsen/logrus"
 	"os"
 	"os/exec"
 	"strings"
+
+	logger "github.com/sirupsen/logrus"
 )
 
-type ShellRepository struct {
-}
+type ShellRepository struct{}
 
 func NewShellRepository() *ShellRepository {
 	return &ShellRepository{}

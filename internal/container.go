@@ -7,6 +7,7 @@ import (
 	"github.com/rios0rios0/terra/internal/infrastructure/repositories"
 )
 
+//nolint:gochecknoglobals
 var Container = wire.NewSet(
 	commands.Container,
 	controllers.Container,

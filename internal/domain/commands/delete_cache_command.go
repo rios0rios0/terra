@@ -1,14 +1,14 @@
 package commands
 
 import (
-	logger "github.com/sirupsen/logrus"
 	"os"
 	"path/filepath"
 	"strings"
+
+	logger "github.com/sirupsen/logrus"
 )
 
-type DeleteCacheCommand struct {
-}
+type DeleteCacheCommand struct{}
 
 func NewDeleteCacheCommand() *DeleteCacheCommand {
 	return &DeleteCacheCommand{}

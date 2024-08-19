@@ -15,7 +15,8 @@ func main() {
 	// "cobra" library needs to start with a cobraRoot command
 	rootController := injectRootController()
 	bind := rootController.GetBind()
-	var cobraRoot = &cobra.Command{
+	//nolint:exhaustruct
+	cobraRoot := &cobra.Command{
 		Use:                bind.Use,
 		Short:              bind.Short,
 		Long:               bind.Long,
@@ -30,6 +31,7 @@ func main() {
 	app := injectApp()
 	for _, controller := range app.GetControllers() {
 		bind = controller.GetBind()
+		//nolint:exhaustruct
 		cobraRoot.AddCommand(&cobra.Command{
 			Use:   bind.Use,
 			Short: bind.Short,
