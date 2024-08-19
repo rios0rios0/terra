@@ -2,6 +2,7 @@ package controllers
 
 import "github.com/google/wire"
 
+//nolint:gochecknoglobals
 var Container = wire.NewSet(
 	NewDeleteCacheController,
 	NewFormatFilesController,

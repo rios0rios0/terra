@@ -11,8 +11,14 @@ type FormatFilesController struct {
 	dependencies []entities.Dependency
 }
 
-func NewFormatFilesController(command commands.FormatFiles) *FormatFilesController {
-	return &FormatFilesController{command: command}
+func NewFormatFilesController(
+	command commands.FormatFiles,
+	dependencies []entities.Dependency,
+) *FormatFilesController {
+	return &FormatFilesController{
+		command:      command,
+		dependencies: dependencies,
+	}
 }
 
 func (it FormatFilesController) GetBind() entities.ControllerBind {

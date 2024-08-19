@@ -1,28 +1,49 @@
 package main
 
 import (
+	"os"
+
 	"github.com/google/wire"
 	"github.com/rios0rios0/terra/internal"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
+	logger "github.com/sirupsen/logrus"
 )
 
+//nolint:unparam
 func injectApp() entities.App {
 	wire.Build(
 		internal.Container,
 		internal.NewAppCLI,
+		newCloudCLI,
 		newDependencies,
 	)
 	return nil
 }
 
+//nolint:unparam
 func injectRootController() entities.Controller {
 	wire.Build(
 		internal.Container,
 		controllers.NewRunFromRootController,
+		newCloudCLI,
 		newDependencies,
 	)
 	return nil
+}
+
+func newCloudCLI() entities.CloudCLI {
+	mapping := map[string]entities.CloudCLI{
+		"aws": entities.CLIAws{},
+		"az":  entities.CLIAzm{},
+	}
+
+	value, ok := mapping[os.Getenv("TERRA_CLOUD")]
+	if !ok {
+		value = nil
+		logger.Warnf("No cloud CLI found, avoiding to execute customized commands...")
+	}
+	return value
 }
 
 func newDependencies() []entities.Dependency {

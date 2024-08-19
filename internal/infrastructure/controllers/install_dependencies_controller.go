@@ -11,8 +11,14 @@ type InstallDependenciesController struct {
 	dependencies []entities.Dependency
 }
 
-func NewInstallDependenciesController(command commands.InstallDependencies) *InstallDependenciesController {
-	return &InstallDependenciesController{command: command}
+func NewInstallDependenciesController(
+	command commands.InstallDependencies,
+	dependencies []entities.Dependency,
+) *InstallDependenciesController {
+	return &InstallDependenciesController{
+		command:      command,
+		dependencies: dependencies,
+	}
 }
 
 func (it InstallDependenciesController) GetBind() entities.ControllerBind {

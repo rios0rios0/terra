@@ -2,19 +2,19 @@ package commands
 
 import (
 	"fmt"
-	"github.com/rios0rios0/terra/internal/domain/entities"
-	logger "github.com/sirupsen/logrus"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"path"
 	"regexp"
 	"strings"
+
+	"github.com/rios0rios0/terra/internal/domain/entities"
+	logger "github.com/sirupsen/logrus"
 )
 
-type InstallDependenciesCommand struct {
-}
+type InstallDependenciesCommand struct{}
 
 func NewInstallDependenciesCommand() InstallDependenciesCommand {
 	return InstallDependenciesCommand{}
@@ -34,13 +34,14 @@ func (it InstallDependenciesCommand) Execute(dependencies []entities.Dependency)
 
 // fetch the latest version of software from a URL
 func fetchLatestVersion(url, regexPattern string) string {
-	resp, err := http.Get(url) //nolint:gosec // no security issue here all URL are HTTPS
+	//nolint:gosec // no security issue here all URL are HTTPS
+	resp, err := http.Get(url)
 	if err != nil {
 		logger.Fatalf("Error fetching version info: %s", err)
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		logger.Fatalf("Error reading response body: %s", err)
 	}
@@ -51,18 +52,14 @@ func fetchLatestVersion(url, regexPattern string) string {
 		return matches[1]
 	}
 
-	// TODO: it should be better
-	logger.Fatalf("No version match found")
+	logger.Fatalf("No version match found, check the regex pattern: %s", regexPattern)
 	return ""
 }
 
 // checking if a dependency is available
 func isDependencyCLIAvailable(name string) bool {
 	cmd := exec.Command(name, "-v")
-	if err := cmd.Run(); err != nil {
-		return false
-	}
-	return true
+	return cmd.Run() == nil
 }
 
 // check if the "terra" has root privileges to install dependencies
