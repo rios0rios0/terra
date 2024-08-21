@@ -1,5 +1,8 @@
 build:
-	rm -rf bin
+	mkdir -p bin && rm -rf bin/terra
+	go install github.com/google/wire/cmd/wire@latest
+	wire ./...
+	go mod tidy
 	go build -o bin/terra ./cmd/terra
 	strip -s bin/terra
 

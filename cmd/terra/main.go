@@ -1,28 +1,59 @@
 package main
 
 import (
-	logger "github.com/sirupsen/logrus"
 	"os"
-	"os/exec"
-	"strings"
+
+	"github.com/joho/godotenv"
+	logger "github.com/sirupsen/logrus"
+	"github.com/spf13/cobra"
 )
 
-// Run commands in the specified directory
-func runInDir(command string, args []string, dir string) error {
-	logger.Infof("Running [%s %s] in %s", command, strings.Join(args, " "), dir)
-	cmd := exec.Command(command, args...)
-	cmd.Dir = dir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	cmd.Stdin = os.Stdin
-	return cmd.Run()
-}
-
 func main() {
-	rootCmd.AddCommand(installCmd)
-	rootCmd.AddCommand(formatCmd)
-	rootCmd.AddCommand(clearCmd)
-	if err := rootCmd.Execute(); err != nil {
-		logger.Fatalf("Error executing terra: %s", err)
+	//nolint:exhaustruct
+	logger.SetFormatter(&logger.TextFormatter{
+		ForceColors:   true,
+		FullTimestamp: true,
+	})
+	if os.Getenv("DEBUG") == "true" {
+		logger.SetLevel(logger.DebugLevel)
+	}
+
+	err := godotenv.Load()
+	if err != nil {
+		logger.Warnf("Error loading .env file: %s", err)
+	}
+
+	// "cobra" library needs to start with a cobraRoot command
+	rootController := injectRootController()
+	bind := rootController.GetBind()
+	//nolint:exhaustruct
+	cobraRoot := &cobra.Command{
+		Use:                bind.Use,
+		Short:              bind.Short,
+		Long:               bind.Long,
+		Args:               cobra.MinimumNArgs(1),
+		DisableFlagParsing: true,
+		Run: func(command *cobra.Command, arguments []string) {
+			rootController.Execute(command, arguments)
+		},
+	}
+
+	// all other commands are added as subcommands
+	appContext := injectAppContext()
+	for _, controller := range appContext.GetControllers() {
+		bind = controller.GetBind()
+		//nolint:exhaustruct
+		cobraRoot.AddCommand(&cobra.Command{
+			Use:   bind.Use,
+			Short: bind.Short,
+			Long:  bind.Long,
+			Run: func(command *cobra.Command, arguments []string) {
+				controller.Execute(command, arguments)
+			},
+		})
+	}
+
+	if err := cobraRoot.Execute(); err != nil {
+		logger.Fatalf("Error executing 'terra': %s", err)
 	}
 }
