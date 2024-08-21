@@ -16,9 +16,20 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added dependency injection with Wire and inverted all dependencies
+- created validation on the `settings` entity
+
 ### Changed
 
 - changed the documentation with pipelines and minor change to template files
+- corrected controllers responsibilities mapping the external to internal entities
+- corrected dependency injection architecture
+- corrected the structure to follow best practices using DDD
+- decoupled responsibilities from just one command to other layers
+- moved all business logic to the domain structure
+- upgraded the project to Go 1.23 and all the dependencies
 
 ## [1.4.0] - 2024-08-07
 
