@@ -1,6 +1,7 @@
 package doubles
 
 import (
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
@@ -22,6 +23,6 @@ func (it *FormatFilesCommandStub) WithError() *FormatFilesCommandStub {
 	return it
 }
 
-func (it *FormatFilesCommandStub) Execute(_ []entities.Dependency) {
+func (it *FormatFilesCommandStub) Execute(_ []entities.Dependency, _ interfaces.FormatFilesListeners) {
 	it.success = true
 }

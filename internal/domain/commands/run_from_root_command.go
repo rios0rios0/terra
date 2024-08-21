@@ -1,10 +1,10 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
-	logger "github.com/sirupsen/logrus"
 )
 
 type RunFromRootCommand struct {
@@ -33,8 +33,7 @@ func (it *RunFromRootCommand) Execute(targetPath string, arguments []string, dep
 		OnSuccess: func() {
 			err := it.repository.ExecuteCommand("terragrunt", arguments, targetPath)
 			if err != nil {
-				logger.Errorf("Terragrunt command failed: %s", err)
-				listeners.OnError(err)
+				listeners.OnError(fmt.Errorf("error happened while executing Terragrunt: %w", err))
 				return
 			}
 			listeners.OnSuccess()

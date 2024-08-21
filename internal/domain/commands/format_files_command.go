@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
@@ -20,8 +21,7 @@ func (it *FormatFilesCommand) Execute(dependencies []entities.Dependency, listen
 	for _, dependency := range dependencies {
 		err := it.repository.ExecuteCommand(dependency.CLI, dependency.FormattingCommand, ".")
 		if err != nil {
-			logger.Warnf("Failed to format '%s' files: %s", dependency.CLI, err)
-			listeners.OnError(err)
+			listeners.OnError(fmt.Errorf("failed to format '%s' files: %w", dependency.CLI, err))
 			return
 		}
 	}

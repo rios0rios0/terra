@@ -9,46 +9,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type StdShellRepositorySuite struct {
-	t *testing.T
-}
+func TestStdShellRepository_ExecuteCommand(t *testing.T) {
+	t.Run("should return success when executing a valid command", func(t *testing.T) {
+		// given
+		repository := repositories.NewStdShellRepository()
 
-func (suite *StdShellRepositorySuite) TestExecuteCommandSuccess(t *testing.T) {
-	// given
-	repository := repositories.NewStdShellRepository()
-	command := "echo"
-	arguments := []string{"Hello, World!"}
-	directory := "."
+		// when
+		err := repository.ExecuteCommand("echo", []string{"Hello, World!"}, ".")
 
-	// when
-	err := repository.ExecuteCommand(command, arguments, directory)
+		// then
+		assert.NoError(t, err, "should not return an error when executing a valid command")
+	})
 
-	// then
-	assert.NoError(t, err, "should not return an error when executing a valid command")
-}
+	t.Run("should return an error when executing an invalid command", func(t *testing.T) {
+		// given
+		repository := repositories.NewStdShellRepository()
 
-func (suite *StdShellRepositorySuite) TestExecuteCommandError(t *testing.T) {
-	// given
-	repository := repositories.NewStdShellRepository()
-	command := "nonexistentcommand"
-	arguments := []string{}
-	directory := "."
+		// when
+		err := repository.ExecuteCommand("non-existent", []string{}, ".")
 
-	// when
-	err := repository.ExecuteCommand(command, arguments, directory)
-
-	// then
-	assert.Error(t, err, "should return an error when executing an invalid command")
-}
-
-func TestStdShellRepository(t *testing.T) {
-	suite := &StdShellRepositorySuite{t: t}
-
-	t.Run("should return success when executing a valid command",
-		suite.TestExecuteCommandSuccess,
-	)
-
-	t.Run("should return an error when executing an invalid command",
-		suite.TestExecuteCommandError,
-	)
+		// then
+		assert.Error(t, err, "should return an error when executing an invalid command")
+	})
 }

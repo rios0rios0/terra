@@ -1,5 +1,7 @@
 package doubles
 
+import "github.com/rios0rios0/terra/internal/domain/commands/interfaces"
+
 type RunAdditionalBeforeCommandStub struct {
 	success bool
 }
@@ -18,6 +20,6 @@ func (it *RunAdditionalBeforeCommandStub) WithError() *RunAdditionalBeforeComman
 	return it
 }
 
-func (it *RunAdditionalBeforeCommandStub) Execute(_ string, _ []string) {
+func (it *RunAdditionalBeforeCommandStub) Execute(_ string, _ []string, _ interfaces.RunAdditionalBeforeListeners) {
 	it.success = true
 }

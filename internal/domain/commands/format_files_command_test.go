@@ -36,6 +36,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 		listeners := interfaces.FormatFilesListeners{OnError: func(err error) {
 			// then
 			assert.Error(t, err, "the error listener should be called")
+			assert.ErrorContains(t, err, "failed to format")
 		}}
 
 		// when

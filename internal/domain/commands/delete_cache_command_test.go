@@ -52,6 +52,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		listeners := interfaces.DeleteCacheListeners{OnError: func(err error) {
 			// then
 			assert.Error(t, err, "should return an error when trying to remove and it couldn't")
+			assert.ErrorContains(t, err, "failed to remove directory")
 		}}
 
 		// when

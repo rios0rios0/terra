@@ -1,6 +1,9 @@
 package doubles
 
-import "github.com/rios0rios0/terra/internal/domain/entities"
+import (
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
+	"github.com/rios0rios0/terra/internal/domain/entities"
+)
 
 type RunFromRootCommandStub struct {
 	success bool
@@ -20,6 +23,6 @@ func (it *RunFromRootCommandStub) WithError() *RunFromRootCommandStub {
 	return it
 }
 
-func (it *RunFromRootCommandStub) Execute(_ string, _ []string, _ []entities.Dependency) {
+func (it *RunFromRootCommandStub) Execute(_ string, _ []string, _ []entities.Dependency, _ interfaces.RunFromRootListeners) {
 	it.success = true
 }

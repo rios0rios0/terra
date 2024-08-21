@@ -1,12 +1,12 @@
 package commands
 
 import (
+	"fmt"
 	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"slices"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
-	logger "github.com/sirupsen/logrus"
 )
 
 type RunAdditionalBeforeCommand struct {
@@ -32,8 +32,7 @@ func (it *RunAdditionalBeforeCommand) Execute(targetPath string, arguments []str
 	if cli != nil && cli.CanChangeAccount() {
 		err := it.repository.ExecuteCommand(cli.GetName(), cli.GetCommandChangeAccount(), targetPath)
 		if err != nil {
-			logger.Errorf("Error changing account: %s", err)
-			listeners.OnError(err)
+			listeners.OnError(fmt.Errorf("error changing account: %w", err))
 			return
 		}
 	}
@@ -42,28 +41,21 @@ func (it *RunAdditionalBeforeCommand) Execute(targetPath string, arguments []str
 	if shouldInitEnvironment(arguments) {
 		err := it.repository.ExecuteCommand("terragrunt", []string{"init"}, targetPath)
 		if err != nil {
-			logger.Errorf("Error initializing the environment: %s", err)
-			listeners.OnError(err)
+			listeners.OnError(fmt.Errorf("error initializing the environment: %w", err))
 			return
 		}
 	}
 
 	// change workspace if necessary
-	if value, ok := it.shouldChangeWorkspace(); ok {
-		err := it.repository.ExecuteCommand("terragrunt", []string{"workspace", "select", "-or-create", value}, targetPath)
+	if it.settings.TerraTerraformWorkspace != "" {
+		err := it.repository.ExecuteCommand("terragrunt", []string{"workspace", "select", "-or-create", it.settings.TerraTerraformWorkspace}, targetPath)
 		if err != nil {
-			logger.Errorf("Error changing workspace: %s", err)
-			listeners.OnError(err)
+			listeners.OnError(fmt.Errorf("error changing workspace: %w", err))
 			return
 		}
 	}
 
 	listeners.OnSuccess()
-}
-
-func (it *RunAdditionalBeforeCommand) shouldChangeWorkspace() (string, bool) {
-	workspace := it.settings.TerraTerraformWorkspace
-	return workspace, workspace != ""
 }
 
 func shouldInitEnvironment(arguments []string) bool {

@@ -1,6 +1,9 @@
 package doubles
 
-import "github.com/rios0rios0/terra/internal/domain/entities"
+import (
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
+	"github.com/rios0rios0/terra/internal/domain/entities"
+)
 
 type InstallDependenciesCommandStub struct {
 	success bool
@@ -20,6 +23,6 @@ func (it *InstallDependenciesCommandStub) WithError() *InstallDependenciesComman
 	return it
 }
 
-func (it *InstallDependenciesCommandStub) Execute(_ []entities.Dependency) {
+func (it *InstallDependenciesCommandStub) Execute(_ []entities.Dependency, _ interfaces.InstallDependenciesListeners) {
 	it.success = true
 }

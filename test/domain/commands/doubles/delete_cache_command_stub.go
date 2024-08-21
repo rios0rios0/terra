@@ -1,5 +1,7 @@
 package doubles
 
+import "github.com/rios0rios0/terra/internal/domain/commands/interfaces"
+
 type DeleteCacheCommandStub struct {
 	success bool
 }
@@ -18,6 +20,6 @@ func (it *DeleteCacheCommandStub) WithError() *DeleteCacheCommandStub {
 	return it
 }
 
-func (it *DeleteCacheCommandStub) Execute(_ []string) {
+func (it *DeleteCacheCommandStub) Execute(_ []string, _ interfaces.DeleteCacheListeners) {
 	it.success = true
 }

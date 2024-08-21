@@ -26,11 +26,15 @@ func NewInstallDependenciesCommand() *InstallDependenciesCommand {
 }
 
 func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency, listeners interfaces.InstallDependenciesListeners) {
+	if os.Geteuid() != 0 {
+		listeners.OnError(fmt.Errorf("run this command with root privileges to install the dependencies"))
+		return
+	}
+
 	for _, dependency := range dependencies {
 		latestVersion := fetchLatestVersion(dependency.VersionURL, dependency.RegexVersion)
 
-		if !isDependencyCLIAvailable(dependency.CLI) {
-			ensureRootPrivileges()
+		if !dependency.IsAvailable() {
 			logger.Warnf("%s is not installed, installing now...", dependency.Name)
 			install(fmt.Sprintf(dependency.BinaryURL, latestVersion), dependency.CLI)
 		}
@@ -68,20 +72,6 @@ func fetchLatestVersion(url, regexPattern string) string {
 
 	logger.Fatalf("No version match found, check the regex pattern: %s", regexPattern)
 	return ""
-}
-
-// checking if a dependency is available
-func isDependencyCLIAvailable(name string) bool {
-	cmd := exec.Command(name, "-v")
-	return cmd.Run() == nil
-}
-
-// check if the "terra" has root privileges to install dependencies
-func ensureRootPrivileges() {
-	if os.Geteuid() != 0 {
-		logger.Fatalf("Run this command with root privileges to install the dependencies")
-		return
-	}
 }
 
 // installing dependencies doesn't matter the operating system
