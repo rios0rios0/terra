@@ -10,7 +10,7 @@ type CLI interface {
 	GetCommandChangeAccount() []string
 }
 
-func NewCLI(settings *Settings) CLI {
+func RetrieveCLI(cli *CLI, settings *Settings) {
 	mapping := map[string]CLI{
 		"aws":   NewCLIAws(settings),
 		"azure": NewCLIAzm(settings),
@@ -21,5 +21,5 @@ func NewCLI(settings *Settings) CLI {
 		value = nil
 		logger.Warnf("No cloud CLI found, avoiding to execute customized commands...")
 	}
-	return value
+	cli = &value
 }

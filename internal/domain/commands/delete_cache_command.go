@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"os"
 	"path/filepath"
 	"strings"
@@ -14,7 +15,7 @@ func NewDeleteCacheCommand() *DeleteCacheCommand {
 	return &DeleteCacheCommand{}
 }
 
-func (it *DeleteCacheCommand) Execute(toBeDeleted []string) {
+func (it *DeleteCacheCommand) Execute(toBeDeleted []string, listeners interfaces.DeleteCacheListeners) {
 	var foundDirectories []string
 	for _, dir := range toBeDeleted {
 		logger.Infof("Clearing all %s directories...", dir)
@@ -34,7 +35,11 @@ func (it *DeleteCacheCommand) Execute(toBeDeleted []string) {
 			err := os.RemoveAll(dirPath)
 			if err != nil {
 				logger.Errorf("Failed to remove directory: %s, error: %v", dirPath, err)
+				listeners.OnError(err)
+				return
 			}
 		}
 	}
+
+	listeners.OnSuccess()
 }

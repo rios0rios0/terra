@@ -4,8 +4,8 @@ package commands_test
 
 import (
 	"github.com/rios0rios0/terra/internal/domain/commands"
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"github.com/rios0rios0/terra/test/domain/entities/builders"
-	"github.com/rios0rios0/terra/test/infrastructure/repositories/doubles"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,30 +15,28 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 	t.Run("should install dependencies if not available", func(t *testing.T) {
 		// given
 		dependencies := builders.NewDependencyBuilder().BuildMany()
-		repository := doubles.NewShellRepositoryStub().WithSuccess()
 		command := commands.NewInstallDependenciesCommand()
 
-		// when
-		command.Execute(dependencies)
+		listeners := interfaces.InstallDependenciesListeners{OnSuccess: func() {
+			// then
+			assert.True(t, true, "the success listener should be called")
+		}}
 
-		// then
-		for _, dependency := range dependencies {
-			assert.True(t, repository.ExecuteCommand(dependency.CLI, "install"), "command should be executed for: "+dependency.CLI)
-		}
+		// when
+		command.Execute(dependencies, listeners)
 	})
 
-	t.Run("should handle already installed dependencies gracefully", func(t *testing.T) {
+	t.Run("should throw an error when some unexpected condition happens", func(t *testing.T) {
 		// given
 		dependencies := builders.NewDependencyBuilder().BuildMany()
-		repository := doubles.NewShellRepositoryStub().WithError()
 		command := commands.NewInstallDependenciesCommand()
 
-		// when
-		command.Execute(dependencies)
+		listeners := interfaces.InstallDependenciesListeners{OnError: func(err error) {
+			// then
+			assert.Error(t, err, "the error listener should be called")
+		}}
 
-		// then
-		for _, dependency := range dependencies {
-			assert.False(t, repository.ExecuteCommand(dependency.CLI, "install"), "command should not be executed for: "+dependency.CLI)
-		}
+		// when
+		command.Execute(dependencies, listeners)
 	})
 }

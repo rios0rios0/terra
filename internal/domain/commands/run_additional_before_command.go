@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"slices"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
@@ -10,43 +11,54 @@ import (
 
 type RunAdditionalBeforeCommand struct {
 	settings   *entities.Settings
-	cli        entities.CLI
 	repository repositories.ShellRepository
 }
 
 func NewRunAdditionalBeforeCommand(
 	settings *entities.Settings,
-	cli entities.CLI,
 	repository repositories.ShellRepository,
 ) *RunAdditionalBeforeCommand {
 	return &RunAdditionalBeforeCommand{
 		settings:   settings,
-		cli:        cli,
 		repository: repository,
 	}
 }
 
-func (it *RunAdditionalBeforeCommand) Execute(targetPath string, arguments []string) {
+func (it *RunAdditionalBeforeCommand) Execute(targetPath string, arguments []string, listeners interfaces.RunAdditionalBeforeListeners) {
+	var cli entities.CLI
+	entities.RetrieveCLI(&cli, it.settings)
+
 	// change account if necessary
-	if it.cli != nil && it.cli.CanChangeAccount() {
-		err := it.repository.ExecuteCommand(it.cli.GetName(), it.cli.GetCommandChangeAccount(), targetPath)
+	if cli != nil && cli.CanChangeAccount() {
+		err := it.repository.ExecuteCommand(cli.GetName(), cli.GetCommandChangeAccount(), targetPath)
 		if err != nil {
-			logger.Fatalf("Error changing account: %s", err)
+			logger.Errorf("Error changing account: %s", err)
+			listeners.OnError(err)
+			return
 		}
 	}
 
 	// init environment if necessary
 	if shouldInitEnvironment(arguments) {
-		_ = it.repository.ExecuteCommand("terragrunt", []string{"init"}, targetPath)
+		err := it.repository.ExecuteCommand("terragrunt", []string{"init"}, targetPath)
+		if err != nil {
+			logger.Errorf("Error initializing the environment: %s", err)
+			listeners.OnError(err)
+			return
+		}
 	}
 
 	// change workspace if necessary
 	if value, ok := it.shouldChangeWorkspace(); ok {
 		err := it.repository.ExecuteCommand("terragrunt", []string{"workspace", "select", "-or-create", value}, targetPath)
 		if err != nil {
-			logger.Fatalf("Error changing workspace: %s", err)
+			logger.Errorf("Error changing workspace: %s", err)
+			listeners.OnError(err)
+			return
 		}
 	}
+
+	listeners.OnSuccess()
 }
 
 func (it *RunAdditionalBeforeCommand) shouldChangeWorkspace() (string, bool) {

@@ -1,18 +1,19 @@
 package controllers
 
 import (
-	"github.com/rios0rios0/terra/internal/domain/commands"
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 type InstallDependenciesController struct {
-	command      commands.InstallDependencies
+	command      interfaces.InstallDependencies
 	dependencies []entities.Dependency
 }
 
 func NewInstallDependenciesController(
-	command commands.InstallDependencies,
+	command interfaces.InstallDependencies,
 	dependencies []entities.Dependency,
 ) *InstallDependenciesController {
 	return &InstallDependenciesController{
@@ -30,5 +31,13 @@ func (it *InstallDependenciesController) GetBind() entities.ControllerBind {
 }
 
 func (it *InstallDependenciesController) Execute(_ *cobra.Command, _ []string) {
-	it.command.Execute(it.dependencies)
+	listeners := interfaces.InstallDependenciesListeners{
+		OnSuccess: func() {
+			logger.Info("Dependencies installed successfully")
+		},
+		OnError: func(err error) {
+			logger.Errorf("Failed to install dependencies: %v", err)
+		},
+	}
+	it.command.Execute(it.dependencies, listeners)
 }

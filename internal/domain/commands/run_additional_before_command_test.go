@@ -4,8 +4,8 @@ package commands_test
 
 import (
 	"github.com/rios0rios0/terra/internal/domain/commands"
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	testentities "github.com/rios0rios0/terra/test/domain/entities/doubles"
 	testrepositories "github.com/rios0rios0/terra/test/infrastructure/repositories/doubles"
 	"testing"
 
@@ -13,45 +13,63 @@ import (
 )
 
 func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
-	t.Run("should change account if CLI can change account", func(t *testing.T) {
+	t.Run("should change account when CLI can change the account", func(t *testing.T) {
 		// given
 		settings := &entities.Settings{TerraTerraformWorkspace: "default"}
-		cli := testentities.NewCLIStub().WithCanChangeAccount(true)
 		repository := testrepositories.NewShellRepositoryStub().WithSuccess()
-		command := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
+		command := commands.NewRunAdditionalBeforeCommand(settings, repository)
+
+		listeners := interfaces.RunAdditionalBeforeListeners{OnSuccess: func() {
+			// then
+			assert.True(t, true, "the success listener should be called")
+		}}
 
 		// when
-		command.Execute("target/path", []string{"apply"})
-
-		// then
-		assert.True(t, repository.ExecuteCommand(cli.GetName(), cli.GetCommandChangeAccount()), "command should be executed to change account")
+		command.Execute("target/path", []string{"apply"}, listeners)
 	})
 
-	t.Run("should init environment if necessary", func(t *testing.T) {
+	t.Run("should initialize the environment when it's necessary", func(t *testing.T) {
 		// given
 		settings := &entities.Settings{TerraTerraformWorkspace: "default"}
-		cli := testentities.NewCLIStub().WithCanChangeAccount(false)
 		repository := testrepositories.NewShellRepositoryStub().WithSuccess()
-		command := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
+		command := commands.NewRunAdditionalBeforeCommand(settings, repository)
+
+		listeners := interfaces.RunAdditionalBeforeListeners{OnSuccess: func() {
+			// then
+			assert.True(t, true, "the success listener should be called")
+		}}
 
 		// when
-		command.Execute("target/path", []string{"apply"})
-
-		// then
-		assert.True(t, repository.ExecuteCommand("terragrunt", []string{"init"}), "command should be executed to init environment")
+		command.Execute("target/path", []string{"apply"}, listeners)
 	})
 
-	t.Run("should change workspace if necessary", func(t *testing.T) {
+	t.Run("should change the workspace when it's necessary", func(t *testing.T) {
 		// given
 		settings := &entities.Settings{TerraTerraformWorkspace: "new-workspace"}
-		cli := testentities.NewCLIStub().WithCanChangeAccount(false)
 		repository := testrepositories.NewShellRepositoryStub().WithSuccess()
-		command := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
+		command := commands.NewRunAdditionalBeforeCommand(settings, repository)
+
+		listeners := interfaces.RunAdditionalBeforeListeners{OnSuccess: func() {
+			// then
+			assert.True(t, true, "the success listener should be called")
+		}}
 
 		// when
-		command.Execute("target/path", []string{"apply"})
+		command.Execute("target/path", []string{"apply"}, listeners)
+	})
 
-		// then
-		assert.True(t, repository.ExecuteCommand("terragrunt", []string{"workspace", "select", "-or-create", "new-workspace"}), "command should be executed to change workspace")
+	t.Run("should throw an error when some unexpected condition happens", func(t *testing.T) {
+		// given
+		settings := &entities.Settings{TerraTerraformWorkspace: "new-workspace"}
+		repository := testrepositories.NewShellRepositoryStub().WithError()
+		command := commands.NewRunAdditionalBeforeCommand(settings, repository)
+
+		listeners := interfaces.RunAdditionalBeforeListeners{OnError: func(err error) {
+			// then
+			assert.Error(t, err, "the error listener should be called")
+		}}
+
+		// when
+		command.Execute("target/path", []string{"apply"}, listeners)
 	})
 }

@@ -1,19 +1,20 @@
 package controllers
 
 import (
-	"github.com/rios0rios0/terra/internal/domain/commands"
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/helpers"
+	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 type RunFromRootController struct {
-	command      commands.RunFromRoot
+	command      interfaces.RunFromRoot
 	dependencies []entities.Dependency
 }
 
 func NewRunFromRootController(
-	command commands.RunFromRoot,
+	command interfaces.RunFromRoot,
 	dependencies []entities.Dependency,
 ) *RunFromRootController {
 	return &RunFromRootController{
@@ -34,5 +35,13 @@ func (it *RunFromRootController) GetBind() entities.ControllerBind {
 func (it *RunFromRootController) Execute(_ *cobra.Command, arguments []string) {
 	absolutePath := helpers.ArgumentsHelper{}.FindAbsolutePath(arguments)
 	filteredArguments := helpers.ArgumentsHelper{}.RemovePathFromArguments(arguments)
-	it.command.Execute(absolutePath, filteredArguments, it.dependencies)
+	listeners := interfaces.RunFromRootListeners{
+		OnSuccess: func() {
+			logger.Info("Command executed successfully")
+		},
+		OnError: func(err error) {
+			logger.Errorf("Failed to execute command: %v", err)
+		},
+	}
+	it.command.Execute(absolutePath, filteredArguments, it.dependencies, listeners)
 }

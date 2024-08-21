@@ -3,6 +3,7 @@ package commands
 import (
 	"context"
 	"fmt"
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"io"
 	"net/http"
 	"os"
@@ -24,7 +25,7 @@ func NewInstallDependenciesCommand() *InstallDependenciesCommand {
 	return &InstallDependenciesCommand{}
 }
 
-func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency) {
+func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency, listeners interfaces.InstallDependenciesListeners) {
 	for _, dependency := range dependencies {
 		latestVersion := fetchLatestVersion(dependency.VersionURL, dependency.RegexVersion)
 
@@ -34,6 +35,8 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 			install(fmt.Sprintf(dependency.BinaryURL, latestVersion), dependency.CLI)
 		}
 	}
+
+	listeners.OnSuccess()
 }
 
 // fetch the latest version of software from a URL

@@ -1,18 +1,19 @@
 package controllers
 
 import (
-	"github.com/rios0rios0/terra/internal/domain/commands"
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 type FormatFilesController struct {
-	command      commands.FormatFiles
+	command      interfaces.FormatFiles
 	dependencies []entities.Dependency
 }
 
 func NewFormatFilesController(
-	command commands.FormatFiles,
+	command interfaces.FormatFiles,
 	dependencies []entities.Dependency,
 ) *FormatFilesController {
 	return &FormatFilesController{
@@ -30,5 +31,13 @@ func (it *FormatFilesController) GetBind() entities.ControllerBind {
 }
 
 func (it *FormatFilesController) Execute(_ *cobra.Command, _ []string) {
-	it.command.Execute(it.dependencies)
+	listeners := interfaces.FormatFilesListeners{
+		OnSuccess: func() {
+			logger.Info("Files formatted successfully")
+		},
+		OnError: func(err error) {
+			logger.Errorf("Failed to format files: %v", err)
+		},
+	}
+	it.command.Execute(it.dependencies, listeners)
 }

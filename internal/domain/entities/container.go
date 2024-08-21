@@ -7,5 +7,4 @@ import (
 //nolint:gochecknoglobals
 var Container = wire.NewSet(
 	NewSettings,
-	NewCLI,
 )

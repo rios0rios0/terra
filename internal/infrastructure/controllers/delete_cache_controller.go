@@ -1,16 +1,17 @@
 package controllers
 
 import (
-	"github.com/rios0rios0/terra/internal/domain/commands"
+	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
 type DeleteCacheController struct {
-	command commands.DeleteCache
+	command interfaces.DeleteCache
 }
 
-func NewDeleteCacheController(command commands.DeleteCache) *DeleteCacheController {
+func NewDeleteCacheController(command interfaces.DeleteCache) *DeleteCacheController {
 	return &DeleteCacheController{command: command}
 }
 
@@ -23,5 +24,13 @@ func (it *DeleteCacheController) GetBind() entities.ControllerBind {
 }
 
 func (it *DeleteCacheController) Execute(_ *cobra.Command, _ []string) {
-	it.command.Execute([]string{".terraform", ".terragrunt-cache"})
+	listeners := interfaces.DeleteCacheListeners{
+		OnSuccess: func() {
+			logger.Info("Cache cleared successfully")
+		},
+		OnError: func(err error) {
+			logger.Errorf("Failed to clear cache: %v", err)
+		},
+	}
+	it.command.Execute([]string{".terraform", ".terragrunt-cache"}, listeners)
 }
