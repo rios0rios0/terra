@@ -23,8 +23,10 @@ func NewSettings() *Settings {
 	validate := validator.New()
 	err = validate.Struct(settings)
 	if err != nil {
-		logger.Fatalf("Environment variables validation error: %v", err)
+		for _, err := range err.(validator.ValidationErrors) {
+			logger.Fatalf("Environment validation error! In the variable '%s(%s)', the validation '%s=%s' didn't pass. The value inserted was '%s'...",
+				err.Field(), err.Type(), err.Tag(), err.Param(), err.Value())
+		}
 	}
-
 	return &settings
 }
