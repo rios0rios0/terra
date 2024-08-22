@@ -11,12 +11,12 @@ import (
 
 type RunAdditionalBeforeCommand struct {
 	settings   *entities.Settings
-	repository repositories.ShellRepository
+	repository repositories.OSRepository
 }
 
 func NewRunAdditionalBeforeCommand(
 	settings *entities.Settings,
-	repository repositories.ShellRepository,
+	repository repositories.OSRepository,
 ) *RunAdditionalBeforeCommand {
 	return &RunAdditionalBeforeCommand{
 		settings:   settings,

@@ -9,10 +9,10 @@ import (
 )
 
 type FormatFilesCommand struct {
-	repository repositories.ShellRepository
+	repository repositories.OSRepository
 }
 
-func NewFormatFilesCommand(repository repositories.ShellRepository) *FormatFilesCommand {
+func NewFormatFilesCommand(repository repositories.OSRepository) *FormatFilesCommand {
 	return &FormatFilesCommand{repository: repository}
 }
 

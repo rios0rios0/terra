@@ -1,6 +1,9 @@
 package entities
 
-import "os/exec"
+import (
+	"fmt"
+	"os/exec"
+)
 
 type Dependency struct {
 	Name              string   `fake:"{name}"`
@@ -14,4 +17,8 @@ type Dependency struct {
 func (it *Dependency) IsAvailable() bool {
 	cmd := exec.Command(it.CLI, "-v")
 	return cmd.Run() == nil
+}
+
+func (it *Dependency) GetDownloadURL(version string) string {
+	return fmt.Sprintf(it.BinaryURL, version)
 }

@@ -16,7 +16,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	t.Run("should perform all actions before executing the next command successfully", func(t *testing.T) {
 		// given
 		settings := &entities.Settings{TerraTerraformWorkspace: "default"}
-		repository := testrepositories.NewShellRepositoryStub().WithSuccess()
+		repository := testrepositories.NewOSRepositoryStub().WithSuccess()
 		command := commands.NewRunAdditionalBeforeCommand(settings, repository)
 
 		listeners := interfaces.RunAdditionalBeforeListeners{OnSuccess: func() {
@@ -31,7 +31,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	t.Run("should return an error when changing account fails", func(t *testing.T) {
 		// given
 		settings := &entities.Settings{TerraTerraformWorkspace: "default"}
-		repository := testrepositories.NewShellRepositoryStub().WithError()
+		repository := testrepositories.NewOSRepositoryStub().WithError()
 		command := commands.NewRunAdditionalBeforeCommand(settings, repository)
 
 		listeners := interfaces.RunAdditionalBeforeListeners{
@@ -49,7 +49,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	t.Run("should return an error when initializing the environment fails", func(t *testing.T) {
 		// given
 		settings := &entities.Settings{TerraTerraformWorkspace: "default"}
-		repository := testrepositories.NewShellRepositoryStub().WithError()
+		repository := testrepositories.NewOSRepositoryStub().WithError()
 		command := commands.NewRunAdditionalBeforeCommand(settings, repository)
 
 		listeners := interfaces.RunAdditionalBeforeListeners{
@@ -67,7 +67,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	t.Run("should return an error when changing workspace fails", func(t *testing.T) {
 		// given
 		settings := &entities.Settings{TerraTerraformWorkspace: "new-workspace"}
-		repository := testrepositories.NewShellRepositoryStub().WithError()
+		repository := testrepositories.NewOSRepositoryStub().WithError()
 		command := commands.NewRunAdditionalBeforeCommand(settings, repository)
 
 		listeners := interfaces.RunAdditionalBeforeListeners{

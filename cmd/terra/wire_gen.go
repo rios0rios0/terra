@@ -19,8 +19,8 @@ import (
 func injectAppContext() entities.AppContext {
 	deleteCacheCommand := commands.NewDeleteCacheCommand()
 	deleteCacheController := controllers.NewDeleteCacheController(deleteCacheCommand)
-	stdShellRepository := repositories.NewStdShellRepository()
-	formatFilesCommand := commands.NewFormatFilesCommand(stdShellRepository)
+	defaultOSRepository := repositories.NewDefaultOSRepository()
+	formatFilesCommand := commands.NewFormatFilesCommand(defaultOSRepository)
 	v := _wireValue
 	formatFilesController := controllers.NewFormatFilesController(formatFilesCommand, v)
 	installDependenciesCommand := commands.NewInstallDependenciesCommand()
@@ -54,12 +54,11 @@ var (
 
 func injectRootController() entities.Controller {
 	installDependenciesCommand := commands.NewInstallDependenciesCommand()
-	stdShellRepository := repositories.NewStdShellRepository()
-	formatFilesCommand := commands.NewFormatFilesCommand(stdShellRepository)
+	defaultOSRepository := repositories.NewDefaultOSRepository()
+	formatFilesCommand := commands.NewFormatFilesCommand(defaultOSRepository)
 	settings := entities.NewSettings()
-	cli := entities.NewCLI(settings)
-	runAdditionalBeforeCommand := commands.NewRunAdditionalBeforeCommand(settings, cli, stdShellRepository)
-	runFromRootCommand := commands.NewRunFromRootCommand(installDependenciesCommand, formatFilesCommand, runAdditionalBeforeCommand, stdShellRepository)
+	runAdditionalBeforeCommand := commands.NewRunAdditionalBeforeCommand(settings, defaultOSRepository)
+	runFromRootCommand := commands.NewRunFromRootCommand(installDependenciesCommand, formatFilesCommand, runAdditionalBeforeCommand, defaultOSRepository)
 	v := _wireValue
 	runFromRootController := controllers.NewRunFromRootController(runFromRootCommand, v)
 	controller := newRootController(runFromRootController)

@@ -15,7 +15,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	t.Run("should format files for each dependency", func(t *testing.T) {
 		// given
 		dependencies := builders.NewDependencyBuilder().BuildMany()
-		repository := doubles.NewShellRepositoryStub().WithSuccess()
+		repository := doubles.NewOSRepositoryStub().WithSuccess()
 		command := commands.NewFormatFilesCommand(repository)
 
 		listeners := interfaces.FormatFilesListeners{OnSuccess: func() {
@@ -30,7 +30,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	t.Run("should throw an error when some unexpected condition happens", func(t *testing.T) {
 		// given
 		dependencies := builders.NewDependencyBuilder().BuildMany()
-		repository := doubles.NewShellRepositoryStub().WithError()
+		repository := doubles.NewOSRepositoryStub().WithError()
 		command := commands.NewFormatFilesCommand(repository)
 
 		listeners := interfaces.FormatFilesListeners{OnError: func(err error) {

@@ -19,7 +19,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		installCommand := testcommands.NewInstallDependenciesCommandStub().WithSuccess()
 		formatCommand := testcommands.NewFormatFilesCommandStub().WithSuccess()
 		additionalBeforeCommand := testcommands.NewRunAdditionalBeforeCommandStub().WithSuccess()
-		repository := testrepositories.NewShellRepositoryStub().WithSuccess()
+		repository := testrepositories.NewOSRepositoryStub().WithSuccess()
 		command := commands.NewRunFromRootCommand(installCommand, formatCommand, additionalBeforeCommand, repository)
 
 		listeners := interfaces.RunFromRootListeners{
@@ -39,7 +39,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		installCommand := testcommands.NewInstallDependenciesCommandStub().WithError()
 		formatCommand := testcommands.NewFormatFilesCommandStub().WithSuccess()
 		additionalBeforeCommand := testcommands.NewRunAdditionalBeforeCommandStub().WithSuccess()
-		repository := testrepositories.NewShellRepositoryStub().WithSuccess()
+		repository := testrepositories.NewOSRepositoryStub().WithSuccess()
 		command := commands.NewRunFromRootCommand(installCommand, formatCommand, additionalBeforeCommand, repository)
 
 		listeners := interfaces.RunFromRootListeners{
@@ -59,13 +59,14 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		installCommand := testcommands.NewInstallDependenciesCommandStub().WithSuccess()
 		formatCommand := testcommands.NewFormatFilesCommandStub().WithError()
 		additionalBeforeCommand := testcommands.NewRunAdditionalBeforeCommandStub().WithSuccess()
-		repository := testrepositories.NewShellRepositoryStub().WithSuccess()
+		repository := testrepositories.NewOSRepositoryStub().WithSuccess()
 		command := commands.NewRunFromRootCommand(installCommand, formatCommand, additionalBeforeCommand, repository)
 
 		listeners := interfaces.RunFromRootListeners{
 			OnError: func(err error) {
 				// then
 				assert.Error(t, err, "the error listener should be called")
+				assert.ErrorContains(t, err, "failed to format")
 			},
 		}
 
@@ -79,7 +80,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		installCommand := testcommands.NewInstallDependenciesCommandStub().WithSuccess()
 		formatCommand := testcommands.NewFormatFilesCommandStub().WithSuccess()
 		additionalBeforeCommand := testcommands.NewRunAdditionalBeforeCommandStub().WithError()
-		repository := testrepositories.NewShellRepositoryStub().WithSuccess()
+		repository := testrepositories.NewOSRepositoryStub().WithSuccess()
 		command := commands.NewRunFromRootCommand(installCommand, formatCommand, additionalBeforeCommand, repository)
 
 		listeners := interfaces.RunFromRootListeners{
@@ -99,7 +100,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		installCommand := testcommands.NewInstallDependenciesCommandStub().WithSuccess()
 		formatCommand := testcommands.NewFormatFilesCommandStub().WithSuccess()
 		additionalBeforeCommand := testcommands.NewRunAdditionalBeforeCommandStub().WithSuccess()
-		repository := testrepositories.NewShellRepositoryStub().WithError()
+		repository := testrepositories.NewOSRepositoryStub().WithError()
 		command := commands.NewRunFromRootCommand(installCommand, formatCommand, additionalBeforeCommand, repository)
 
 		listeners := interfaces.RunFromRootListeners{

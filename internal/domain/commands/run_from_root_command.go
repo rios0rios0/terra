@@ -11,14 +11,14 @@ type RunFromRootCommand struct {
 	installCommand   interfaces.InstallDependencies
 	formatCommand    interfaces.FormatFiles
 	additionalBefore interfaces.RunAdditionalBefore
-	repository       repositories.ShellRepository
+	repository       repositories.OSRepository
 }
 
 func NewRunFromRootCommand(
 	installCommand interfaces.InstallDependencies,
 	formatCommand interfaces.FormatFiles,
 	additionalBefore interfaces.RunAdditionalBefore,
-	repository repositories.ShellRepository,
+	repository repositories.OSRepository,
 ) *RunFromRootCommand {
 	return &RunFromRootCommand{
 		installCommand:   installCommand,

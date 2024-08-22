@@ -1,25 +1,19 @@
 package commands
 
 import (
-	"context"
 	"fmt"
 	"github.com/rios0rios0/terra/internal/domain/commands/interfaces"
-	"io"
-	"net/http"
-	"os"
-	"os/exec"
-	"path"
-	"regexp"
-	"strings"
-	"time"
-
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/internal/domain/repositories"
 	logger "github.com/sirupsen/logrus"
+	"os"
+	"path"
 )
 
-const contextTimeout = 10 * time.Second
-
-type InstallDependenciesCommand struct{}
+type InstallDependenciesCommand struct {
+	osRepository  repositories.OSRepository
+	webRepository repositories.WebStringsRepository
+}
 
 func NewInstallDependenciesCommand() *InstallDependenciesCommand {
 	return &InstallDependenciesCommand{}
@@ -32,80 +26,32 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 	}
 
 	for _, dependency := range dependencies {
-		latestVersion := fetchLatestVersion(dependency.VersionURL, dependency.RegexVersion)
+		latestVersion, err := it.webRepository.FindStringMatchInURL(dependency.VersionURL, dependency.RegexVersion)
+		if err != nil {
+			listeners.OnError(fmt.Errorf("failed to fetch latest version for %s: %w", dependency.Name, err))
+			return
+		}
 
 		if !dependency.IsAvailable() {
-			logger.Warnf("%s is not installed, installing now...", dependency.Name)
-			install(fmt.Sprintf(dependency.BinaryURL, latestVersion), dependency.CLI)
+			logger.Infof("'%s' is not installed, installing now...", dependency.Name)
+
+			downloadURL := dependency.GetDownloadURL(latestVersion)
+			logger.Infof("Downloading '%s' from '%s'...", dependency.Name, downloadURL)
+
+			currentOS := entities.GetOS()
+			temporaryPath := path.Join(currentOS.GetTempDir(), dependency.Name)
+			destinationPath := path.Join(currentOS.GetInstallationPath(), dependency.Name)
+			if err = currentOS.Download(downloadURL, temporaryPath); err != nil {
+				listeners.OnError(fmt.Errorf("failed to download %s: %s", dependency.Name, err))
+				return
+			}
+
+			if err = it.osRepository.InstallExecutable(temporaryPath, destinationPath, currentOS); err != nil {
+				listeners.OnError(fmt.Errorf("failed to install dependency %s: %w", dependency.Name, err))
+				return
+			}
 		}
 	}
 
 	listeners.OnSuccess()
-}
-
-// fetch the latest version of software from a URL
-func fetchLatestVersion(url, regexPattern string) string {
-	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
-	defer cancel()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		logger.Fatalf("Error creating request: %s", err)
-	}
-
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		logger.Fatalf("Error fetching version info: %s", err)
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		logger.Fatalf("Error reading response body: %s", err)
-	}
-
-	re := regexp.MustCompile(regexPattern)
-	matches := re.FindStringSubmatch(string(body))
-	if len(matches) > 1 {
-		return matches[1]
-	}
-
-	logger.Fatalf("No version match found, check the regex pattern: %s", regexPattern)
-	return ""
-}
-
-// installing dependencies doesn't matter the operating system
-func install(url, name string) {
-	currentOS := entities.GetOS()
-	tempFilePath := path.Join(currentOS.GetTempDir(), name)
-	destPath := path.Join(currentOS.GetInstallationPath(), name)
-
-	logger.Infof("Downloading %s from %s...", name, url)
-	if err := currentOS.Download(url, tempFilePath); err != nil {
-		logger.Fatalf("Failed to download %s: %s", name, err)
-	}
-
-	fileTypeCmd := exec.Command("file", tempFilePath)
-	fileTypeOutput, err := fileTypeCmd.Output()
-	if err != nil {
-		logger.Fatalf("Failed to determine file type of %s: %s", name, err)
-	}
-
-	if strings.Contains(string(fileTypeOutput), "Zip archive data") {
-		logger.Infof("%s is a zip file, extracting...", name)
-		if err := currentOS.Extract(tempFilePath, destPath); err != nil {
-			logger.Fatalf("Failed to extract %s: %s", name, err)
-		}
-		if err := currentOS.Remove(tempFilePath); err != nil {
-			logger.Fatalf("Failed to remove %s: %s", name, err)
-		}
-	} else {
-		if err := currentOS.Move(tempFilePath, destPath); err != nil {
-			logger.Fatalf("Failed to move %s to %s: %s", name, destPath, err)
-		}
-	}
-
-	if err := currentOS.MakeExecutable(destPath); err != nil {
-		logger.Fatalf("Failed to make %s executable: %s", name, err)
-	}
 }

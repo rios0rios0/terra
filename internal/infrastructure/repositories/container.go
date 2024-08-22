@@ -7,6 +7,6 @@ import (
 
 //nolint:gochecknoglobals
 var Container = wire.NewSet(
-	NewStdShellRepository,
-	wire.Bind(new(repositories.ShellRepository), new(*StdShellRepository)),
+	NewDefaultOSRepository,
+	wire.Bind(new(repositories.OSRepository), new(*DefaultOSRepository)),
 )

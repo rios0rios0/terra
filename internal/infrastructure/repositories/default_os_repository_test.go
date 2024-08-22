@@ -12,7 +12,7 @@ import (
 func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 	t.Run("should return success when executing a valid command", func(t *testing.T) {
 		// given
-		repository := repositories.NewStdShellRepository()
+		repository := repositories.NewDefaultOSRepository()
 
 		// when
 		err := repository.ExecuteCommand("echo", []string{"Hello, World!"}, ".")
@@ -23,7 +23,7 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 
 	t.Run("should return an error when executing an invalid command", func(t *testing.T) {
 		// given
-		repository := repositories.NewStdShellRepository()
+		repository := repositories.NewDefaultOSRepository()
 
 		// when
 		err := repository.ExecuteCommand("non-existent", []string{}, ".")
