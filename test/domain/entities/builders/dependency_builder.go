@@ -6,7 +6,7 @@ import (
 )
 
 type DependencyBuilder struct {
-	testentities.DefaultBaseBuilder[entities.Dependency]
+	testentities.BaseBuilder[entities.Dependency]
 }
 
 func NewDependencyBuilder() *DependencyBuilder {

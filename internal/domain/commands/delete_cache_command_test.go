@@ -18,12 +18,14 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 
 		command := commands.NewDeleteCacheCommand()
 
-		listeners := interfaces.DeleteCacheListeners{OnSuccess: func() {
-			// then
-			for _, dir := range toBeDeleted {
-				assert.False(t, helper.DirectoryExists(dir), "directory should be removed: "+dir)
-			}
-		}}
+		listeners := interfaces.DeleteCacheListeners{
+			OnSuccess: func() {
+				// then
+				for _, dir := range toBeDeleted {
+					assert.False(t, helper.DirectoryExists(dir), "directory should be removed: "+dir)
+				}
+			},
+		}
 
 		// when
 		command.Execute(toBeDeleted, listeners)
@@ -35,10 +37,12 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		toBeDeleted := []string{"non-existent"}
 		command := commands.NewDeleteCacheCommand()
 
-		listeners := interfaces.DeleteCacheListeners{OnSuccess: func() {
-			// then
-			assert.False(t, helper.DirectoryExists("non-existent"), "non-existent directory should not cause errors")
-		}}
+		listeners := interfaces.DeleteCacheListeners{
+			OnSuccess: func() {
+				// then
+				assert.False(t, helper.DirectoryExists("non-existent"), "non-existent directory should not cause errors")
+			},
+		}
 
 		// when
 		command.Execute(toBeDeleted, listeners)
@@ -49,11 +53,13 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		toBeDeleted := []string{"."}
 		command := commands.NewDeleteCacheCommand()
 
-		listeners := interfaces.DeleteCacheListeners{OnError: func(err error) {
-			// then
-			assert.Error(t, err, "should return an error when trying to remove and it couldn't")
-			assert.ErrorContains(t, err, "failed to remove directory")
-		}}
+		listeners := interfaces.DeleteCacheListeners{
+			OnError: func(err error) {
+				// then
+				assert.Error(t, err, "should return an error when trying to remove and it couldn't")
+				assert.ErrorContains(t, err, "failed to remove directory")
+			},
+		}
 
 		// when
 		command.Execute(toBeDeleted, listeners)

@@ -18,10 +18,12 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 		repository := doubles.NewOSRepositoryStub().WithSuccess()
 		command := commands.NewFormatFilesCommand(repository)
 
-		listeners := interfaces.FormatFilesListeners{OnSuccess: func() {
-			// then
-			assert.True(t, true, "the success listener should be called")
-		}}
+		listeners := interfaces.FormatFilesListeners{
+			OnSuccess: func() {
+				// then
+				assert.True(t, true, "the success listener should be called")
+			},
+		}
 
 		// when
 		command.Execute(dependencies, listeners)
@@ -33,11 +35,13 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 		repository := doubles.NewOSRepositoryStub().WithError()
 		command := commands.NewFormatFilesCommand(repository)
 
-		listeners := interfaces.FormatFilesListeners{OnError: func(err error) {
-			// then
-			assert.Error(t, err, "the error listener should be called")
-			assert.ErrorContains(t, err, "failed to format")
-		}}
+		listeners := interfaces.FormatFilesListeners{
+			OnError: func(err error) {
+				// then
+				assert.Error(t, err, "the error listener should be called")
+				assert.ErrorContains(t, err, "failed to format")
+			},
+		}
 
 		// when
 		command.Execute(dependencies, listeners)

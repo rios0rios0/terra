@@ -17,6 +17,10 @@ func NewDefaultOSRepository() *DefaultOSRepository {
 	return &DefaultOSRepository{}
 }
 
+func (it *DefaultOSRepository) IsSuperUser() bool {
+	return os.Geteuid() == 0
+}
+
 func (it *DefaultOSRepository) ExecuteCommand(command string, arguments []string, directory string) error {
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(arguments, " "), directory)
 	cmd := exec.Command(command, arguments...)

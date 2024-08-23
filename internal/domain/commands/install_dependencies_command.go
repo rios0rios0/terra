@@ -6,7 +6,6 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
 	logger "github.com/sirupsen/logrus"
-	"os"
 	"path"
 )
 
@@ -15,12 +14,18 @@ type InstallDependenciesCommand struct {
 	webRepository repositories.WebStringsRepository
 }
 
-func NewInstallDependenciesCommand() *InstallDependenciesCommand {
-	return &InstallDependenciesCommand{}
+func NewInstallDependenciesCommand(
+	osRepository repositories.OSRepository,
+	webRepository repositories.WebStringsRepository,
+) *InstallDependenciesCommand {
+	return &InstallDependenciesCommand{
+		osRepository:  osRepository,
+		webRepository: webRepository,
+	}
 }
 
 func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency, listeners interfaces.InstallDependenciesListeners) {
-	if os.Geteuid() != 0 {
+	if !it.osRepository.IsSuperUser() {
 		listeners.OnError(fmt.Errorf("run this command with root privileges to install the dependencies"))
 		return
 	}

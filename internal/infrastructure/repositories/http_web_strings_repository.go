@@ -13,6 +13,10 @@ const contextTimeout = 10 * time.Second
 
 type HttpWebStringsRepository struct{}
 
+func NewHttpWebStringsRepository() *HttpWebStringsRepository {
+	return &HttpWebStringsRepository{}
+}
+
 func (it *HttpWebStringsRepository) FindStringMatchInURL(url, regexPattern string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
@@ -24,7 +28,7 @@ func (it *HttpWebStringsRepository) FindStringMatchInURL(url, regexPattern strin
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("error fetching version info: %w", err)
+		return "", fmt.Errorf("error doing HTTP request: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -39,5 +43,5 @@ func (it *HttpWebStringsRepository) FindStringMatchInURL(url, regexPattern strin
 		return matches[1], nil
 	}
 
-	return "", fmt.Errorf("no version match found, check the regex pattern: %s", regexPattern)
+	return "", fmt.Errorf("no match found, check the regex pattern: %s", regexPattern)
 }
