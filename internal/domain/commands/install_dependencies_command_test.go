@@ -71,43 +71,43 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 		command.Execute(dependencies, listeners)
 	})
 
-	//t.Run("should return an error when failing to download dependency", func(t *testing.T) {
-	//	// given
-	//	dependencies := testbuilders.NewDependencyBuilder().BuildMany()
-	//
-	//	osRepository := testrepositories.NewOSRepositoryStub().WithDownloadError()
-	//	webRepository := testrepositories.NewWebStringsRepositoryStub().WithSuccess()
-	//	command := commands.NewInstallDependenciesCommand(osRepository, webRepository)
-	//
-	//	listeners := interfaces.InstallDependenciesListeners{
-	//		OnError: func(err error) {
-	//			// then
-	//			assert.Error(t, err, "the error listener should be called when failing to download dependency")
-	//			assert.ErrorContains(t, err, "failed to download test-dependency")
-	//		},
-	//	}
-	//
-	//	// when
-	//	command.Execute(dependencies, listeners)
-	//})
-	//
-	//t.Run("should return an error when failing to install dependency", func(t *testing.T) {
-	//	// given
-	//	dependencies := testbuilders.NewDependencyBuilder().BuildMany()
-	//
-	//	osRepository := testrepositories.NewOSRepositoryStub().WithInstallError()
-	//	webRepository := testrepositories.NewWebStringsRepositoryStub().WithSuccess()
-	//	command := commands.NewInstallDependenciesCommand(osRepository, webRepository)
-	//
-	//	listeners := interfaces.InstallDependenciesListeners{
-	//		OnError: func(err error) {
-	//			// then
-	//			assert.Error(t, err, "the error listener should be called when failing to install dependency")
-	//			assert.ErrorContains(t, err, "failed to install dependency test-dependency")
-	//		},
-	//	}
-	//
-	//	// when
-	//	command.Execute(dependencies, listeners)
-	//})
+	t.Run("should return an error when failing to download dependency", func(t *testing.T) {
+		// given
+		dependencies := testbuilders.NewDependencyBuilder().BuildMany()
+
+		osRepository := testrepositories.NewOSRepositoryStub().WithDownloadError()
+		webRepository := testrepositories.NewWebStringsRepositoryStub().WithSuccess()
+		command := commands.NewInstallDependenciesCommand(osRepository, webRepository)
+
+		listeners := interfaces.InstallDependenciesListeners{
+			OnError: func(err error) {
+				// then
+				assert.Error(t, err, "the error listener should be called when failing to download dependency")
+				assert.ErrorContains(t, err, "failed to download test-dependency")
+			},
+		}
+
+		// when
+		command.Execute(dependencies, listeners)
+	})
+
+	t.Run("should return an error when failing to install dependency", func(t *testing.T) {
+		// given
+		dependencies := testbuilders.NewDependencyBuilder().BuildMany()
+
+		osRepository := testrepositories.NewOSRepositoryStub().WithInstallError()
+		webRepository := testrepositories.NewWebStringsRepositoryStub().WithSuccess()
+		command := commands.NewInstallDependenciesCommand(osRepository, webRepository)
+
+		listeners := interfaces.InstallDependenciesListeners{
+			OnError: func(err error) {
+				// then
+				assert.Error(t, err, "the error listener should be called when failing to install dependency")
+				assert.ErrorContains(t, err, "failed to install dependency test-dependency")
+			},
+		}
+
+		// when
+		command.Execute(dependencies, listeners)
+	})
 }

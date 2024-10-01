@@ -8,7 +8,7 @@ import (
 //nolint:gochecknoglobals
 var Container = wire.NewSet(
 	NewDefaultOSRepository,
-	wire.Bind(new(repositories.OSRepository), new(*DefaultOSRepository)),
+	wire.Bind(new(repositories.OSRepository), new(*OsRepository)),
 	NewHttpWebStringsRepository,
 	wire.Bind(new(repositories.WebStringsRepository), new(*HttpWebStringsRepository)),
 )
