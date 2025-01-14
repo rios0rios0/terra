@@ -58,6 +58,15 @@ More about it in:
 - [Terraform documentation](https://www.terraform.io/docs/language/values/variables.html#environment-variables).
 - [Terragrunt documentation](https://terragrunt.gruntwork.io/docs/features/inputs/).
 
+## Known Issues
+1. Notice that Windows has `path` size limitations (256 characters).
+   If you are using WSL interoperability (calling `.exe` files inside WSL), you could have errors like this:
+   ```bash
+   /mnt/c/WINDOWS/system32/notepad.exe: Invalid argument
+   ```
+   That means, you exceeded the `path` size limitation on the current `path` you are running the command.
+   To avoid this issue, move your infrastructure project to a shorter `path`. Closer to your "/home" directory, for example.
+
 ## Contributing
 Contributions to `terra` are welcome! Whether it's bug reports, feature requests, or code contributions, please feel free to contribute.
 Check out our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute.
