@@ -90,6 +90,36 @@ Outputs:
 
 Then reference this security group in your service's `copilot/[service]/addons/` or main service configuration.
 
+### Troubleshooting
+
+#### Common Network Issues
+
+1. **Connection Timeout Errors**
+   ```
+   dial tcp: lookup checkpoint-api.hashicorp.com: server misbehaving
+   ```
+   - Check DNS resolution and firewall rules
+   - Verify outbound HTTPS (port 443) access to required domains
+
+2. **Proxy Authentication**
+   ```bash
+   export TERRA_HTTPS_PROXY=https://username:password@proxy.company.com:8080
+   ```
+
+3. **Corporate Firewall/Certificate Issues**
+   - Contact your IT team to whitelist the required domains
+   - Consider using URL overrides to point to internal mirrors
+
+4. **Testing Connectivity**
+   ```bash
+   # Test basic connectivity
+   curl -I https://releases.hashicorp.com
+   curl -I https://api.github.com
+   
+   # Terra will show detailed connectivity warnings during install
+   terra install
+   ```
+
 ## Usage
 Here's how to use `terra` with Terraform/Terragrunt:
 ```bash

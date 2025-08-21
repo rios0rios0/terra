@@ -12,6 +12,15 @@ type OSLinux struct{}
 
 func (it *OSLinux) Download(url, tempFilePath string) error {
 	curlCmd := exec.Command("curl", "-Ls", "-o", tempFilePath, url)
+
+	// Set proxy environment variables for curl if configured
+	if httpsProxy := os.Getenv("TERRA_HTTPS_PROXY"); httpsProxy != "" {
+		curlCmd.Env = append(os.Environ(), "HTTPS_PROXY="+httpsProxy)
+	}
+	if httpProxy := os.Getenv("TERRA_HTTP_PROXY"); httpProxy != "" {
+		curlCmd.Env = append(curlCmd.Env, "HTTP_PROXY="+httpProxy)
+	}
+
 	curlCmd.Stderr = os.Stderr
 	curlCmd.Stdout = os.Stdout
 	err := curlCmd.Run()

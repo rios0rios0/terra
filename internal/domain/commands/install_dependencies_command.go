@@ -21,6 +21,26 @@ const contextTimeout = 10 * time.Second
 
 type InstallDependenciesCommand struct{}
 
+// getHTTPClient returns an HTTP client configured with proxy settings if available
+func getHTTPClient() *http.Client {
+	transport := &http.Transport{}
+
+	if httpsProxy := os.Getenv("TERRA_HTTPS_PROXY"); httpsProxy != "" {
+		if proxyURL, err := url.Parse(httpsProxy); err == nil {
+			transport.Proxy = http.ProxyURL(proxyURL)
+		}
+	} else if httpProxy := os.Getenv("TERRA_HTTP_PROXY"); httpProxy != "" {
+		if proxyURL, err := url.Parse(httpProxy); err == nil {
+			transport.Proxy = http.ProxyURL(proxyURL)
+		}
+	}
+
+	return &http.Client{
+		Transport: transport,
+		Timeout:   contextTimeout,
+	}
+}
+
 func NewInstallDependenciesCommand() *InstallDependenciesCommand {
 	return &InstallDependenciesCommand{}
 }
@@ -87,9 +107,8 @@ func isEndpointReachable(endpoint string) bool {
 		return false
 	}
 
-	client := &http.Client{
-		Timeout: 5 * time.Second,
-	}
+	client := getHTTPClient()
+	client.Timeout = 5 * time.Second
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -129,7 +148,7 @@ func fetchLatestVersion(url, regexPattern string) string {
 		logger.Fatalf("Error creating request: %s", err)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := getHTTPClient().Do(req)
 	if err != nil {
 		logger.Fatalf("Error fetching version info from %s: %s\nThis may indicate network connectivity issues or firewall restrictions.\nSee documentation for network requirements and configuration options.", url, err)
 	}
