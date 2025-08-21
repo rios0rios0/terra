@@ -22,6 +22,74 @@ cd terra
 make install
 ```
 
+## Network Requirements
+
+When using `terra install` to download dependencies, the following network access is required:
+
+### Required Firewall Rules
+- **Outbound HTTPS (port 443)** access to:
+  - `releases.hashicorp.com` - Terraform binary downloads
+  - `checkpoint-api.hashicorp.com` - Terraform version checks  
+  - `github.com` - Terragrunt binary downloads
+  - `api.github.com` - Terragrunt version checks
+
+### Environment-Specific Configuration
+
+#### Restricted Networks/Copilot Environments
+If you're running terra in environments with restricted egress (like AWS Copilot services), configure your security groups or firewall rules to allow the above endpoints.
+
+#### Proxy Configuration  
+Set proxy environment variables if your network requires proxy access:
+```bash
+export TERRA_HTTPS_PROXY=https://your-proxy:8080
+export TERRA_HTTP_PROXY=http://your-proxy:8080
+```
+
+#### URL Overrides
+Override download URLs to use internal mirrors or alternative sources:
+```bash
+# Override Terraform URLs
+export TERRAFORM_VERSION_URL=https://your-internal-mirror.com/terraform/version
+export TERRAFORM_BINARY_URL=https://your-internal-mirror.com/terraform/%[1]s/terraform_%[1]s_linux_amd64.zip
+
+# Override Terragrunt URLs  
+export TERRAGRUNT_VERSION_URL=https://your-internal-mirror.com/terragrunt/version
+export TERRAGRUNT_BINARY_URL=https://your-internal-mirror.com/terragrunt/v%s/terragrunt_linux_amd64
+```
+
+#### AWS Copilot Integration
+For AWS Copilot services, add the following to your `addons/` directory to automatically configure the required firewall rules:
+
+**addons/terra-network.yml**:
+```yaml
+Parameters:
+  App:
+    Type: String
+  Env:
+    Type: String
+
+Resources:
+  TerraEgressSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow terra dependency downloads
+      VpcId:
+        Fn::ImportValue: !Sub ${App}-${Env}-VpcId
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS for terra dependency downloads
+
+Outputs:
+  TerraEgressSecurityGroupId:
+    Description: Security group for terra network access
+    Value: !Ref TerraEgressSecurityGroup
+```
+
+Then reference this security group in your service's `copilot/[service]/addons/` or main service configuration.
+
 ## Usage
 Here's how to use `terra` with Terraform/Terragrunt:
 ```bash

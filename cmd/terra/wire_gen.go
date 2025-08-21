@@ -21,7 +21,8 @@ func injectAppContext() entities.AppContext {
 	deleteCacheController := controllers.NewDeleteCacheController(deleteCacheCommand)
 	stdShellRepository := repositories.NewStdShellRepository()
 	formatFilesCommand := commands.NewFormatFilesCommand(stdShellRepository)
-	v := _wireValue
+	settings := entities.NewSettings()
+	v := controllers.NewDependencies(settings)
 	formatFilesController := controllers.NewFormatFilesController(formatFilesCommand, v)
 	installDependenciesCommand := commands.NewInstallDependenciesCommand()
 	installDependenciesController := controllers.NewInstallDependenciesController(installDependenciesCommand, v)
@@ -31,27 +32,6 @@ func injectAppContext() entities.AppContext {
 	return appContext
 }
 
-var (
-	_wireValue = []entities.Dependency{
-		{
-			Name:              "Terraform",
-			CLI:               "terraform",
-			BinaryURL:         "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_linux_amd64.zip",
-			VersionURL:        "https://checkpoint-api.hashicorp.com/v1/check/terraform",
-			RegexVersion:      `"current_version":"([^"]+)"`,
-			FormattingCommand: []string{"fmt", "-recursive"},
-		},
-		{
-			Name:              "Terragrunt",
-			CLI:               "terragrunt",
-			BinaryURL:         "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_linux_amd64",
-			VersionURL:        "https://api.github.com/repos/gruntwork-io/terragrunt/releases/latest",
-			RegexVersion:      `"tag_name":"v([^"]+)"`,
-			FormattingCommand: []string{"hclfmt", "**/*.hcl"},
-		},
-	}
-)
-
 func injectRootController() entities.Controller {
 	installDependenciesCommand := commands.NewInstallDependenciesCommand()
 	stdShellRepository := repositories.NewStdShellRepository()
@@ -60,7 +40,7 @@ func injectRootController() entities.Controller {
 	cli := entities.NewCLI(settings)
 	runAdditionalBeforeCommand := commands.NewRunAdditionalBeforeCommand(settings, cli, stdShellRepository)
 	runFromRootCommand := commands.NewRunFromRootCommand(installDependenciesCommand, formatFilesCommand, runAdditionalBeforeCommand, stdShellRepository)
-	v := _wireValue
+	v := controllers.NewDependencies(settings)
 	runFromRootController := controllers.NewRunFromRootController(runFromRootCommand, v)
 	controller := newRootController(runFromRootController)
 	return controller

@@ -11,6 +11,14 @@ type Settings struct {
 	TerraTerraformWorkspace  string `envconfig:"TERRA_WORKSPACE"             required:"false"`
 	TerraAwsRoleArn          string `envconfig:"TERRA_AWS_ROLE_ARN"          required:"false"`
 	TerraAzureSubscriptionID string `envconfig:"TERRA_AZURE_SUBSCRIPTION_ID" required:"false"`
+
+	// Network configuration for dependency downloads
+	TerraformVersionURL  string `envconfig:"TERRAFORM_VERSION_URL"       required:"false"`
+	TerraformBinaryURL   string `envconfig:"TERRAFORM_BINARY_URL"        required:"false"`
+	TerragruntVersionURL string `envconfig:"TERRAGRUNT_VERSION_URL"      required:"false"`
+	TerragruntBinaryURL  string `envconfig:"TERRAGRUNT_BINARY_URL"       required:"false"`
+	TerraHTTPSProxy      string `envconfig:"TERRA_HTTPS_PROXY"           required:"false"`
+	TerraHTTPProxy       string `envconfig:"TERRA_HTTP_PROXY"            required:"false"`
 }
 
 func NewSettings() *Settings {

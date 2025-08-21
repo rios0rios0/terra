@@ -1,0 +1,59 @@
+# AWS Copilot addons file for Terra network requirements
+# Place this file in your Copilot service's addons/ directory
+# e.g., copilot/[service-name]/addons/terra-network.yml
+
+Parameters:
+  App:
+    Type: String
+  Env:
+    Type: String
+
+Resources:
+  # Security group to allow outbound HTTPS for dependency downloads
+  TerraEgressSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow terra dependency downloads via HTTPS
+      VpcId:
+        Fn::ImportValue: !Sub ${App}-${Env}-VpcId
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+          Description: HTTPS for terra dependency downloads to HashiCorp and GitHub
+
+  # Optional: Custom VPC endpoint for GitHub (if using private subnets)
+  GitHubVPCEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId:
+        Fn::ImportValue: !Sub ${App}-${Env}-VpcId
+      ServiceName: !Sub com.amazonaws.${AWS::Region}.github
+      VpcEndpointType: Interface
+      SubnetIds:
+        - Fn::ImportValue: !Sub ${App}-${Env}-PrivateSubnetAId
+        - Fn::ImportValue: !Sub ${App}-${Env}-PrivateSubnetBId
+      SecurityGroupIds:
+        - !Ref TerraEgressSecurityGroup
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - github:*
+            Resource: '*'
+
+Outputs:
+  TerraEgressSecurityGroupId:
+    Description: Security group ID for terra network access
+    Value: !Ref TerraEgressSecurityGroup
+    Export:
+      Name: !Sub ${App}-${Env}-TerraEgressSecurityGroup
+
+  GitHubVPCEndpointId:
+    Description: VPC Endpoint ID for GitHub access
+    Value: !Ref GitHubVPCEndpoint
+    Export:
+      Name: !Sub ${App}-${Env}-GitHubVPCEndpoint
