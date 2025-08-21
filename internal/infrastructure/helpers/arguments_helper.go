@@ -68,6 +68,11 @@ func findRelativePath(arguments []string) (string, int) {
 	position := -1
 	relativePath := "."
 
+	// handle empty arguments
+	if len(arguments) == 0 {
+		return relativePath, position
+	}
+
 	// check if the first or last argument is a directory
 	if _, err := os.Stat(arguments[0]); err == nil {
 		position = 0
