@@ -31,6 +31,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - moved all business logic to the domain structure
 - upgraded the project to Go 1.23 and all the dependencies
 
+### Fixed
+
+- fixed panic when running terra with non-existent directories - now shows helpful error messages instead of crashing
+
 ## [1.4.0] - 2024-08-07
 
 ### Added
