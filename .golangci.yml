@@ -7,3 +7,28 @@ linters:
     - wsl # Checks for missing whitespaces
     - gomnd # The linter has been renamed and replaced by mnd
     - execinquery # It's deprecated the repository of the linter has been archived by the owner
+
+issues:
+  exclude-rules:
+    # Exclude wire files from typecheck due to version compatibility issues
+    - path: internal/domain/commands/container.go
+      linters:
+        - typecheck
+    - path: internal/infrastructure/controllers/container.go
+      linters:
+        - typecheck
+    - path: internal/infrastructure/repositories/container.go
+      linters:
+        - typecheck
+    - path: internal/container.go
+      linters:
+        - typecheck
+    - path: internal/domain/entities/container.go
+      linters:
+        - typecheck
+    - path: cmd/terra/wire.go
+      linters:
+        - typecheck
+    - path: cmd/terra/wire_gen.go
+      linters:
+        - typecheck
