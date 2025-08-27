@@ -18,6 +18,9 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
+### Changed
+- Updated Copilot instructions to use rios0rios0/pipelines project for linting and CI tools instead of direct tool installation
+
 - added dependency injection with Wire and inverted all dependencies
 - created validation on the `settings` entity
 
