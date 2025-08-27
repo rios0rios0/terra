@@ -18,6 +18,9 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
+### Changed
+- Updated Copilot instructions to use rios0rios0/pipelines project for linting and CI tools instead of direct tool installation
+
 - added dependency injection with Wire and inverted all dependencies
 - created validation on the `settings` entity
 
@@ -30,6 +33,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - decoupled responsibilities from just one command to other layers
 - moved all business logic to the domain structure
 - upgraded the project to Go 1.23 and all the dependencies
+
+### Fixed
+
+- fixed optional environment variables validation for TERRA_CLOUD to allow empty values while still enforcing valid values when provided
 
 ## [1.4.0] - 2024-08-07
 
