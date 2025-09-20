@@ -43,6 +43,7 @@ func testDownloadSuccess(t *testing.T, osImpl OS, testPrefix string) {
 
 // testDownloadHTTPError is a helper function to test HTTP error handling for any OS implementation
 func testDownloadHTTPError(t *testing.T, osImpl OS, testPrefix string) {
+	t.Helper()
 	// Create a test server that returns an error
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
