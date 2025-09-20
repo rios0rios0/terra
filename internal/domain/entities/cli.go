@@ -19,7 +19,7 @@ func NewCLI(settings *Settings) CLI {
 	value, ok := mapping[settings.TerraCloud]
 	if !ok {
 		value = nil
-		logger.Warnf("No cloud CLI found, avoiding to execute customized commands...")
+		logger.Debugf("No cloud CLI found, avoiding to execute customized commands...")
 	}
 	return value
 }
