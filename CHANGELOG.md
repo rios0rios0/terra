@@ -18,14 +18,14 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
-### Changed
-- Updated Copilot instructions to use rios0rios0/pipelines project for linting and CI tools instead of direct tool installation
-
 - added dependency injection with Wire and inverted all dependencies
 - created validation on the `settings` entity
+- added `--auto-answer` flag to automatically handle Terragrunt prompts
+- added interactive shell repository for auto-answering functionality
 
 ### Changed
 
+- Updated Copilot instructions to use rios0rios0/pipelines project for linting and CI tools instead of direct tool installation
 - changed the documentation with pipelines and minor change to template files
 - corrected controllers responsibilities mapping the external to internal entities
 - corrected dependency injection architecture
@@ -36,6 +36,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Fixed
 
+- fixed slice bounds error in ArgumentsHelper when no arguments are provided
 - fixed optional environment variables validation for TERRA_CLOUD to allow empty values while still enforcing valid values when provided
 
 ## [1.4.0] - 2024-08-07
