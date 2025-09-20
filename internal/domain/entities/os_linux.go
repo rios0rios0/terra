@@ -63,7 +63,7 @@ func (it *OSLinux) GetTempDir() string {
 }
 
 func (it *OSLinux) GetInstallationPath() string {
-	return "/usr/local/bin"
+	return "~/.local/bin"
 }
 
 func GetOS() *OSLinux {

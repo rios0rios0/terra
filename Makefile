@@ -20,4 +20,4 @@ run:
 
 install:
 	make build
-	sudo cp -v bin/terra ~/.local/bin/terra
+	cp -v bin/terra ~/.local/bin/terra

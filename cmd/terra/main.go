@@ -20,7 +20,7 @@ func main() {
 
 	err := godotenv.Load()
 	if err != nil {
-		logger.Warnf("Error loading .env file: %s", err)
+		logger.Debugf("Error loading .env file: %s", err)
 	}
 
 	// Handle --version flag before cobra processing
