@@ -11,6 +11,7 @@ Our motivation: "Have you ever wondered about applying Terraform code like Kuber
 - Enhanced state management.
 - Simplified module path specification.
 - Cross-platform compatibility.
+- Auto-answering for Terragrunt prompts to avoid manual intervention.
 
 ## Installation
 To install `terra`, ensure you have Terraform and Terragrunt installed on your system
@@ -36,6 +37,10 @@ terra run-all plan /path/to/module
 
 # or using Terraform approach, plan just the "module" subdirectory inside "to"
 terra plan /path/to/module
+
+# with auto-answering to avoid manual prompts (answers "n" to external dependency prompts)
+terra --auto-answer run-all apply /path
+terra -a run-all plan /path/to
 ```
 
 The commands available are:
@@ -43,6 +48,25 @@ The commands available are:
 clear       Clear all cache and modules directories
 fmt         Format all files in the current directory
 install     Install Terraform and Terragrunt (they are pre-requisites)
+```
+
+### Auto-Answer Feature
+
+The `--auto-answer` (or `-a`) flag enables automatic responses to Terragrunt prompts, eliminating the need for manual intervention during long-running operations. This is particularly useful in CI/CD pipelines or when running multiple Terragrunt commands.
+
+**What it does:**
+- Automatically answers "n" to external dependency prompts
+- Automatically answers "n" to general yes/no prompts
+- Switches to manual mode for confirmation prompts (like "Are you sure you want to run...")
+- Filters out the auto-answer flag before passing arguments to Terragrunt
+
+**Example:**
+```bash
+# Without auto-answer - requires manual input for each prompt
+terra run-all apply /path
+
+# With auto-answer - automatically handles most prompts
+terra --auto-answer run-all apply /path
 ```
 
 If you have some input variables, you can use environment variables (`.env`) with the prefix `TF_VAR_`:
