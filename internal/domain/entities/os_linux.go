@@ -52,7 +52,7 @@ func (it *OSLinux) MakeExecutable(filePath string) error {
 }
 
 func (it *OSLinux) GetTempDir() string {
-	return "/tmp"
+	return os.TempDir()
 }
 
 func (it *OSLinux) GetInstallationPath() string {
