@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bufio"
 	"context"
 	"fmt"
 	"io"
@@ -9,6 +10,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -29,9 +31,30 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 		latestVersion := fetchLatestVersion(dependency.VersionURL, dependency.RegexVersion)
 
 		if !isDependencyCLIAvailable(dependency.CLI) {
-			ensureRootPrivileges()
 			logger.Warnf("%s is not installed, installing now...", dependency.Name)
 			install(fmt.Sprintf(dependency.BinaryURL, latestVersion), dependency.CLI)
+		} else {
+			// Dependency is installed, check if it's the latest version
+			currentVersion := getCurrentVersion(dependency.CLI)
+			if currentVersion == "" {
+				logger.Warnf("Could not determine current version of %s, skipping update check", dependency.Name)
+				continue
+			}
+
+			comparison := compareVersions(currentVersion, latestVersion)
+			if comparison < 0 {
+				// Current version is older than latest
+				if promptForUpdate(dependency.Name, currentVersion, latestVersion) {
+					logger.Infof("Updating %s from %s to %s...", dependency.Name, currentVersion, latestVersion)
+					install(fmt.Sprintf(dependency.BinaryURL, latestVersion), dependency.CLI)
+				} else {
+					logger.Infof("Skipping update for %s", dependency.Name)
+				}
+			} else if comparison == 0 {
+				logger.Infof("%s is already up to date (version %s)", dependency.Name, currentVersion)
+			} else {
+				logger.Infof("%s version %s is newer than latest available %s", dependency.Name, currentVersion, latestVersion)
+			}
 		}
 	}
 }
@@ -73,12 +96,83 @@ func isDependencyCLIAvailable(name string) bool {
 	return cmd.Run() == nil
 }
 
-// check if the "terra" has root privileges to install dependencies
-func ensureRootPrivileges() {
-	if os.Geteuid() != 0 {
-		logger.Fatalf("Run this command with root privileges to install the dependencies")
-		return
+// get current version of installed dependency
+func getCurrentVersion(name string) string {
+	var cmd *exec.Cmd
+	switch name {
+	case "terraform":
+		cmd = exec.Command(name, "--version")
+	case "terragrunt":
+		cmd = exec.Command(name, "--version")
+	default:
+		return ""
 	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		logger.Debugf("Failed to get %s version: %s", name, err)
+		return ""
+	}
+
+	version := strings.TrimSpace(string(output))
+	
+	// Extract version number from output
+	re := regexp.MustCompile(`v?(\d+\.\d+\.\d+)`)
+	matches := re.FindStringSubmatch(version)
+	if len(matches) > 1 {
+		return matches[1]
+	}
+
+	return ""
+}
+
+// compare two semantic versions (returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2)
+func compareVersions(v1, v2 string) int {
+	parts1 := strings.Split(v1, ".")
+	parts2 := strings.Split(v2, ".")
+
+	// Pad versions to same length
+	maxLen := len(parts1)
+	if len(parts2) > maxLen {
+		maxLen = len(parts2)
+	}
+
+	for len(parts1) < maxLen {
+		parts1 = append(parts1, "0")
+	}
+	for len(parts2) < maxLen {
+		parts2 = append(parts2, "0")
+	}
+
+	for i := 0; i < maxLen; i++ {
+		num1, err1 := strconv.Atoi(parts1[i])
+		num2, err2 := strconv.Atoi(parts2[i])
+
+		if err1 != nil || err2 != nil {
+			return strings.Compare(parts1[i], parts2[i])
+		}
+
+		if num1 < num2 {
+			return -1
+		} else if num1 > num2 {
+			return 1
+		}
+	}
+
+	return 0
+}
+
+// prompt user for update confirmation
+func promptForUpdate(dependencyName, currentVersion, latestVersion string) bool {
+	fmt.Printf("%s is installed (version %s) but a newer version is available (%s).\n", 
+		dependencyName, currentVersion, latestVersion)
+	fmt.Print("Do you want to update? [y/N]: ")
+
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Scan()
+	response := strings.TrimSpace(strings.ToLower(scanner.Text()))
+
+	return response == "y" || response == "yes"
 }
 
 // installing dependencies doesn't matter the operating system
@@ -86,6 +180,12 @@ func install(url, name string) {
 	currentOS := entities.GetOS()
 	tempFilePath := path.Join(currentOS.GetTempDir(), name)
 	destPath := path.Join(currentOS.GetInstallationPath(), name)
+
+	// Ensure installation directory exists
+	installDir := currentOS.GetInstallationPath()
+	if err := os.MkdirAll(installDir, 0755); err != nil {
+		logger.Fatalf("Failed to create installation directory %s: %s", installDir, err)
+	}
 
 	logger.Infof("Downloading %s from %s...", name, url)
 	if err := currentOS.Download(url, tempFilePath); err != nil {
@@ -100,11 +200,41 @@ func install(url, name string) {
 
 	if strings.Contains(string(fileTypeOutput), "Zip archive data") {
 		logger.Infof("%s is a zip file, extracting...", name)
-		if err := currentOS.Extract(tempFilePath, destPath); err != nil {
+		// Create a temporary directory for extraction
+		extractDir := path.Join(currentOS.GetTempDir(), name+"_extract")
+		if err := currentOS.Extract(tempFilePath, extractDir); err != nil {
 			logger.Fatalf("Failed to extract %s: %s", name, err)
 		}
+		
+		// Find the actual binary in the extracted directory
+		entries, err := os.ReadDir(extractDir)
+		if err != nil {
+			logger.Fatalf("Failed to read extracted directory: %s", err)
+		}
+		
+		var binaryPath string
+		for _, entry := range entries {
+			if entry.Name() == name {
+				binaryPath = path.Join(extractDir, entry.Name())
+				break
+			}
+		}
+		
+		if binaryPath == "" {
+			logger.Fatalf("Could not find %s binary in extracted archive", name)
+		}
+		
+		// Move the binary to the destination
+		if err := currentOS.Move(binaryPath, destPath); err != nil {
+			logger.Fatalf("Failed to move %s to %s: %s", name, destPath, err)
+		}
+		
+		// Clean up
 		if err := currentOS.Remove(tempFilePath); err != nil {
 			logger.Fatalf("Failed to remove %s: %s", name, err)
+		}
+		if err := os.RemoveAll(extractDir); err != nil {
+			logger.Fatalf("Failed to remove extraction directory %s: %s", extractDir, err)
 		}
 	} else {
 		if err := currentOS.Move(tempFilePath, destPath); err != nil {

@@ -63,7 +63,11 @@ func (it *OSLinux) GetTempDir() string {
 }
 
 func (it *OSLinux) GetInstallationPath() string {
-	return "~/.local/bin"
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return "~/.local/bin" // Fallback to original path
+	}
+	return fmt.Sprintf("%s/.local/bin", homeDir)
 }
 
 func GetOS() *OSLinux {

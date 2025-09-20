@@ -24,8 +24,8 @@ func NewInstallDependenciesController(
 func (it *InstallDependenciesController) GetBind() entities.ControllerBind {
 	return entities.ControllerBind{
 		Use:   "install",
-		Short: "Install Terraform and Terragrunt (they are pre-requisites)",
-		Long:  "Install all the dependencies required to run Terra. This command should be run with root privileges.",
+		Short: "Install or update Terraform and Terragrunt to the latest versions",
+		Long:  "Install all the dependencies required to run Terra, or update them if newer versions are available. Dependencies are installed to ~/.local/bin on Linux.",
 	}
 }
 
