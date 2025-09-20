@@ -8,7 +8,7 @@ build:
 
 debug:
 	rm -rf bin
-	go build -gcflags "-N -l" -o bin/autobump ./cmd/terra
+	go build -gcflags "-N -l" -o bin/terra ./cmd/terra
 
 build-musl:
 	CGO_ENABLED=1 CC=musl-gcc go build \
@@ -20,4 +20,4 @@ run:
 
 install:
 	make build
-	sudo cp -v bin/terra /usr/local/bin/terra
+	sudo cp -v bin/terra ~/.local/bin/terra
