@@ -8,7 +8,7 @@ import (
 type OSWindows struct{}
 
 func (it *OSWindows) Download(url, tempFilePath string) error {
-	curlCmd := exec.Command("curl", "-Ls", "-o", tempFilePath, url)
+	curlCmd := exec.Command("curl", "-s", "-o", tempFilePath, url)
 	curlCmd.Stderr = os.Stderr
 	curlCmd.Stdout = os.Stdout
 	err := curlCmd.Run()
