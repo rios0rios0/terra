@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"testing"
 )
 
@@ -15,19 +14,23 @@ func TestOSLinux_Download(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Create a temporary file path
-	tempFile := filepath.Join(os.TempDir(), "test_download_linux.txt")
-	defer os.Remove(tempFile)
+	// Create a secure temporary file
+	tempFile, err := os.CreateTemp("", "test_download_linux_*.txt")
+	if err != nil {
+		t.Fatalf("Failed to create temporary file: %v", err)
+	}
+	tempFile.Close() // Close the file so Download can create it
+	defer os.Remove(tempFile.Name())
 
 	// Test the download
 	osLinux := &OSLinux{}
-	err := osLinux.Download(server.URL, tempFile)
+	err = osLinux.Download(server.URL, tempFile.Name())
 	if err != nil {
 		t.Fatalf("Download failed: %v", err)
 	}
 
 	// Verify the file was created and has the correct content
-	content, err := os.ReadFile(tempFile)
+	content, err := os.ReadFile(tempFile.Name())
 	if err != nil {
 		t.Fatalf("Failed to read downloaded file: %v", err)
 	}
@@ -46,13 +49,17 @@ func TestOSLinux_DownloadHTTPError(t *testing.T) {
 	}))
 	defer server.Close()
 
-	// Create a temporary file path
-	tempFile := filepath.Join(os.TempDir(), "test_download_error.txt")
-	defer os.Remove(tempFile)
+	// Create a secure temporary file
+	tempFile, err := os.CreateTemp("", "test_download_error_*.txt")
+	if err != nil {
+		t.Fatalf("Failed to create temporary file: %v", err)
+	}
+	tempFile.Close() // Close the file so Download can create it
+	defer os.Remove(tempFile.Name())
 
 	// Test the download - should fail
 	osLinux := &OSLinux{}
-	err := osLinux.Download(server.URL, tempFile)
+	err = osLinux.Download(server.URL, tempFile.Name())
 	if err == nil {
 		t.Error("Expected download to fail with HTTP 500, but it succeeded")
 	}
