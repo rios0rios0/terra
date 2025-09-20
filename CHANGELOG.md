@@ -22,6 +22,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - created validation on the `settings` entity
 - added `--auto-answer` flag to automatically handle Terragrunt prompts
 - added interactive shell repository for auto-answering functionality
+- added `version` command to display Terra, Terraform, and Terragrunt versions
 
 ### Changed
 
