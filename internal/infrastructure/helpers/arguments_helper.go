@@ -11,6 +11,9 @@ type ArgumentsHelper struct{}
 
 func (it ArgumentsHelper) RemovePathFromArguments(arguments []string) []string {
 	_, position := findRelativePath(arguments)
+	if position == -1 {
+		return arguments
+	}
 	return append(arguments[:position], arguments[position+1:]...)
 }
 
@@ -27,13 +30,19 @@ func findRelativePath(arguments []string) (string, int) {
 	position := -1
 	relativePath := "."
 
+	if len(arguments) == 0 {
+		return relativePath, position
+	}
+
 	// check if the first or last argument is a directory
 	if _, err := os.Stat(arguments[0]); err == nil {
 		position = 0
 		relativePath = arguments[position]
-	} else if _, err := os.Stat(arguments[len(arguments)-1]); err == nil {
-		position = len(arguments) - 1
-		relativePath = arguments[position]
+	} else if len(arguments) > 1 {
+		if _, err := os.Stat(arguments[len(arguments)-1]); err == nil {
+			position = len(arguments) - 1
+			relativePath = arguments[position]
+		}
 	}
 	return relativePath, position
 }

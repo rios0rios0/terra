@@ -59,7 +59,8 @@ func injectRootController() entities.Controller {
 	settings := entities.NewSettings()
 	cli := entities.NewCLI(settings)
 	runAdditionalBeforeCommand := commands.NewRunAdditionalBeforeCommand(settings, cli, stdShellRepository)
-	runFromRootCommand := commands.NewRunFromRootCommand(installDependenciesCommand, formatFilesCommand, runAdditionalBeforeCommand, stdShellRepository)
+	interactiveShellRepository := repositories.NewInteractiveShellRepository()
+	runFromRootCommand := commands.NewRunFromRootCommand(installDependenciesCommand, formatFilesCommand, runAdditionalBeforeCommand, stdShellRepository, interactiveShellRepository)
 	v := _wireValue
 	runFromRootController := controllers.NewRunFromRootController(runFromRootCommand, v)
 	controller := newRootController(runFromRootController)
