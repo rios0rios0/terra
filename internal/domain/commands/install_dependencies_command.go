@@ -115,7 +115,7 @@ func getCurrentVersion(name string) string {
 	}
 
 	version := strings.TrimSpace(string(output))
-	
+
 	// Extract version number from output
 	re := regexp.MustCompile(`v?(\d+\.\d+\.\d+)`)
 	matches := re.FindStringSubmatch(version)
@@ -164,7 +164,7 @@ func compareVersions(v1, v2 string) int {
 
 // prompt user for update confirmation
 func promptForUpdate(dependencyName, currentVersion, latestVersion string) bool {
-	fmt.Printf("%s is installed (version %s) but a newer version is available (%s).\n", 
+	fmt.Printf("%s is installed (version %s) but a newer version is available (%s).\n",
 		dependencyName, currentVersion, latestVersion)
 	fmt.Print("Do you want to update? [y/N]: ")
 
@@ -205,13 +205,13 @@ func install(url, name string) {
 		if err := currentOS.Extract(tempFilePath, extractDir); err != nil {
 			logger.Fatalf("Failed to extract %s: %s", name, err)
 		}
-		
+
 		// Find the actual binary in the extracted directory
 		entries, err := os.ReadDir(extractDir)
 		if err != nil {
 			logger.Fatalf("Failed to read extracted directory: %s", err)
 		}
-		
+
 		var binaryPath string
 		for _, entry := range entries {
 			if entry.Name() == name {
@@ -219,16 +219,16 @@ func install(url, name string) {
 				break
 			}
 		}
-		
+
 		if binaryPath == "" {
 			logger.Fatalf("Could not find %s binary in extracted archive", name)
 		}
-		
+
 		// Move the binary to the destination
 		if err := currentOS.Move(binaryPath, destPath); err != nil {
 			logger.Fatalf("Failed to move %s to %s: %s", name, destPath, err)
 		}
-		
+
 		// Clean up
 		if err := currentOS.Remove(tempFilePath); err != nil {
 			logger.Fatalf("Failed to remove %s: %s", name, err)
