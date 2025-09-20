@@ -34,23 +34,22 @@ make build
 
 ### Code Quality and Validation
 - **NEVER CANCEL**: golangci-lint takes 2-5 minutes. Set timeout to 30+ minutes.
-- Always run code formatting and linting before committing using pipelines project:
+- Always run code formatting, linting and testing before committing using Makefile targets:
 ```bash
 # Standard Go tools (fast)
 go fmt ./...
 go vet ./...
 
-# Full linting using pipelines project (https://github.com/rios0rios0/pipelines)
-# Clone pipelines project if not available locally
-if [ ! -d "../pipelines" ]; then
-  git clone https://github.com/rios0rios0/pipelines.git ../pipelines
-fi
-# Run linting using pipelines GoLang scripts
-../pipelines/GoLang/golangci-lint.sh
+# Full pipeline using Makefile targets (automatically clones pipelines project via HTTPS)
+make lint    # Runs golangci-lint via pipelines project
+make test    # Runs tests via pipelines project  
+make horusec # Runs security scanning via pipelines project
+make all     # Runs lint + horusec + test
 ```
 
-- No unit tests exist in this repository (as of current state)
+- **Tests exist** in this repository with good coverage across domain and infrastructure layers
 - The CI pipeline uses rios0rios0/pipelines project and runs golangci-lint, horusec security scanning, semgrep, and gitleaks
+- Makefile automatically clones pipelines project using HTTPS (no SSH keys required)
 
 ### Environment Configuration
 Terra requires environment variables for cloud provider configuration. Create a `.env` file:
@@ -79,19 +78,20 @@ TF_VAR_region=us-west-2
 This repository uses the [rios0rios0/pipelines](https://github.com/rios0rios0/pipelines) project for standardized CI/CD operations:
 
 - **CI Pipeline**: Uses `rios0rios0/pipelines/.github/workflows/go-binary.yaml@main`
-- **Local Development**: Use shell scripts from the pipelines GoLang folder instead of direct tool installation
-- **Linting**: Run `../pipelines/GoLang/golangci-lint.sh` instead of installing golangci-lint directly
-- **Security Scanning**: Pipeline handles horusec, semgrep, and gitleaks automatically
+- **Local Development**: Use Makefile targets which automatically handle pipelines integration
+- **Linting**: Run `make lint` instead of manual script execution  
+- **Testing**: Run `make test` to execute all tests with coverage reporting
+- **Security Scanning**: Run `make horusec` for security analysis
+- **All Checks**: Run `make all` to execute lint + horusec + test
 
-### Setting up Pipelines Locally
+### Automatic Pipelines Setup
+The Makefile automatically handles pipelines project setup using HTTPS (no SSH configuration required):
 ```bash
-# Clone pipelines project alongside terra repository
-cd ..
-git clone https://github.com/rios0rios0/pipelines.git
-cd terra
-
-# Now you can use pipelines scripts
-../pipelines/GoLang/golangci-lint.sh
+# All these targets automatically clone/update pipelines project as needed
+make lint    # Linting via pipelines/global/scripts/golangci-lint/run.sh
+make test    # Testing via pipelines/global/scripts/golang/test/run.sh  
+make horusec # Security via pipelines/global/scripts/horusec/run.sh
+make all     # All quality checks
 ```
 
 ## Available Commands
@@ -135,19 +135,27 @@ Always test terra functionality after making changes:
    ./bin/terra clear  # Should succeed
    ```
 
-2. **Environment Validation**:
+2. **Code Quality Validation**:
+   ```bash
+   make test    # Run all tests with coverage
+   make lint    # Run linting checks
+   make horusec # Run security scanning
+   make all     # Run all quality checks
+   ```
+
+3. **Environment Validation**:
    ```bash
    # Create test .env file
    echo "TERRA_CLOUD=aws" > .env
    ./bin/terra clear  # Should work without warnings
    ```
 
-3. **Format Command Validation**:
+4. **Format Command Validation**:
    ```bash
    ./bin/terra format  # Should run (may warn about missing terraform/terragrunt)
    ```
 
-4. **Directory Handling Validation**:
+5. **Directory Handling Validation**:
    ```bash
    mkdir -p /tmp/test-terraform
    echo 'resource "null_resource" "test" {}' > /tmp/test-terraform/main.tf
@@ -216,10 +224,10 @@ TF_VAR_*=value
 
 ## CRITICAL Build and Timing Information
 - **Build Time**: 15-20 seconds typical, NEVER CANCEL builds
-- **Linting Time**: 2-5 minutes with pipelines golangci-lint script, NEVER CANCEL
-- **No Tests**: Repository contains no unit tests
+- **Linting Time**: 2-5 minutes with `make lint`, NEVER CANCEL
+- **Testing Time**: 1-2 minutes with `make test`, includes coverage reporting
 - **Dependencies**: Requires wire tool in PATH for successful builds
-- **Pipelines**: Use rios0rios0/pipelines project scripts instead of direct tool installation
+- **Pipelines**: Use Makefile targets which automatically handle pipelines project via HTTPS
 - **Install Failures**: `terra install` will fail in restricted network environments - this is expected behavior
 
-Always validate changes by building and running the basic terra commands to ensure functionality is preserved.
+Always validate changes by building, testing, and running the basic terra commands to ensure functionality is preserved.
