@@ -12,6 +12,7 @@ var Container = wire.NewSet(
 	NewDeleteCacheController,
 	NewFormatFilesController,
 	NewInstallDependenciesController,
+	NewVersionController,
 	NewControllers,
 )
 
@@ -20,11 +21,13 @@ func NewControllers(
 	deleteCacheController *DeleteCacheController,
 	formatFilesController *FormatFilesController,
 	installDependenciesController *InstallDependenciesController,
+	versionController *VersionController,
 ) *[]entities.Controller {
 	return &[]entities.Controller{
 		deleteCacheController,
 		formatFilesController,
 		installDependenciesController,
+		versionController,
 	}
 }
 
