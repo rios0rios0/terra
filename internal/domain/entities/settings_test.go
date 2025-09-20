@@ -31,14 +31,14 @@ func TestSettings_OptionalEnvironmentVariables(t *testing.T) {
 			os.Unsetenv("TERRA_WORKSPACE")
 			os.Unsetenv("TERRA_AWS_ROLE_ARN")
 			os.Unsetenv("TERRA_AZURE_SUBSCRIPTION_ID")
-			
+
 			// Set the test value if not empty
 			if tt.terraCloud != "" {
 				os.Setenv("TERRA_CLOUD", tt.terraCloud)
 			}
 
 			settings := NewSettings()
-			
+
 			// Verify the setting was loaded correctly
 			if settings.TerraCloud != tt.terraCloud {
 				t.Errorf("Expected TerraCloud to be %q, got %q", tt.terraCloud, settings.TerraCloud)
@@ -49,10 +49,10 @@ func TestSettings_OptionalEnvironmentVariables(t *testing.T) {
 
 func TestCLI_OptionalCloudProvider(t *testing.T) {
 	tests := []struct {
-		name          string
-		terraCloud    string
-		expectNilCLI  bool
-		expectedName  string
+		name         string
+		terraCloud   string
+		expectNilCLI bool
+		expectedName string
 	}{
 		{
 			name:         "Empty TERRA_CLOUD should return nil CLI",
@@ -79,14 +79,14 @@ func TestCLI_OptionalCloudProvider(t *testing.T) {
 			os.Unsetenv("TERRA_CLOUD")
 			os.Unsetenv("TERRA_AWS_ROLE_ARN")
 			os.Unsetenv("TERRA_AZURE_SUBSCRIPTION_ID")
-			
+
 			if tt.terraCloud != "" {
 				os.Setenv("TERRA_CLOUD", tt.terraCloud)
 			}
-			
+
 			settings := NewSettings()
 			cli := NewCLI(settings)
-			
+
 			if tt.expectNilCLI {
 				if cli != nil {
 					t.Error("Expected nil CLI but got non-nil")
