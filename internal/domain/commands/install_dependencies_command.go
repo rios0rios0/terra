@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -128,8 +129,23 @@ func getCurrentVersion(name string) string {
 
 // compare two semantic versions (returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2)
 func compareVersions(v1, v2 string) int {
+	// Only compare numeric parts, reject versions with non-numeric components
 	parts1 := strings.Split(v1, ".")
 	parts2 := strings.Split(v2, ".")
+
+	// Validate that all parts are numeric for proper semantic version comparison
+	for _, part := range parts1 {
+		if _, err := strconv.Atoi(part); err != nil {
+			logger.Warnf("Version %s contains non-numeric parts, cannot perform reliable comparison", v1)
+			return strings.Compare(v1, v2)
+		}
+	}
+	for _, part := range parts2 {
+		if _, err := strconv.Atoi(part); err != nil {
+			logger.Warnf("Version %s contains non-numeric parts, cannot perform reliable comparison", v2)
+			return strings.Compare(v1, v2)
+		}
+	}
 
 	// Pad versions to same length
 	maxLen := len(parts1)
@@ -145,12 +161,8 @@ func compareVersions(v1, v2 string) int {
 	}
 
 	for i := 0; i < maxLen; i++ {
-		num1, err1 := strconv.Atoi(parts1[i])
-		num2, err2 := strconv.Atoi(parts2[i])
-
-		if err1 != nil || err2 != nil {
-			return strings.Compare(parts1[i], parts2[i])
-		}
+		num1, _ := strconv.Atoi(parts1[i])
+		num2, _ := strconv.Atoi(parts2[i])
 
 		if num1 < num2 {
 			return -1
@@ -169,10 +181,61 @@ func promptForUpdate(dependencyName, currentVersion, latestVersion string) bool 
 	fmt.Print("Do you want to update? [y/N]: ")
 
 	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Scan()
+	if !scanner.Scan() {
+		if err := scanner.Err(); err != nil {
+			logger.Errorf("Error reading input: %v", err)
+		}
+		return false
+	}
 	response := strings.TrimSpace(strings.ToLower(scanner.Text()))
 
 	return response == "y" || response == "yes"
+}
+
+// findBinaryInArchive recursively searches for a binary in extracted archive
+func findBinaryInArchive(extractDir, binaryName string) (string, error) {
+	var foundPath string
+
+	err := filepath.WalkDir(extractDir, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if d.IsDir() {
+			return nil
+		}
+
+		fileName := d.Name()
+
+		// Check for exact match first
+		if fileName == binaryName {
+			foundPath = path
+			return filepath.SkipAll // Stop searching once found
+		}
+
+		// Check for pattern matches (e.g., terraform_1.5.0_linux_amd64 contains terraform)
+		if strings.Contains(fileName, binaryName) && !strings.Contains(fileName, ".") {
+			// Additional validation: check if it's likely an executable (no extension or common binary patterns)
+			if !strings.Contains(fileName, ".txt") && !strings.Contains(fileName, ".md") &&
+				!strings.Contains(fileName, ".json") && !strings.Contains(fileName, ".yml") &&
+				!strings.Contains(fileName, ".yaml") {
+				foundPath = path
+				return filepath.SkipAll
+			}
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+
+	if foundPath == "" {
+		return "", fmt.Errorf("could not find %s binary", binaryName)
+	}
+
+	return foundPath, nil
 }
 
 // installing dependencies doesn't matter the operating system
@@ -206,22 +269,10 @@ func install(url, name string) {
 			logger.Fatalf("Failed to extract %s: %s", name, err)
 		}
 
-		// Find the actual binary in the extracted directory
-		entries, err := os.ReadDir(extractDir)
+		// Find the actual binary in the extracted directory using recursive search
+		binaryPath, err := findBinaryInArchive(extractDir, name)
 		if err != nil {
-			logger.Fatalf("Failed to read extracted directory: %s", err)
-		}
-
-		var binaryPath string
-		for _, entry := range entries {
-			if entry.Name() == name {
-				binaryPath = path.Join(extractDir, entry.Name())
-				break
-			}
-		}
-
-		if binaryPath == "" {
-			logger.Fatalf("Could not find %s binary in extracted archive", name)
+			logger.Fatalf("Failed to find %s binary in extracted archive: %s", name, err)
 		}
 
 		// Move the binary to the destination
