@@ -1,13 +1,13 @@
 package entities
 
 import (
-	"github.com/go-playground/validator/v10"
+	validator "github.com/go-playground/validator/v10"
 	"github.com/kelseyhightower/envconfig"
 	logger "github.com/sirupsen/logrus"
 )
 
 type Settings struct {
-	TerraCloud               string `envconfig:"TERRA_CLOUD"                 required:"false" validate:"oneof=aws azure"`
+	TerraCloud               string `envconfig:"TERRA_CLOUD"                 required:"false" validate:"omitempty,oneof=aws azure"`
 	TerraTerraformWorkspace  string `envconfig:"TERRA_WORKSPACE"             required:"false"`
 	TerraAwsRoleArn          string `envconfig:"TERRA_AWS_ROLE_ARN"          required:"false"`
 	TerraAzureSubscriptionID string `envconfig:"TERRA_AZURE_SUBSCRIPTION_ID" required:"false"`

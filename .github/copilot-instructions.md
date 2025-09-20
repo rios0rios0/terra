@@ -9,6 +9,7 @@ Always reference these instructions first and fallback to search or bash command
 ### Prerequisites and Environment Setup
 - Ensure Go 1.23+ is installed and `go` is in PATH
 - Add `~/go/bin` to PATH for wire tool: `export PATH=$PATH:~/go/bin`
+- For linting and CI tools, use the pipelines project (https://github.com/rios0rios0/pipelines)
 - NEVER CANCEL: Build takes 15-20 seconds. NEVER CANCEL. Set timeout to 60+ minutes for safety.
 
 ### Building and Installing
@@ -33,20 +34,23 @@ make build
 
 ### Code Quality and Validation
 - **NEVER CANCEL**: golangci-lint takes 2-5 minutes. Set timeout to 30+ minutes.
-- Always run code formatting and linting before committing:
+- Always run code formatting and linting before committing using pipelines project:
 ```bash
 # Standard Go tools (fast)
 go fmt ./...
 go vet ./...
 
-# Full linting (install golangci-lint first if needed)
-curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.55.2
-export PATH=$PATH:~/go/bin
-golangci-lint run
+# Full linting using pipelines project (https://github.com/rios0rios0/pipelines)
+# Clone pipelines project if not available locally
+if [ ! -d "../pipelines" ]; then
+  git clone https://github.com/rios0rios0/pipelines.git ../pipelines
+fi
+# Run linting using pipelines GoLang scripts
+../pipelines/GoLang/golangci-lint.sh
 ```
 
 - No unit tests exist in this repository (as of current state)
-- The CI pipeline runs golangci-lint, horusec security scanning, semgrep, and gitleaks
+- The CI pipeline uses rios0rios0/pipelines project and runs golangci-lint, horusec security scanning, semgrep, and gitleaks
 
 ### Environment Configuration
 Terra requires environment variables for cloud provider configuration. Create a `.env` file:
@@ -69,6 +73,26 @@ TF_VAR_region=us-west-2
 ```
 
 **CRITICAL**: TERRA_CLOUD must be either "aws" or "azure" - the application will fail validation if empty or invalid.
+
+## Pipelines Integration
+
+This repository uses the [rios0rios0/pipelines](https://github.com/rios0rios0/pipelines) project for standardized CI/CD operations:
+
+- **CI Pipeline**: Uses `rios0rios0/pipelines/.github/workflows/go-binary.yaml@main`
+- **Local Development**: Use shell scripts from the pipelines GoLang folder instead of direct tool installation
+- **Linting**: Run `../pipelines/GoLang/golangci-lint.sh` instead of installing golangci-lint directly
+- **Security Scanning**: Pipeline handles horusec, semgrep, and gitleaks automatically
+
+### Setting up Pipelines Locally
+```bash
+# Clone pipelines project alongside terra repository
+cd ..
+git clone https://github.com/rios0rios0/pipelines.git
+cd terra
+
+# Now you can use pipelines scripts
+../pipelines/GoLang/golangci-lint.sh
+```
 
 ## Available Commands
 
@@ -192,9 +216,10 @@ TF_VAR_*=value
 
 ## CRITICAL Build and Timing Information
 - **Build Time**: 15-20 seconds typical, NEVER CANCEL builds
-- **Linting Time**: 2-5 minutes with golangci-lint, NEVER CANCEL
+- **Linting Time**: 2-5 minutes with pipelines golangci-lint script, NEVER CANCEL
 - **No Tests**: Repository contains no unit tests
 - **Dependencies**: Requires wire tool in PATH for successful builds
+- **Pipelines**: Use rios0rios0/pipelines project scripts instead of direct tool installation
 - **Install Failures**: `terra install` will fail in restricted network environments - this is expected behavior
 
 Always validate changes by building and running the basic terra commands to ensure functionality is preserved.
