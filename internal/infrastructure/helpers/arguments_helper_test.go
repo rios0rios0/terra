@@ -44,7 +44,47 @@ func TestArgumentsHelper_RemovePathFromArguments(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// For tests that expect existing directories, create them temporarily
-			if tt.name == "valid directory at start" || tt.name == "valid directory at end" {
+		name                 string
+		arguments            []string
+		expected             []string
+		expectsValidDirectory bool
+	}{
+		{
+			name:                 "no valid directory in arguments",
+			arguments:            []string{"apply", "--auto-approve", "invalid-path"},
+			expected:             []string{"apply", "--auto-approve", "invalid-path"}, // should return unchanged
+			expectsValidDirectory: false,
+		},
+		{
+			name:                 "valid directory at start",
+			arguments:            []string{".", "apply", "--auto-approve"},
+			expected:             []string{"apply", "--auto-approve"},
+			expectsValidDirectory: true,
+		},
+		{
+			name:                 "valid directory at end", 
+			arguments:            []string{"apply", "--auto-approve", "."},
+			expected:             []string{"apply", "--auto-approve"},
+			expectsValidDirectory: true,
+		},
+		{
+			name:                 "empty arguments",
+			arguments:            []string{},
+			expected:             []string{},
+			expectsValidDirectory: false,
+		},
+		{
+			name:                 "single argument - non-directory",
+			arguments:            []string{"apply"},
+			expected:             []string{"apply"},
+			expectsValidDirectory: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// For tests that expect existing directories, create them temporarily
+			if tt.expectsValidDirectory {
 				result := helper.RemovePathFromArguments(tt.arguments)
 				if len(result) != len(tt.expected) {
 					t.Errorf("RemovePathFromArguments() = %v, want %v", result, tt.expected)
