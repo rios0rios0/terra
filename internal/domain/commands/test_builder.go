@@ -3,6 +3,7 @@ package commands
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
@@ -79,7 +80,7 @@ func (b *TestServerBuilder) BuildServers() (*httptest.Server, *httptest.Server) 
 
 		// Check for specific patterns first (longer matches first)
 		for pattern, response := range b.versionResponses {
-			if pattern != "" && contains(r.URL.Path, pattern) {
+			if pattern != "" && strings.Contains(r.URL.Path, pattern) {
 				w.Write([]byte(response))
 				return
 			}
@@ -179,20 +180,4 @@ func (b *DependencyBuilder) Build() entities.Dependency {
 		RegexVersion:      b.regexVersion,
 		FormattingCommand: b.formattingCommand,
 	}
-}
-
-// Helper function to check if string contains substring (case-insensitive)
-func contains(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr ||
-		(len(s) > len(substr) && (s[:len(substr)] == substr || s[len(s)-len(substr):] == substr ||
-			findInString(s, substr))))
-}
-
-func findInString(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
 }
