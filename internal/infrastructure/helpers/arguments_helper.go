@@ -27,7 +27,7 @@ func (it ArgumentsHelper) FindAbsolutePath(arguments []string) string {
 		// Check if any of the arguments look like a path (contains "/" or looks like directory)
 		for _, arg := range arguments {
 			if arg != "" && (filepath.IsAbs(arg) || filepath.Clean(arg) != arg || arg == "." || arg == ".." ||
-				(len(arg) > 0 && (arg[0] == '/' || arg[0] == '.' || arg[0] == '~'))) {
+			if isPathLikeArgument(arg) {
 				// This looks like a path argument, validate it
 				if info, err := os.Stat(arg); err != nil {
 					if os.IsNotExist(err) {
