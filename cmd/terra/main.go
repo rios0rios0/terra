@@ -35,6 +35,45 @@ func main() {
 		}
 	}
 
+	// Handle --help and -h flags before cobra processing
+	if len(os.Args) > 1 && (os.Args[1] == "--help" || os.Args[1] == "-h") {
+		// Create a temporary command structure to display proper help
+		// without argument requirements for help display
+		rootController := injectRootController()
+		bind := rootController.GetBind()
+		//nolint:exhaustruct
+		tempRoot := &cobra.Command{
+			Use:   bind.Use,
+			Short: bind.Short,
+			Long:  bind.Long,
+			Run: func(command *cobra.Command, arguments []string) {
+				rootController.Execute(command, arguments)
+			},
+		}
+
+		// Add subcommands for complete help
+		appContext := injectAppContext()
+		for _, controller := range appContext.GetControllers() {
+			bind = controller.GetBind()
+			//nolint:exhaustruct
+			tempRoot.AddCommand(&cobra.Command{
+				Use:   bind.Use,
+				Short: bind.Short,
+				Long:  bind.Long,
+				Run: func(command *cobra.Command, arguments []string) {
+					controller.Execute(command, arguments)
+				},
+			})
+		}
+
+		// Set args and execute help
+		tempRoot.SetArgs([]string{"--help"})
+		if err := tempRoot.Execute(); err != nil {
+			logger.Fatalf("Error showing help: %s", err)
+		}
+		return
+	}
+
 	// "cobra" library needs to start with a cobraRoot command
 	rootController := injectRootController()
 	bind := rootController.GetBind()
