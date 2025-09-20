@@ -21,3 +21,27 @@ run:
 install:
 	make build
 	cp -v bin/terra ~/.local/bin/terra
+
+SCRIPTS_DIR := $(HOME)/Development/github.com/rios0rios0/pipelines
+REPO_URL    := git@github.com-mine:rios0rios0/pipelines.git
+
+.PHONY: all scripts lint horusec test
+
+all: lint horusec test
+
+scripts:
+	if [ ! -d "$(SCRIPTS_DIR)" ]; then \
+	  git clone $(REPO_URL) $(SCRIPTS_DIR); \
+	else \
+	  cd $(SCRIPTS_DIR) && git pull; \
+	fi
+
+lint: scripts
+	$(SCRIPTS_DIR)/global/scripts/golangci-lint/run.sh .
+
+horusec: scripts
+	$(SCRIPTS_DIR)/global/scripts/horusec/run.sh .
+
+test: scripts
+	$(SCRIPTS_DIR)/global/scripts/golang/test/run.sh .
+
