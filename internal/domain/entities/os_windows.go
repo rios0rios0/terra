@@ -1,6 +1,7 @@
 package entities
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 )
@@ -8,14 +9,7 @@ import (
 type OSWindows struct{}
 
 func (it *OSWindows) Download(url, tempFilePath string) error {
-	curlCmd := exec.Command("curl", "-Ls", "-o", tempFilePath, url)
-	curlCmd.Stderr = os.Stderr
-	curlCmd.Stdout = os.Stdout
-	err := curlCmd.Run()
-	if err != nil {
-		err = fmt.Errorf("failed to perform download using 'cURL': %w", err)
-	}
-	return err
+	return downloadFile(url, tempFilePath)
 }
 
 func (it *OSWindows) Extract(tempFilePath, destPath string) error {
