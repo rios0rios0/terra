@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -66,19 +67,7 @@ func testDownloadHTTPError(t *testing.T, osImpl OS, testPrefix string) {
 	}
 
 	// Verify the error message contains HTTP status information
-	if !containsSubstring(err.Error(), "HTTP 500") {
+	if !strings.Contains(err.Error(), "HTTP 500") {
 		t.Errorf("Expected error to contain 'HTTP 500', but got: %s", err.Error())
 	}
-}
-
-// containsSubstring is a helper function to check if a string contains a substring
-func containsSubstring(s, substr string) bool {
-	return len(s) >= len(substr) && (len(substr) == 0 || func() bool {
-		for i := 0; i <= len(s)-len(substr); i++ {
-			if s[i:i+len(substr)] == substr {
-				return true
-			}
-		}
-		return false
-	}())
 }
