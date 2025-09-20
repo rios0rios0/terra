@@ -23,6 +23,18 @@ func main() {
 		logger.Warnf("Error loading .env file: %s", err)
 	}
 
+	// Handle --version flag before cobra processing
+	if len(os.Args) > 1 && (os.Args[1] == "--version" || os.Args[1] == "-v") {
+		// Inject the version controller and execute it directly
+		appContext := injectAppContext()
+		for _, controller := range appContext.GetControllers() {
+			if controller.GetBind().Use == "version" {
+				controller.Execute(nil, []string{})
+				return
+			}
+		}
+	}
+
 	// "cobra" library needs to start with a cobraRoot command
 	rootController := injectRootController()
 	bind := rootController.GetBind()

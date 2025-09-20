@@ -25,7 +25,9 @@ func injectAppContext() entities.AppContext {
 	formatFilesController := controllers.NewFormatFilesController(formatFilesCommand, v)
 	installDependenciesCommand := commands.NewInstallDependenciesCommand()
 	installDependenciesController := controllers.NewInstallDependenciesController(installDependenciesCommand, v)
-	v2 := controllers.NewControllers(deleteCacheController, formatFilesController, installDependenciesController)
+	versionCommand := commands.NewVersionCommand(v)
+	versionController := controllers.NewVersionController(versionCommand)
+	v2 := controllers.NewControllers(deleteCacheController, formatFilesController, installDependenciesController, versionController)
 	appInternal := internal.NewAppInternal(v2)
 	appContext := newAppContext(appInternal)
 	return appContext
