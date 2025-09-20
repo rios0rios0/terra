@@ -23,7 +23,7 @@ install:
 	cp -v bin/terra ~/.local/bin/terra
 
 SCRIPTS_DIR := $(HOME)/Development/github.com/rios0rios0/pipelines
-REPO_URL    := git@github.com-mine:rios0rios0/pipelines.git
+REPO_URL    := https://github.com/rios0rios0/pipelines.git
 
 .PHONY: all scripts lint horusec test
 
