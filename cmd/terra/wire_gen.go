@@ -49,7 +49,7 @@ var (
 			BinaryURL:         "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s",
 			VersionURL:        "https://api.github.com/repos/gruntwork-io/terragrunt/releases/latest",
 			RegexVersion:      `"tag_name":"v([^"]+)"`,
-			FormattingCommand: []string{"hclfmt", "**/*.hcl"},
+			FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
 		},
 	}
 )
