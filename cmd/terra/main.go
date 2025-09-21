@@ -12,7 +12,7 @@ import (
 // buildRootCommand creates and configures the root cobra command
 func buildRootCommand(rootController entities.Controller, enableFlagParsing bool) *cobra.Command {
 	bind := rootController.GetBind()
-	//nolint:exhaustruct
+	//nolint:exhaustruct // Minimal Command initialization with required fields only
 	cmd := &cobra.Command{
 		Use:   bind.Use,
 		Short: bind.Short,
@@ -34,7 +34,7 @@ func buildRootCommand(rootController entities.Controller, enableFlagParsing bool
 func addSubcommands(rootCmd *cobra.Command, appContext entities.AppContext) {
 	for _, controller := range appContext.GetControllers() {
 		bind := controller.GetBind()
-		//nolint:exhaustruct
+		//nolint:exhaustruct // Minimal Command initialization with required fields only
 		subCmd := &cobra.Command{
 			Use:   bind.Use,
 			Short: bind.Short,
@@ -48,7 +48,7 @@ func addSubcommands(rootCmd *cobra.Command, appContext entities.AppContext) {
 }
 
 func main() {
-	//nolint:exhaustruct
+	//nolint:exhaustruct // Minimal TextFormatter initialization with required fields only
 	logger.SetFormatter(&logger.TextFormatter{
 		ForceColors:   true,
 		FullTimestamp: true,

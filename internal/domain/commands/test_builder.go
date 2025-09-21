@@ -99,7 +99,7 @@ func (b *TestServerBuilder) BuildServers() (*httptest.Server, *httptest.Server) 
 	)
 
 	binaryServer := httptest.NewServer(
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			if b.shouldFail {
 				w.WriteHeader(b.binaryStatus)
 				_, _ = w.Write([]byte("download failed"))

@@ -31,7 +31,7 @@ func NewControllers(
 	}
 }
 
-//nolint:gochecknoglobals
+//nolint:gochecknoglobals // Dependencies configuration for wire injection
 var dependencies = wire.Value([]entities.Dependency{
 	{
 		Name:              "Terraform",
