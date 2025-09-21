@@ -53,6 +53,9 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 		{"amd64", "amd64", "amd64"},
 		{"arm64", "arm64", "arm64"},
 		{"386", "386", "386"},
+		{"android_arm64", "android_arm64", "arm64"},
+		{"android_amd64", "android_amd64", "amd64"},
+		{"android_386", "android_386", "386"},
 	}
 
 	for _, tc := range testCases {
@@ -76,6 +79,9 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 		{"amd64", "amd64", "amd64"},
 		{"arm64", "arm64", "arm64"},
 		{"386", "386", "386"},
+		{"android_arm64", "android_arm64", "arm64"},
+		{"android_amd64", "android_amd64", "amd64"},
+		{"android_386", "android_386", "386"},
 	}
 
 	for _, tc := range testCases {

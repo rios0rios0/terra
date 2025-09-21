@@ -17,7 +17,7 @@ func TestGetOS(t *testing.T) {
 func TestOSLinux_GetTempDir(t *testing.T) {
 	osInstance := entities.GetOS()
 	tempDir := osInstance.GetTempDir()
-	
+
 	if tempDir == "" {
 		t.Error("GetTempDir() returned empty string")
 	}
@@ -36,7 +36,7 @@ func TestOSLinux_GetTempDir(t *testing.T) {
 func TestOSLinux_GetInstallationPath(t *testing.T) {
 	osInstance := entities.GetOS()
 	installPath := osInstance.GetInstallationPath()
-	
+
 	if installPath == "" {
 		t.Error("GetInstallationPath() returned empty string")
 	}
@@ -44,7 +44,7 @@ func TestOSLinux_GetInstallationPath(t *testing.T) {
 
 func TestOSLinux_MakeExecutable(t *testing.T) {
 	osInstance := entities.GetOS()
-	
+
 	// Create a temporary file
 	tempFile, err := os.CreateTemp(t.TempDir(), "test_executable_*")
 	if err != nil {
@@ -73,7 +73,7 @@ func TestOSLinux_MakeExecutable(t *testing.T) {
 
 func TestOSLinux_MakeExecutable_NonExistentFile(t *testing.T) {
 	osInstance := entities.GetOS()
-	
+
 	err := osInstance.MakeExecutable("/non/existent/file12345")
 	if err == nil {
 		t.Error("Expected error for non-existent file, got nil")
@@ -82,7 +82,7 @@ func TestOSLinux_MakeExecutable_NonExistentFile(t *testing.T) {
 
 func TestOSLinux_Remove_NonExistentFile(t *testing.T) {
 	osInstance := entities.GetOS()
-	
+
 	// Removing a non-existent file should not cause an error in most implementations
 	err := osInstance.Remove("/non/existent/file12345")
 	// We don't check for error here as different implementations may handle this differently
