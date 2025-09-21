@@ -115,19 +115,33 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
 
 ### Test Builders, Stubs, Mocks, and Helpers Organization
 
-**CRITICAL RULE: All test utilities (builders, stubs, mocks, in-memory implementations, dummies, and helpers) MUST be organized following the "one per file" rule in the `/test` folder.**
+**CRITICAL RULE: All test utilities (builders, stubs, mocks, in-memory implementations, dummies, and helpers) MUST be organized following the "one per file" rule in domain-specific subfolders within the `/test` folder.**
 
 #### Organization Guidelines
 
 1. **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
-2. **Dedicated `/test` folder** - All test utilities must be placed in the `/test` folder at the project root
+2. **Domain-specific organization** - All test utilities must be organized by their corresponding production packages:
+   - **`test/domain/entities_doubles/`** - Stubs implementing domain entity interfaces (CLI, OS, etc.)
+   - **`test/domain/entities_builders/`** - Builders that create domain entities for testing
+   - **`test/domain/entities_helpers/`** - Helpers that assist testing domain entity functionality
+   - **`test/domain/commands_doubles/`** - Stubs implementing domain command interfaces
+   - **`test/domain/repositories_doubles/`** - Stubs implementing domain repository interfaces
+   - **`test/infrastructure/controllers_doubles/`** - Stubs implementing infrastructure controller interfaces
+   - **`test/infrastructure/repositories_doubles/`** - Stubs implementing infrastructure repository interfaces
+   - **`test/infrastructure/controllers_helpers/`** - Helpers for testing controller functionality
+
 3. **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
    - Builders: `dependency_builder.go`, `test_server_builder.go`
-   - Stubs: `stub_shell_repository.go`, `stub_install_dependencies.go`
+   - Stubs: `stub_shell_repository.go`, `stub_install_dependencies.go`, `stub_cli.go`
    - Mocks: `mock_api_client.go` (when using behavioral verification with testify/mock)
    - In-memory implementations: `inmemory_cache.go`, `inmemory_storage.go`
    - Dummies: `dummy_config.go`, `dummy_logger.go`
    - Helpers: `os_helpers.go`, `network_helpers.go`
+
+4. **Package naming** - Use descriptive package names that reflect the organization:
+   - `entities_doubles`, `entities_builders`, `entities_helpers`
+   - `commands_doubles`, `repositories_doubles`
+   - `controllers_doubles`, `controllers_helpers`
 
 #### Test Double Definitions
 

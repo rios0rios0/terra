@@ -1,4 +1,4 @@
-package test
+package entities_helpers
 
 import (
 	"net/http"

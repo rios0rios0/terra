@@ -9,7 +9,7 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	"github.com/rios0rios0/terra/test"
+	"github.com/rios0rios0/terra/test/domain/entities_builders"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -20,13 +20,13 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 		}
 
 		// GIVEN: A test server and dependency
-		versionServer, binaryServer := test.NewTestServerBuilder().
+		versionServer, binaryServer := entities_builders.NewTestServerBuilder().
 			WithTerraformVersion("1.0.0").
 			BuildServers()
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		dependency := test.NewDependencyBuilder().
+		dependency := entities_builders.NewDependencyBuilder().
 			WithName("TestTool").
 			WithCLI("test-integration-tool-not-installed").
 			WithBinaryURL(binaryServer.URL + "/testtool_%s").
@@ -56,14 +56,14 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 		}
 
 		// GIVEN: A test server with zip content
-		versionServer, binaryServer := test.NewTestServerBuilder().
+		versionServer, binaryServer := entities_builders.NewTestServerBuilder().
 			WithTerraformVersion("2.0.0").
 			WithZipContent().
 			BuildServers()
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		dependency := test.NewDependencyBuilder().
+		dependency := entities_builders.NewDependencyBuilder().
 			WithName("TestZipTool").
 			WithCLI("test-zip-integration-tool-not-installed").
 			WithBinaryURL(binaryServer.URL + "/testziptool_%s.zip").
@@ -91,14 +91,14 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 	
 	t.Run("should handle mixed dependencies when multiple dependencies provided", func(t *testing.T) {
 		// GIVEN: Multiple test dependencies
-		versionServer, binaryServer := test.NewTestServerBuilder().
+		versionServer, binaryServer := entities_builders.NewTestServerBuilder().
 			WithTerraformVersion("1.5.0").
 			WithTerragruntVersion("0.50.0").
 			BuildServers()
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		terraformDep := test.NewDependencyBuilder().
+		terraformDep := entities_builders.NewDependencyBuilder().
 			WithName("TestTerraform").
 			WithCLI("test-terraform-unique-name").
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
@@ -106,7 +106,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 			WithTerraformPattern().
 			Build()
 
-		terragruntDep := test.NewDependencyBuilder().
+		terragruntDep := entities_builders.NewDependencyBuilder().
 			WithName("TestTerragrunt").
 			WithCLI("test-terragrunt-unique-name").
 			WithBinaryURL(binaryServer.URL + "/terragrunt_%s").
@@ -140,7 +140,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 		}
 
 		// GIVEN: A mock server that simulates download failure (HTTP 500)
-		versionServer, binaryServer := test.NewTestServerBuilder().
+		versionServer, binaryServer := entities_builders.NewTestServerBuilder().
 			WithTerraformVersion("1.13.3").
 			WithDownloadFailure(). // This will make binary server return 500 error
 			BuildServers()
