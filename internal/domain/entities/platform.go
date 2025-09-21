@@ -2,6 +2,7 @@ package entities
 
 import (
 	"runtime"
+	"strings"
 )
 
 // PlatformInfo holds OS and architecture information
@@ -25,12 +26,22 @@ func (p PlatformInfo) GetPlatformString() string {
 
 // GetTerraformArchString returns the architecture string as expected by Terraform releases
 func (p PlatformInfo) GetTerraformArchString() string {
+	// Handle Android architecture which includes "android_" prefix
+	// Terraform expects standard arch names without the prefix
+	if strings.HasPrefix(p.Arch, "android_") {
+		return strings.TrimPrefix(p.Arch, "android_")
+	}
 	// Terraform uses standard Go architecture names
 	return p.Arch
 }
 
 // GetTerragruntArchString returns the architecture string as expected by Terragrunt releases
 func (p PlatformInfo) GetTerragruntArchString() string {
+	// Handle Android architecture which includes "android_" prefix
+	// Terragrunt expects standard arch names without the prefix
+	if strings.HasPrefix(p.Arch, "android_") {
+		return strings.TrimPrefix(p.Arch, "android_")
+	}
 	// Terragrunt also uses standard Go architecture names
 	return p.Arch
 }
