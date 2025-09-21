@@ -187,10 +187,37 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - **Test helpers in production folders affect coverage unnecessarily** and violate project standards
 - **Use `t.Helper()` in all helper functions** for better test failure reporting
 - **Name helpers with `Helper` prefix** - avoid `Test` prefix to prevent Go test runner conflicts
+- **Follow "one per file" rule** - Each builder, mock, stub, in-memory implementation, dummy, or helper must be in its own file
+
+**Test Utilities Organization Rules:**
+- **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
+- **Dedicated `/test` folder** - All test utilities must be placed in the `/test` folder at the project root
+- **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
+  - Builders: `dependency_builder.go`, `test_server_builder.go`
+  - Stubs: `stub_shell_repository.go`, `stub_install_dependencies.go`
+  - Mocks: `mock_api_client.go` (when using behavioral verification with testify/mock)
+  - In-memory implementations: `inmemory_cache.go`, `inmemory_storage.go`
+  - Dummies: `dummy_config.go`, `dummy_logger.go`
+  - Helpers: `os_helpers.go`, `network_helpers.go`
+
+**Choosing Between Stubs and Mocks:**
+
+**Use Stubs when:**
+- Testing **state verification** (final output/result)
+- Controlling dependency return values for different test scenarios  
+- Recording calls for later assertion (call count, parameters)
+- Testing query operations (data retrieval without side effects)
+
+**Use Mocks when:**
+- Testing **behavior verification** (specific method calls with expected parameters)
+- Ensuring interactions happen in correct order
+- Testing command operations (operations with side effects)
+- Wanting tests to fail immediately on unexpected interactions
+- Using testify/mock package for behavioral expectations
 
 **Example Test Helper Structure:**
 ```go
-// File: /test/my_helpers.go
+// File: /test/os_helpers.go (Helpers in separate files)
 package test
 
 import (
@@ -203,6 +230,32 @@ func HelperDownloadSuccess(t *testing.T, osImpl entities.OS, testPrefix string) 
     t.Helper() // Mark as test helper
     // ... implementation
 }
+```
+
+**Example Builder Structure:**
+```go
+// File: /test/dependency_builder.go (Builders in separate files)
+package test
+
+import "github.com/rios0rios0/terra/internal/domain/entities"
+
+// DependencyBuilder helps create test dependencies with a fluent interface
+type DependencyBuilder struct { /* ... */ }
+
+func NewDependencyBuilder() *DependencyBuilder { /* ... */ }
+func (b *DependencyBuilder) WithName(name string) *DependencyBuilder { /* ... */ }
+func (b *DependencyBuilder) Build() entities.Dependency { /* ... */ }
+```
+
+**Example Stub Structure:**
+```go
+// File: /test/stub_shell_repository.go (Stubs in separate files)
+package test
+
+// StubShellRepository for testing shell-related commands
+type StubShellRepository struct { /* ... */ }
+
+func (m *StubShellRepository) ExecuteCommand(/* ... */) error { /* ... */ }
 ```
 
 ### Manual Validation Requirements

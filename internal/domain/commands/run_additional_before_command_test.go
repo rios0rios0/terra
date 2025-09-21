@@ -5,79 +5,10 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// MockShellRepositoryForAdditional is a mock implementation of repositories.ShellRepository.
-type MockShellRepositoryForAdditional struct {
-	ExecuteCallCount int
-	LastCommand      string
-	LastArguments    []string
-	LastDirectory    string
-	ExecuteErrors    []error
-	CallHistory      []struct {
-		Command   string
-		Arguments []string
-		Directory string
-	}
-}
-
-func (m *MockShellRepositoryForAdditional) ExecuteCommand(
-	command string,
-	arguments []string,
-	directory string,
-) error {
-	m.CallHistory = append(m.CallHistory, struct {
-		Command   string
-		Arguments []string
-		Directory string
-	}{
-		Command:   command,
-		Arguments: arguments,
-		Directory: directory,
-	})
-
-	m.ExecuteCallCount++
-	m.LastCommand = command
-	m.LastArguments = arguments
-	m.LastDirectory = directory
-
-	if len(m.ExecuteErrors) > 0 {
-		err := m.ExecuteErrors[0]
-		m.ExecuteErrors = m.ExecuteErrors[1:]
-		return err
-	}
-	return nil
-}
-
-// MockCLI is a mock implementation of entities.CLI.
-type MockCLI struct {
-	Name                  string
-	CanChangeAccountValue bool
-	CommandChangeAccount  []string
-}
-
-func (m *MockCLI) GetName() string {
-	return m.Name
-}
-
-func (m *MockCLI) CanChangeAccount() bool {
-	return m.CanChangeAccountValue
-}
-
-func (m *MockCLI) GetCommandChangeAccount() []string {
-	return m.CommandChangeAccount
-}
-
-// MockAdditionalError implements the error interface.
-type MockAdditionalError struct {
-	message string
-}
-
-func (e *MockAdditionalError) Error() string {
-	return e.message
-}
 
 func TestNewRunAdditionalBeforeCommand(t *testing.T) {
 	t.Parallel()
@@ -88,12 +19,12 @@ func TestNewRunAdditionalBeforeCommand(t *testing.T) {
 			TerraCloud:              "aws",
 			TerraTerraformWorkspace: "dev",
 		}
-		cli := &MockCLI{
+		cli := &test.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
 			CommandChangeAccount:  []string{"sts", "assume-role"},
 		}
-		repository := &MockShellRepositoryForAdditional{}
+		repository := &test.StubShellRepositoryForAdditional{}
 
 		// WHEN: Creating a new RunAdditionalBeforeCommand
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
@@ -109,12 +40,12 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		cli := &MockCLI{
+		cli := &test.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
 			CommandChangeAccount:  []string{"sts", "assume-role", "--role-arn", "test-role"},
 		}
-		repository := &MockShellRepositoryForAdditional{}
+		repository := &test.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan"}
@@ -134,12 +65,12 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		cli := &MockCLI{
+		cli := &test.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: false,
 			CommandChangeAccount:  []string{},
 		}
-		repository := &MockShellRepositoryForAdditional{}
+		repository := &test.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan"}
@@ -159,7 +90,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		repository := &MockShellRepositoryForAdditional{}
+		repository := &test.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan"}
@@ -178,7 +109,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		repository := &MockShellRepositoryForAdditional{}
+		repository := &test.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan", "--detailed-exitcode"}
@@ -203,7 +134,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		repository := &MockShellRepositoryForAdditional{}
+		repository := &test.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"init"}
@@ -224,7 +155,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		repository := &MockShellRepositoryForAdditional{}
+		repository := &test.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"run-all", "plan"}
@@ -246,7 +177,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			TerraCloud:              "aws",
 			TerraTerraformWorkspace: "production",
 		}
-		repository := &MockShellRepositoryForAdditional{}
+		repository := &test.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan"}
@@ -274,7 +205,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			TerraCloud:              "aws",
 			TerraTerraformWorkspace: "",
 		}
-		repository := &MockShellRepositoryForAdditional{}
+		repository := &test.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan"}
@@ -296,12 +227,12 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			TerraCloud:              "aws",
 			TerraTerraformWorkspace: "staging",
 		}
-		cli := &MockCLI{
+		cli := &test.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
 			CommandChangeAccount:  []string{"sts", "assume-role"},
 		}
-		repository := &MockShellRepositoryForAdditional{}
+		repository := &test.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
 		targetPath := "/test/path"
 		arguments := []string{"apply", "-auto-approve"}
