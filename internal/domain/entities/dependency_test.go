@@ -6,19 +6,27 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
-func TestDependency_GetBinaryURL_Terraform(t *testing.T) {
+func TestDependency_ShouldGenerateTerraformURL_WhenTerraformDependencyProvided(t *testing.T) {
+	// GIVEN: A Terraform dependency with platform-specific URL template
 	dependency := entities.Dependency{
 		Name:      "Terraform",
 		CLI:       "terraform",
 		BinaryURL: "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
 	}
-
 	version := "1.5.0"
+
+	// WHEN: Getting the binary URL
 	result := dependency.GetBinaryURL(version)
 
+	// THEN: URL should contain all expected components
+	require.NotEmpty(t, result, "Binary URL should not be empty")
+	
 	expectedSubstrings := []string{
 		"https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0",
 		runtime.GOOS,
@@ -27,30 +35,33 @@ func TestDependency_GetBinaryURL_Terraform(t *testing.T) {
 	}
 
 	for _, substring := range expectedSubstrings {
-		if !strings.Contains(result, substring) {
-			t.Errorf("Expected URL to contain '%s', got: %s", substring, result)
-		}
+		assert.Contains(t, result, substring,
+			"URL should contain expected substring: %s", substring)
 	}
 
 	// Verify the URL doesn't contain the placeholders anymore
 	placeholders := []string{"%[1]s", "%[2]s", "%[3]s"}
 	for _, placeholder := range placeholders {
-		if strings.Contains(result, placeholder) {
-			t.Errorf("URL should not contain placeholder '%s', got: %s", placeholder, result)
-		}
+		assert.NotContains(t, result, placeholder,
+			"URL should not contain unreplaced placeholder: %s", placeholder)
 	}
 }
 
-func TestDependency_GetBinaryURL_Terragrunt(t *testing.T) {
+func TestDependency_ShouldGenerateTerragruntURL_WhenTerragruntDependencyProvided(t *testing.T) {
+	// GIVEN: A Terragrunt dependency with platform-specific URL template
 	dependency := entities.Dependency{
 		Name:      "Terragrunt",
 		CLI:       "terragrunt",
 		BinaryURL: "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s",
 	}
-
 	version := "0.50.0"
+
+	// WHEN: Getting the binary URL
 	result := dependency.GetBinaryURL(version)
 
+	// THEN: URL should contain all expected components
+	require.NotEmpty(t, result, "Binary URL should not be empty")
+	
 	expectedSubstrings := []string{
 		"https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.0/terragrunt",
 		runtime.GOOS,
@@ -58,153 +69,134 @@ func TestDependency_GetBinaryURL_Terragrunt(t *testing.T) {
 	}
 
 	for _, substring := range expectedSubstrings {
-		if !strings.Contains(result, substring) {
-			t.Errorf("Expected URL to contain '%s', got: %s", substring, result)
-		}
+		assert.Contains(t, result, substring,
+			"URL should contain expected substring: %s", substring)
 	}
 
 	// Verify the URL doesn't contain the placeholders anymore
 	placeholders := []string{"%[2]s", "%[3]s"}
 	for _, placeholder := range placeholders {
-		if strings.Contains(result, placeholder) {
-			t.Errorf("URL should not contain placeholder '%s', got: %s", placeholder, result)
-		}
+		assert.NotContains(t, result, placeholder,
+			"URL should not contain unreplaced placeholder: %s", placeholder)
 	}
 }
 
-func TestDependency_GetBinaryURL_PlatformVariations(t *testing.T) {
+func TestDependency_ShouldGeneratePlatformSpecificURL_WhenPlatformVariationsUsed(t *testing.T) {
+	// GIVEN: A dependency with platform placeholders
 	dependency := entities.Dependency{
 		BinaryURL: "https://example.com/%[1]s/%[2]s_%[3]s",
 	}
-
-	// Test with current platform
 	version := "1.0.0"
+
+	// WHEN: Getting the binary URL
 	result := dependency.GetBinaryURL(version)
 
+	// THEN: URL should match expected platform-specific format
 	platform := entities.GetPlatformInfo()
 	expectedURL := "https://example.com/1.0.0/" + platform.GetOSString() + "_" + platform.GetTerraformArchString()
 
-	if result != expectedURL {
-		t.Errorf("Expected %s, got %s", expectedURL, result)
-	}
+	assert.Equal(t, expectedURL, result,
+		"URL should match expected platform-specific format")
 }
 
-func TestDependency_GetBinaryURL_BackwardCompatibility(t *testing.T) {
-	// Test backward compatibility with simple version-only URLs
+func TestDependency_ShouldUseSimpleVersionFormat_WhenBackwardCompatibilityRequired(t *testing.T) {
+	// GIVEN: A dependency with simple version-only URL template (backward compatibility)
 	dependency := entities.Dependency{
 		BinaryURL: "https://example.com/tool_%s",
 	}
-
 	version := "1.0.0"
+
+	// WHEN: Getting the binary URL
 	result := dependency.GetBinaryURL(version)
+
+	// THEN: URL should use simple version formatting
 	expectedURL := "https://example.com/tool_1.0.0"
-
-	if result != expectedURL {
-		t.Errorf("Expected %s, got %s", expectedURL, result)
-	}
+	assert.Equal(t, expectedURL, result,
+		"URL should use simple version formatting for backward compatibility")
 }
 
-func TestDependency_GetBinaryURL_MixedFormats(t *testing.T) {
-	testCases := []struct {
-		name      string
-		binaryURL string
-		version   string
-		expected  func() string // Function to generate expected result
-	}{
-		{
-			name:      "simple version format",
-			binaryURL: "https://example.com/tool_%s",
-			version:   "1.0.0",
-			expected:  func() string { return "https://example.com/tool_1.0.0" },
-		},
-		{
-			name:      "platform format with OS placeholder",
-			binaryURL: "https://example.com/tool_%[1]s_%[2]s",
-			version:   "1.0.0",
-			expected: func() string {
-				platform := entities.GetPlatformInfo()
-				return "https://example.com/tool_1.0.0_" + platform.GetOSString()
-			},
-		},
-		{
-			name:      "platform format with arch placeholder",
-			binaryURL: "https://example.com/tool_%[1]s_%[3]s",
-			version:   "1.0.0",
-			expected: func() string {
-				platform := entities.GetPlatformInfo()
-				return "https://example.com/tool_1.0.0_" + platform.GetTerraformArchString()
-			},
-		},
-	}
+func TestDependency_ShouldUseSimpleVersionFormat_WhenSimpleVersionFormatUsed(t *testing.T) {
+	// GIVEN: A dependency with simple version format
+	dependency := entities.Dependency{BinaryURL: "https://example.com/tool_%s"}
+	version := "1.0.0"
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			dependency := entities.Dependency{BinaryURL: tc.binaryURL}
-			result := dependency.GetBinaryURL(tc.version)
-			expected := tc.expected()
+	// WHEN: Getting the binary URL
+	result := dependency.GetBinaryURL(version)
 
-			if result != expected {
-				t.Errorf("Expected %s, got %s", expected, result)
-			}
-		})
-	}
+	// THEN: Should return URL with simple version format
+	expectedURL := "https://example.com/tool_1.0.0"
+	assert.Equal(t, expectedURL, result,
+		"Should generate URL with simple version format")
 }
 
-func TestDependency_GetBinaryURL_AndroidArchitecture(t *testing.T) {
-	testCases := []struct {
-		name             string
-		binaryURL        string
-		platform         entities.PlatformInfo
-		version          string
-		expectedContains []string
-	}{
-		{
-			name:      "Terraform with android_arm64",
-			binaryURL: "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
-			platform:  entities.PlatformInfo{OS: "android", Arch: "android_arm64"},
-			version:   "1.5.0",
-			expectedContains: []string{
-				"https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_arm64.zip",
-			},
-		},
-		{
-			name:      "Terragrunt with android_arm64",
-			binaryURL: "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s",
-			platform:  entities.PlatformInfo{OS: "android", Arch: "android_arm64"},
-			version:   "0.50.0",
-			expectedContains: []string{
-				"https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.0/terragrunt_linux_arm64",
-			},
-		},
+func TestDependency_ShouldIncludeOSInformation_WhenPlatformFormatWithOSPlaceholderUsed(t *testing.T) {
+	// GIVEN: A dependency with platform format containing OS placeholder
+	dependency := entities.Dependency{BinaryURL: "https://example.com/tool_%[1]s_%[2]s"}
+	version := "1.0.0"
+
+	// WHEN: Getting the binary URL
+	result := dependency.GetBinaryURL(version)
+
+	// THEN: Should return URL with OS information
+	platform := entities.GetPlatformInfo()
+	expectedURL := "https://example.com/tool_1.0.0_" + platform.GetOSString()
+	assert.Equal(t, expectedURL, result,
+		"Should generate URL with OS information")
+}
+
+func TestDependency_ShouldIncludeArchInformation_WhenPlatformFormatWithArchPlaceholderUsed(t *testing.T) {
+	// GIVEN: A dependency with platform format containing architecture placeholder
+	dependency := entities.Dependency{BinaryURL: "https://example.com/tool_%[1]s_%[3]s"}
+	version := "1.0.0"
+
+	// WHEN: Getting the binary URL
+	result := dependency.GetBinaryURL(version)
+
+	// THEN: Should return URL with architecture information
+	platform := entities.GetPlatformInfo()
+	expectedURL := "https://example.com/tool_1.0.0_" + platform.GetTerraformArchString()
+	assert.Equal(t, expectedURL, result,
+		"Should generate URL with architecture information")
+}
+
+func TestDependency_ShouldGenerateLinuxArm64URL_WhenTerraformWithAndroidArm64Used(t *testing.T) {
+	// GIVEN: A Terraform dependency and android_arm64 platform
+	dependency := entities.Dependency{BinaryURL: "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip"}
+	testPlatform := entities.PlatformInfo{OS: "android", Arch: "android_arm64"}
+	version := "1.5.0"
+
+	// WHEN: Getting the binary URL (simulating android platform conversion to linux)
+	var result string
+	if strings.Contains(dependency.BinaryURL, "%[2]s") || strings.Contains(dependency.BinaryURL, "%[3]s") {
+		archString := testPlatform.GetTerraformArchString()
+		result = fmt.Sprintf(dependency.BinaryURL, version, testPlatform.GetOSString(), archString)
+	} else {
+		result = fmt.Sprintf(dependency.BinaryURL, version)
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			dependency := entities.Dependency{BinaryURL: tc.binaryURL}
+	// THEN: Should generate URL with linux_arm64 (android converted to linux)
+	expectedURL := "https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_arm64.zip"
+	assert.Contains(t, result, expectedURL,
+		"Should generate URL with linux_arm64 for android_arm64 platform")
+}
 
-			// Create a test dependency that uses our test platform
-			testGetBinaryURL := func(version string) string {
-				// Simulate the logic from GetBinaryURL but with our test platform
-				if strings.Contains(dependency.BinaryURL, "%[2]s") || strings.Contains(dependency.BinaryURL, "%[3]s") {
-					// Determine which arch method to use based on dependency type
-					var archString string
-					if strings.Contains(dependency.BinaryURL, "terragrunt") {
-						archString = tc.platform.GetTerragruntArchString()
-					} else {
-						archString = tc.platform.GetTerraformArchString()
-					}
-					return fmt.Sprintf(dependency.BinaryURL, version, tc.platform.GetOSString(), archString)
-				}
-				return fmt.Sprintf(dependency.BinaryURL, version)
-			}
+func TestDependency_ShouldGenerateLinuxArm64URL_WhenTerragruntWithAndroidArm64Used(t *testing.T) {
+	// GIVEN: A Terragrunt dependency and android_arm64 platform
+	dependency := entities.Dependency{BinaryURL: "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s"}
+	testPlatform := entities.PlatformInfo{OS: "android", Arch: "android_arm64"}
+	version := "0.50.0"
 
-			result := testGetBinaryURL(tc.version)
-
-			for _, expectedSubstring := range tc.expectedContains {
-				if !strings.Contains(result, expectedSubstring) {
-					t.Errorf("Expected URL to contain '%s', got: %s", expectedSubstring, result)
-				}
-			}
-		})
+	// WHEN: Getting the binary URL (simulating android platform conversion to linux)
+	var result string
+	if strings.Contains(dependency.BinaryURL, "%[2]s") || strings.Contains(dependency.BinaryURL, "%[3]s") {
+		archString := testPlatform.GetTerragruntArchString()
+		result = fmt.Sprintf(dependency.BinaryURL, version, testPlatform.GetOSString(), archString)
+	} else {
+		result = fmt.Sprintf(dependency.BinaryURL, version)
 	}
+
+	// THEN: Should generate URL with linux_arm64 (android converted to linux)
+	expectedURL := "https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.0/terragrunt_linux_arm64"
+	assert.Contains(t, result, expectedURL,
+		"Should generate URL with linux_arm64 for android_arm64 platform")
 }
