@@ -3,7 +3,10 @@ package controllers_test
 import (
 	"testing"
 
+	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // MockDeleteCacheCommand is a mock implementation of the DeleteCache interface
@@ -17,95 +20,59 @@ func (m *MockDeleteCacheCommand) Execute(toBeDeleted []string) {
 	m.LastToBeDeleted = toBeDeleted
 }
 
-func TestNewDeleteCacheController(t *testing.T) {
+func TestNewDeleteCacheController_ShouldCreateInstance_WhenCommandProvided(t *testing.T) {
+	// GIVEN: A mock delete cache command
 	mockCommand := &MockDeleteCacheCommand{}
-	controller := NewDeleteCacheController(mockCommand)
 
-	if controller == nil {
-		t.Fatal("NewDeleteCacheController returned nil")
-	}
+	// WHEN: Creating a new delete cache controller
+	controller := controllers.NewDeleteCacheController(mockCommand)
 
-	if controller.command != mockCommand {
-		t.Error("Controller command was not set correctly")
-	}
+	// THEN: Should create a valid controller instance
+	require.NotNil(t, controller)
 }
 
-func TestDeleteCacheController_GetBind(t *testing.T) {
+func TestDeleteCacheController_ShouldReturnCorrectBind_WhenGetBindCalled(t *testing.T) {
+	// GIVEN: A delete cache controller
 	mockCommand := &MockDeleteCacheCommand{}
-	controller := NewDeleteCacheController(mockCommand)
+	controller := controllers.NewDeleteCacheController(mockCommand)
+
+	// WHEN: Getting the controller bind
 	bind := controller.GetBind()
 
-	expectedUse := "clear"
-	expectedShort := "Clear all cache and modules directories"
-	expectedLong := "Clear all temporary directories and cache folders created during the Terraform and Terragrunt execution."
-
-	if bind.Use != expectedUse {
-		t.Errorf("Expected Use to be %q, got %q", expectedUse, bind.Use)
-	}
-
-	if bind.Short != expectedShort {
-		t.Errorf("Expected Short to be %q, got %q", expectedShort, bind.Short)
-	}
-
-	if bind.Long != expectedLong {
-		t.Errorf("Expected Long to be %q, got %q", expectedLong, bind.Long)
-	}
+	// THEN: Should return correct bind configuration
+	assert.Equal(t, "clear", bind.Use)
+	assert.Equal(t, "Clear all cache and modules directories", bind.Short)
+	assert.Equal(t, "Clear all temporary directories and cache folders created during the Terraform and Terragrunt execution.", bind.Long)
 }
 
-func TestDeleteCacheController_Execute(t *testing.T) {
+func TestDeleteCacheController_ShouldExecuteCommand_WhenExecuteCalled(t *testing.T) {
+	// GIVEN: A delete cache controller with mock command
 	mockCommand := &MockDeleteCacheCommand{}
-	controller := NewDeleteCacheController(mockCommand)
-
-	// Create a mock cobra command and args
+	controller := controllers.NewDeleteCacheController(mockCommand)
 	cmd := &cobra.Command{}
 	args := []string{}
 
-	// Execute the controller
+	// WHEN: Executing the controller
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called
-	if mockCommand.ExecuteCallCount != 1 {
-		t.Errorf("Expected Execute to be called once, got %d calls", mockCommand.ExecuteCallCount)
-	}
-
-	// Verify that the correct directories were passed
+	// THEN: Should execute the command with correct directories
+	assert.Equal(t, 1, mockCommand.ExecuteCallCount)
 	expectedDirs := []string{".terraform", ".terragrunt-cache"}
-	if len(mockCommand.LastToBeDeleted) != len(expectedDirs) {
-		t.Errorf(
-			"Expected %d directories to be deleted, got %d",
-			len(expectedDirs),
-			len(mockCommand.LastToBeDeleted),
-		)
-	}
-
-	for i, expected := range expectedDirs {
-		if i < len(mockCommand.LastToBeDeleted) && mockCommand.LastToBeDeleted[i] != expected {
-			t.Errorf(
-				"Expected directory %s at index %d, got %s",
-				expected,
-				i,
-				mockCommand.LastToBeDeleted[i],
-			)
-		}
-	}
+	assert.Equal(t, expectedDirs, mockCommand.LastToBeDeleted)
 }
 
-func TestDeleteCacheController_ExecuteMultipleCalls(t *testing.T) {
+func TestDeleteCacheController_ShouldExecuteCommandMultipleTimes_WhenCalledRepeatedly(t *testing.T) {
+	// GIVEN: A delete cache controller with mock command
 	mockCommand := &MockDeleteCacheCommand{}
-	controller := NewDeleteCacheController(mockCommand)
+	controller := controllers.NewDeleteCacheController(mockCommand)
 	cmd := &cobra.Command{}
 	args := []string{}
 
-	// Execute multiple times
+	// WHEN: Executing the controller multiple times
 	controller.Execute(cmd, args)
 	controller.Execute(cmd, args)
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called the correct number of times
-	if mockCommand.ExecuteCallCount != 3 {
-		t.Errorf(
-			"Expected Execute to be called 3 times, got %d calls",
-			mockCommand.ExecuteCallCount,
-		)
-	}
+	// THEN: Should execute the command the correct number of times
+	assert.Equal(t, 3, mockCommand.ExecuteCallCount)
 }
