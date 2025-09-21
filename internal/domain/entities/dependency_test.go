@@ -2,7 +2,6 @@ package entities_test
 
 import (
 	"fmt"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -19,10 +18,13 @@ func TestDependency_GetBinaryURL_Terraform(t *testing.T) {
 	version := "1.5.0"
 	result := dependency.GetBinaryURL(version)
 
+	// Get the platform-mapped values for proper assertion on all platforms including Android
+	platform := entities.GetPlatformInfo()
+
 	expectedSubstrings := []string{
 		"https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0",
-		runtime.GOOS,
-		runtime.GOARCH,
+		platform.GetOSString(),            // Use platform-mapped OS (android -> linux)
+		platform.GetTerraformArchString(), // Use platform-mapped arch (android_arm64 -> arm64)
 		".zip",
 	}
 
@@ -51,10 +53,13 @@ func TestDependency_GetBinaryURL_Terragrunt(t *testing.T) {
 	version := "0.50.0"
 	result := dependency.GetBinaryURL(version)
 
+	// Get the platform-mapped values for proper assertion on all platforms including Android
+	platform := entities.GetPlatformInfo()
+
 	expectedSubstrings := []string{
 		"https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.0/terragrunt",
-		runtime.GOOS,
-		runtime.GOARCH,
+		platform.GetOSString(),             // Use platform-mapped OS (android -> linux)
+		platform.GetTerragruntArchString(), // Use platform-mapped arch (android_arm64 -> arm64)
 	}
 
 	for _, substring := range expectedSubstrings {
