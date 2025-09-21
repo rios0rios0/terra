@@ -21,77 +21,89 @@ func (m *MockFormatFilesCommand) Execute(dependencies []entities.Dependency) {
 	m.LastDependencies = dependencies
 }
 
-func TestNewFormatFilesController_ShouldCreateInstance_WhenCommandAndDependenciesProvided(t *testing.T) {
-	// GIVEN: A mock command and test dependencies
-	mockCommand := &MockFormatFilesCommand{}
-	dependencies := []entities.Dependency{
-		{
-			Name:              "Test Tool",
-			CLI:               "test",
-			FormattingCommand: []string{"format", "-recursive"},
-		},
-	}
+func TestNewFormatFilesController(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should create instance when command and dependencies provided", func(t *testing.T) {
+		// GIVEN: A mock command and test dependencies
+		mockCommand := &MockFormatFilesCommand{}
+		dependencies := []entities.Dependency{
+			{
+				Name:              "Test Tool",
+				CLI:               "test",
+				FormattingCommand: []string{"format", "-recursive"},
+			},
+		}
 
-	// WHEN: Creating a new format files controller
-	controller := controllers.NewFormatFilesController(mockCommand, dependencies)
+		// WHEN: Creating a new format files controller
+		controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 
-	// THEN: Should create a valid controller instance
-	require.NotNil(t, controller)
+		// THEN: Should create a valid controller instance
+		require.NotNil(t, controller)
+	})
 }
 
-func TestFormatFilesController_ShouldReturnCorrectBind_WhenGetBindCalled(t *testing.T) {
-	// GIVEN: A format files controller with mock command and empty dependencies
-	mockCommand := &MockFormatFilesCommand{}
-	dependencies := []entities.Dependency{}
-	controller := controllers.NewFormatFilesController(mockCommand, dependencies)
+func TestFormatFilesController_GetBind(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should return correct bind when called", func(t *testing.T) {
+		// GIVEN: A format files controller with mock command and empty dependencies
+		mockCommand := &MockFormatFilesCommand{}
+		dependencies := []entities.Dependency{}
+		controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 
-	// WHEN: Getting the controller bind
-	bind := controller.GetBind()
+		// WHEN: Getting the controller bind
+		bind := controller.GetBind()
 
-	// THEN: Should return correct bind configuration
-	assert.Equal(t, "format", bind.Use)
-	assert.Equal(t, "Format all files in the current directory", bind.Short)
-	assert.Equal(t, "Format all the Terraform and Terragrunt files in the current directory.", bind.Long)
+		// THEN: Should return correct bind configuration
+		assert.Equal(t, "format", bind.Use)
+		assert.Equal(t, "Format all files in the current directory", bind.Short)
+		assert.Equal(t, "Format all the Terraform and Terragrunt files in the current directory.", bind.Long)
+	})
 }
 
-func TestFormatFilesController_ShouldExecuteCommand_WhenExecuteCalled(t *testing.T) {
-	// GIVEN: A format files controller with mock command and test dependencies
-	mockCommand := &MockFormatFilesCommand{}
-	terraformDep := entities.Dependency{
-		Name: "Terraform",
-		CLI:  "terraform",
-	}
-	terragruntDep := entities.Dependency{
-		Name: "Terragrunt",
-		CLI:  "terragrunt",
-	}
-	dependencies := []entities.Dependency{terraformDep, terragruntDep}
-	controller := controllers.NewFormatFilesController(mockCommand, dependencies)
-	cmd := &cobra.Command{}
-	args := []string{}
+func TestFormatFilesController_Execute(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should execute command when called with dependencies", func(t *testing.T) {
+		// GIVEN: A format files controller with mock command and test dependencies
+		mockCommand := &MockFormatFilesCommand{}
+		terraformDep := entities.Dependency{
+			Name: "Terraform",
+			CLI:  "terraform",
+		}
+		terragruntDep := entities.Dependency{
+			Name: "Terragrunt",
+			CLI:  "terragrunt",
+		}
+		dependencies := []entities.Dependency{terraformDep, terragruntDep}
+		controller := controllers.NewFormatFilesController(mockCommand, dependencies)
+		cmd := &cobra.Command{}
+		args := []string{}
 
-	// WHEN: Executing the controller
-	controller.Execute(cmd, args)
+		// WHEN: Executing the controller
+		controller.Execute(cmd, args)
 
-	// THEN: Should execute the command with correct dependencies
-	assert.Equal(t, 1, mockCommand.ExecuteCallCount)
-	require.Len(t, mockCommand.LastDependencies, 2)
-	assert.Equal(t, terraformDep.Name, mockCommand.LastDependencies[0].Name)
-	assert.Equal(t, terragruntDep.Name, mockCommand.LastDependencies[1].Name)
-}
+		// THEN: Should execute the command with correct dependencies
+		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
+		require.Len(t, mockCommand.LastDependencies, 2)
+		assert.Equal(t, terraformDep.Name, mockCommand.LastDependencies[0].Name)
+		assert.Equal(t, terragruntDep.Name, mockCommand.LastDependencies[1].Name)
+	})
+	
+	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
+		// GIVEN: A format files controller with mock command and empty dependencies
+		mockCommand := &MockFormatFilesCommand{}
+		dependencies := []entities.Dependency{}
+		controller := controllers.NewFormatFilesController(mockCommand, dependencies)
+		cmd := &cobra.Command{}
+		args := []string{}
 
-func TestFormatFilesController_ShouldExecuteCommandMultipleTimes_WhenCalledRepeatedly(t *testing.T) {
-	// GIVEN: A format files controller with mock command and empty dependencies
-	mockCommand := &MockFormatFilesCommand{}
-	dependencies := []entities.Dependency{}
-	controller := controllers.NewFormatFilesController(mockCommand, dependencies)
-	cmd := &cobra.Command{}
-	args := []string{}
+		// WHEN: Executing the controller multiple times
+		controller.Execute(cmd, args)
+		controller.Execute(cmd, args)
 
-	// WHEN: Executing the controller multiple times
-	controller.Execute(cmd, args)
-	controller.Execute(cmd, args)
-
-	// THEN: Should execute the command the correct number of times
-	assert.Equal(t, 2, mockCommand.ExecuteCallCount)
+		// THEN: Should execute the command the correct number of times
+		assert.Equal(t, 2, mockCommand.ExecuteCallCount)
+	})
 }
