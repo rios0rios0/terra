@@ -133,26 +133,44 @@ terra apply /path/to/infrastructure/module
 **CRITICAL Testing Requirements:**
 - **Bug fixes MUST include unit tests** that reproduce the issue before fixing it
 - **All new tests MUST use testify framework** (`github.com/stretchr/testify`)
-- **Follow BDD structure**: Given/When/Then with clear test naming: `TestComponent_ShouldBehavior_WhenCondition`
+- **Follow test method organization pattern**: One function per public method with t.Run() for test cases
 - **Never test private methods directly** - test through public interfaces with comprehensive coverage
 - **Use testify assertions**: `assert.*` for non-critical, `require.*` for critical, `mock.*` for test doubles
 
-**Example BDD Test Structure:**
+**Required Test Structure Pattern:**
+Each test file must organize tests by grouping them around public methods:
+
 ```go
-func TestService_ShouldReturnError_WhenInvalidInputProvided(t *testing.T) {
-    // GIVEN: Setup test data and mocks
-    invalidInput := "bad-data"
-    service := NewService()
+func TestStructName_MethodBeingTested(t *testing.T) {
+    t.Parallel() // Use when no environment variables
     
-    // WHEN: Execute the action being tested
-    result, err := service.Process(invalidInput)
+    t.Run("should return error when invalid input provided", func(t *testing.T) {
+        // GIVEN: Setup test data and mocks
+        invalidInput := "bad-data"
+        service := NewService()
+        
+        // WHEN: Execute the action being tested
+        result, err := service.Process(invalidInput)
+        
+        // THEN: Assert expected outcomes
+        assert.Error(t, err)
+        assert.Nil(t, result)
+        assert.Contains(t, err.Error(), "invalid input")
+    })
     
-    // THEN: Assert expected outcomes
-    assert.Error(t, err)
-    assert.Nil(t, result)
-    assert.Contains(t, err.Error(), "invalid input")
+    t.Run("should succeed when valid input provided", func(t *testing.T) {
+        // Additional test case for same method
+    })
 }
 ```
+
+**Test Naming Conventions:**
+- **Test Methods**: `Test[StructName]_[MethodName]` (e.g., `TestFormatFilesCommand_Execute`)
+- **Test Cases**: `"should [behavior] when [condition]"` (e.g., `"should return error when invalid input provided"`)
+
+**Parallel Testing Rules:**
+- Use `t.Parallel()` when tests don't use `t.Setenv()` or modify global state
+- Avoid `t.Parallel()` when using environment variables or shared resources
 
 **CRITICAL Test Helper Rules:**
 - **Test helpers MUST be placed in `/test` folder at the root** - NEVER in production folders (internal/, cmd/, pkg/)
