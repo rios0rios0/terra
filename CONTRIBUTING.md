@@ -113,6 +113,124 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
 4. **Keep helpers focused** - Each helper should have a single, clear purpose
 5. **Document helper purpose** - Include comments explaining what the helper does
 
+### Test Builders, Stubs, Mocks, and Helpers Organization
+
+**CRITICAL RULE: All test utilities (builders, stubs, mocks, in-memory implementations, dummies, and helpers) MUST be organized following the "one per file" rule in the `/test` folder.**
+
+#### Organization Guidelines
+
+1. **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
+2. **Dedicated `/test` folder** - All test utilities must be placed in the `/test` folder at the project root
+3. **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
+   - Builders: `dependency_builder.go`, `test_server_builder.go`
+   - Stubs: `stub_shell_repository.go`, `stub_install_dependencies.go`
+   - Mocks: `mock_api_client.go` (when using behavioral verification with testify/mock)
+   - In-memory implementations: `inmemory_cache.go`, `inmemory_storage.go`
+   - Dummies: `dummy_config.go`, `dummy_logger.go`
+   - Helpers: `os_helpers.go`, `network_helpers.go`
+
+#### Test Double Definitions
+
+Following Martin Fowler's definitions:
+- **Stubs**: Test doubles that return fixed responses and enable state verification (most test doubles in this project)
+- **Mocks**: Test doubles with pre-configured behavioral expectations that fail tests if interactions don't match expectations
+
+#### When to Choose Stubs vs Mocks
+
+**Use Stubs when:**
+- You want to verify the **state** of the system after an operation
+- You need to control what a dependency returns to test different scenarios
+- You want to record calls for later assertion (call count, last parameters, etc.)
+- Testing the final output or result of the system under test
+- The dependency is a **query** operation (returns data without side effects)
+
+**Use Mocks when:**
+- You want to verify **behavior** - that specific methods were called with expected parameters
+- You need to ensure interactions happen in a specific order
+- The dependency represents a **command** operation (causes side effects)
+- Testing that the system properly communicates with external services
+- You want the test to fail immediately if unexpected interactions occur
+
+**Examples:**
+
+```go
+// ✅ Stub Example: State verification
+func TestCalculateTotal_ShouldReturnCorrectSum_WhenValidItemsProvided(t *testing.T) {
+    // GIVEN: Stub returns fixed tax rate
+    taxStub := &test.StubTaxService{TaxRate: 0.1}
+    calculator := NewCalculator(taxStub)
+    
+    // WHEN: Calculate total
+    total := calculator.CalculateTotal(items)
+    
+    // THEN: Verify final state/result
+    assert.Equal(t, 110.0, total)
+    assert.Equal(t, 1, taxStub.CallCount) // State verification
+}
+
+// ✅ Mock Example: Behavior verification using testify/mock
+func TestSendNotification_ShouldCallEmailService_WhenNotificationSent(t *testing.T) {
+    // GIVEN: Mock with behavioral expectations
+    emailMock := &mocks.EmailService{}
+    emailMock.On("SendEmail", "user@example.com", "Hello").Return(nil)
+    notifier := NewNotifier(emailMock)
+    
+    // WHEN: Send notification
+    err := notifier.Send("user@example.com", "Hello")
+    
+    // THEN: Verify behavior occurred as expected
+    require.NoError(t, err)
+    emailMock.AssertExpectations(t) // Behavior verification
+}
+```
+
+#### File Structure Examples
+
+```go
+// ✅ DO: Separate builder file
+// File: /test/dependency_builder.go
+package test
+
+import "github.com/rios0rios0/terra/internal/domain/entities"
+
+// DependencyBuilder helps create test dependencies with a fluent interface
+type DependencyBuilder struct { /* ... */ }
+
+func NewDependencyBuilder() *DependencyBuilder { /* ... */ }
+func (b *DependencyBuilder) WithName(name string) *DependencyBuilder { /* ... */ }
+func (b *DependencyBuilder) Build() entities.Dependency { /* ... */ }
+```
+
+```go
+// ✅ DO: Separate stub file
+// File: /test/stub_shell_repository.go
+package test
+
+// StubShellRepository for testing shell-related commands
+type StubShellRepository struct { /* ... */ }
+
+func (m *StubShellRepository) ExecuteCommand(/* ... */) error { /* ... */ }
+```
+
+```go
+// ❌ DON'T: Multiple utilities in one file
+// File: /test/test_utilities.go
+package test
+
+// Multiple builders, stubs, and helpers in same file - WRONG!
+type DependencyBuilder struct { /* ... */ }
+type StubShellRepository struct { /* ... */ }
+type NetworkHelper struct { /* ... */ }
+```
+
+#### Benefits of This Organization
+
+1. **Better maintainability** - Easy to locate and modify specific test utilities
+2. **Improved readability** - Clear separation of concerns
+3. **Enhanced discoverability** - Developers can quickly find the utility they need
+4. **Reduced merge conflicts** - Changes to different utilities don't affect each other
+5. **Consistent code organization** - Follows established patterns across the project
+
 ### BDD (Behavior Driven Design) Test Structure
 
 **All tests MUST follow BDD structure with three distinct sections:**

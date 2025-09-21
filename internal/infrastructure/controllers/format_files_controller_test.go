@@ -5,28 +5,18 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
+	"github.com/rios0rios0/terra/test"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// MockFormatFilesCommand is a mock implementation of the FormatFiles interface
-type MockFormatFilesCommand struct {
-	ExecuteCallCount int
-	LastDependencies []entities.Dependency
-}
-
-func (m *MockFormatFilesCommand) Execute(dependencies []entities.Dependency) {
-	m.ExecuteCallCount++
-	m.LastDependencies = dependencies
-}
 
 func TestNewFormatFilesController(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should create instance when command and dependencies provided", func(t *testing.T) {
 		// GIVEN: A mock command and test dependencies
-		mockCommand := &MockFormatFilesCommand{}
+		mockCommand := &test.StubFormatFilesCommand{}
 		dependencies := []entities.Dependency{
 			{
 				Name:              "Test Tool",
@@ -48,7 +38,7 @@ func TestFormatFilesController_GetBind(t *testing.T) {
 	
 	t.Run("should return correct bind when called", func(t *testing.T) {
 		// GIVEN: A format files controller with mock command and empty dependencies
-		mockCommand := &MockFormatFilesCommand{}
+		mockCommand := &test.StubFormatFilesCommand{}
 		dependencies := []entities.Dependency{}
 		controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 
@@ -67,7 +57,7 @@ func TestFormatFilesController_Execute(t *testing.T) {
 	
 	t.Run("should execute command when called with dependencies", func(t *testing.T) {
 		// GIVEN: A format files controller with mock command and test dependencies
-		mockCommand := &MockFormatFilesCommand{}
+		mockCommand := &test.StubFormatFilesCommand{}
 		terraformDep := entities.Dependency{
 			Name: "Terraform",
 			CLI:  "terraform",
@@ -93,7 +83,7 @@ func TestFormatFilesController_Execute(t *testing.T) {
 	
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
 		// GIVEN: A format files controller with mock command and empty dependencies
-		mockCommand := &MockFormatFilesCommand{}
+		mockCommand := &test.StubFormatFilesCommand{}
 		dependencies := []entities.Dependency{}
 		controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 		cmd := &cobra.Command{}
