@@ -1,5 +1,4 @@
-//nolint:testpackage // Testing private functions and fields requires same package
-package entities
+package entities_test
 
 import (
 	"testing"

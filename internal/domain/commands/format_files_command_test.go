@@ -1,5 +1,4 @@
-//nolint:testpackage // Testing private functions and fields requires same package
-package commands
+package commands_test
 
 import (
 	"testing"

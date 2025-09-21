@@ -1,5 +1,4 @@
-//nolint:testpackage // Testing private functions and fields requires same package
-package controllers
+package controllers_test
 
 import (
 	"testing"

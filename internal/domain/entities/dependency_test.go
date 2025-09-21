@@ -1,14 +1,15 @@
-//nolint:testpackage // Testing private functions and fields requires same package
-package entities
+package entities_test
 
 import (
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
 func TestDependency_GetBinaryURL_Terraform(t *testing.T) {
-	dependency := Dependency{
+	dependency := entities.Dependency{
 		Name:      "Terraform",
 		CLI:       "terraform",
 		BinaryURL: "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
@@ -40,7 +41,7 @@ func TestDependency_GetBinaryURL_Terraform(t *testing.T) {
 }
 
 func TestDependency_GetBinaryURL_Terragrunt(t *testing.T) {
-	dependency := Dependency{
+	dependency := entities.Dependency{
 		Name:      "Terragrunt",
 		CLI:       "terragrunt",
 		BinaryURL: "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s",
@@ -71,7 +72,7 @@ func TestDependency_GetBinaryURL_Terragrunt(t *testing.T) {
 }
 
 func TestDependency_GetBinaryURL_PlatformVariations(t *testing.T) {
-	dependency := Dependency{
+	dependency := entities.Dependency{
 		BinaryURL: "https://example.com/%[1]s/%[2]s_%[3]s",
 	}
 
@@ -79,7 +80,7 @@ func TestDependency_GetBinaryURL_PlatformVariations(t *testing.T) {
 	version := "1.0.0"
 	result := dependency.GetBinaryURL(version)
 
-	platform := GetPlatformInfo()
+	platform := entities.GetPlatformInfo()
 	expectedURL := "https://example.com/1.0.0/" + platform.GetOSString() + "_" + platform.GetTerraformArchString()
 
 	if result != expectedURL {
@@ -89,7 +90,7 @@ func TestDependency_GetBinaryURL_PlatformVariations(t *testing.T) {
 
 func TestDependency_GetBinaryURL_BackwardCompatibility(t *testing.T) {
 	// Test backward compatibility with simple version-only URLs
-	dependency := Dependency{
+	dependency := entities.Dependency{
 		BinaryURL: "https://example.com/tool_%s",
 	}
 
@@ -120,7 +121,7 @@ func TestDependency_GetBinaryURL_MixedFormats(t *testing.T) {
 			binaryURL: "https://example.com/tool_%[1]s_%[2]s",
 			version:   "1.0.0",
 			expected: func() string {
-				platform := GetPlatformInfo()
+				platform := entities.GetPlatformInfo()
 				return "https://example.com/tool_1.0.0_" + platform.GetOSString()
 			},
 		},
@@ -129,7 +130,7 @@ func TestDependency_GetBinaryURL_MixedFormats(t *testing.T) {
 			binaryURL: "https://example.com/tool_%[1]s_%[3]s",
 			version:   "1.0.0",
 			expected: func() string {
-				platform := GetPlatformInfo()
+				platform := entities.GetPlatformInfo()
 				return "https://example.com/tool_1.0.0_" + platform.GetTerraformArchString()
 			},
 		},
@@ -137,7 +138,7 @@ func TestDependency_GetBinaryURL_MixedFormats(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			dependency := Dependency{BinaryURL: tc.binaryURL}
+			dependency := entities.Dependency{BinaryURL: tc.binaryURL}
 			result := dependency.GetBinaryURL(tc.version)
 			expected := tc.expected()
 
