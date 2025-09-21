@@ -5,7 +5,7 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	"github.com/rios0rios0/terra/test"
+	"github.com/rios0rios0/terra/test/domain/repositories_doubles"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -15,7 +15,7 @@ func TestNewFormatFilesCommand(t *testing.T) {
 	
 	t.Run("should create instance when repository provided", func(t *testing.T) {
 		// GIVEN: A mock shell repository
-		mockRepo := &test.StubShellRepository{}
+		mockRepo := &repositories_doubles.StubShellRepository{}
 
 		// WHEN: Creating a new format files command
 		cmd := commands.NewFormatFilesCommand(mockRepo)
@@ -30,7 +30,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	
 	t.Run("should execute format commands when dependencies provided", func(t *testing.T) {
 		// GIVEN: A mock repository and dependencies with formatting commands
-		mockRepo := &test.StubShellRepository{}
+		mockRepo := &repositories_doubles.StubShellRepository{}
 		terraformDep := entities.Dependency{
 			Name:              "Terraform",
 			CLI:               "terraform",
@@ -56,7 +56,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	
 	t.Run("should continue execution when repository returns error", func(t *testing.T) {
 		// GIVEN: A mock repository that returns errors and a single dependency
-		mockRepo := &test.StubShellRepository{ShouldReturnError: true}
+		mockRepo := &repositories_doubles.StubShellRepository{ShouldReturnError: true}
 		dependencies := []entities.Dependency{
 			{
 				Name:              "Terraform",
@@ -75,7 +75,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	
 	t.Run("should not execute when no dependencies provided", func(t *testing.T) {
 		// GIVEN: A mock repository and empty dependencies list
-		mockRepo := &test.StubShellRepository{}
+		mockRepo := &repositories_doubles.StubShellRepository{}
 		dependencies := []entities.Dependency{}
 		cmd := commands.NewFormatFilesCommand(mockRepo)
 
@@ -88,7 +88,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	
 	t.Run("should execute with empty arguments when dependency has no formatting command", func(t *testing.T) {
 		// GIVEN: A mock repository and dependency with empty formatting command
-		mockRepo := &test.StubShellRepository{}
+		mockRepo := &repositories_doubles.StubShellRepository{}
 		dependencies := []entities.Dependency{
 			{
 				Name:              "SomeTool",
@@ -109,7 +109,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	
 	t.Run("should execute all dependencies when multiple dependencies provided", func(t *testing.T) {
 		// GIVEN: A recording mock repository and multiple dependencies
-		mockRepo := &test.StubShellRepositoryWithRecording{}
+		mockRepo := &repositories_doubles.StubShellRepositoryWithRecording{}
 		terraformDep := entities.Dependency{
 			Name:              "Terraform",
 			CLI:               "terraform",

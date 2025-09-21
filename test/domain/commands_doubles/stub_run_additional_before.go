@@ -1,4 +1,4 @@
-package test
+package commands_doubles
 
 // StubRunAdditionalBefore is a stub implementation for RunAdditionalBefore interface.
 type StubRunAdditionalBefore struct {
