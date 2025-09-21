@@ -13,6 +13,11 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+const (
+	outputChannelSize   = 100
+	outputCheckInterval = 100 * time.Millisecond
+)
+
 // InteractiveShellRepository handles interactive commands with auto-answering capabilities
 type InteractiveShellRepository struct{}
 
@@ -52,8 +57,8 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 	}
 
 	// Start the command
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to start command: %w", err)
+	if startErr := cmd.Start(); startErr != nil {
+		return fmt.Errorf("failed to start command: %w", startErr)
 	}
 
 	// Handle output and input in separate goroutines
@@ -77,7 +82,7 @@ func (it *InteractiveShellRepository) handleOutput(
 	stderrScanner := bufio.NewScanner(stderr)
 
 	// Channel to coordinate between output handling and input sending
-	outputChan := make(chan string, 100)
+	outputChan := make(chan string, outputChannelSize)
 
 	// Read stdout
 	go func() {
@@ -103,7 +108,7 @@ func (it *InteractiveShellRepository) handleOutput(
 			select {
 			case line := <-outputChan:
 				it.processLineAndRespond(line, stdin)
-			case <-time.After(100 * time.Millisecond):
+			case <-time.After(outputCheckInterval):
 				// Continue checking for output
 			}
 		}

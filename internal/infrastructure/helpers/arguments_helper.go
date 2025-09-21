@@ -66,7 +66,7 @@ func findRelativePath(arguments []string) (string, int) {
 	} else if len(arguments) > 1 {
 		// Check the last argument
 		lastArg := arguments[len(arguments)-1]
-		if _, err := os.Stat(lastArg); err == nil {
+		if _, statErr := os.Stat(lastArg); statErr == nil {
 			position = len(arguments) - 1
 			relativePath = lastArg
 		} else if isPathLike(lastArg) {

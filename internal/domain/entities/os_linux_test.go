@@ -154,12 +154,12 @@ func TestOSLinux_Move(t *testing.T) {
 	}
 
 	// Verify source file is gone
-	if _, err := os.Stat(tempFile.Name()); !os.IsNotExist(err) {
+	if _, statErr := os.Stat(tempFile.Name()); !os.IsNotExist(statErr) {
 		t.Error("Source file should not exist after move")
 	}
 
 	// Verify destination file exists and has correct content
-	if _, err := os.Stat(destPath); os.IsNotExist(err) {
+	if _, statErr := os.Stat(destPath); os.IsNotExist(statErr) {
 		t.Error("Destination file should exist after move")
 	}
 
@@ -199,7 +199,7 @@ func TestOSLinux_Remove(t *testing.T) {
 	tempFile.Close()
 
 	// Verify file exists
-	if _, err := os.Stat(tempFile.Name()); os.IsNotExist(err) {
+	if _, statErr := os.Stat(tempFile.Name()); os.IsNotExist(statErr) {
 		t.Fatal("Temp file should exist before removal")
 	}
 
@@ -210,7 +210,7 @@ func TestOSLinux_Remove(t *testing.T) {
 	}
 
 	// Verify file is gone
-	if _, err := os.Stat(tempFile.Name()); !os.IsNotExist(err) {
+	if _, statErr := os.Stat(tempFile.Name()); !os.IsNotExist(statErr) {
 		t.Error("File should not exist after removal")
 	}
 }
