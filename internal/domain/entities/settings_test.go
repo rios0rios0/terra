@@ -1,7 +1,6 @@
 package entities
 
 import (
-	"os"
 	"testing"
 )
 
@@ -26,15 +25,9 @@ func TestSettings_OptionalEnvironmentVariables(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Clear any existing environment variables
-			os.Unsetenv("TERRA_CLOUD")
-			os.Unsetenv("TERRA_WORKSPACE")
-			os.Unsetenv("TERRA_AWS_ROLE_ARN")
-			os.Unsetenv("TERRA_AZURE_SUBSCRIPTION_ID")
-
 			// Set the test value if not empty
 			if tt.terraCloud != "" {
-				os.Setenv("TERRA_CLOUD", tt.terraCloud)
+				t.Setenv("TERRA_CLOUD", tt.terraCloud)
 			}
 
 			settings := NewSettings()
@@ -75,13 +68,8 @@ func TestCLI_OptionalCloudProvider(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Clear environment variables
-			os.Unsetenv("TERRA_CLOUD")
-			os.Unsetenv("TERRA_AWS_ROLE_ARN")
-			os.Unsetenv("TERRA_AZURE_SUBSCRIPTION_ID")
-
 			if tt.terraCloud != "" {
-				os.Setenv("TERRA_CLOUD", tt.terraCloud)
+				t.Setenv("TERRA_CLOUD", tt.terraCloud)
 			}
 
 			settings := NewSettings()
@@ -128,10 +116,8 @@ func TestCLIAws_CanChangeAccount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Clear environment variables
-			os.Unsetenv("TERRA_AWS_ROLE_ARN")
-
 			if tt.terraAwsRoleArn != "" {
-				os.Setenv("TERRA_AWS_ROLE_ARN", tt.terraAwsRoleArn)
+				t.Setenv("TERRA_AWS_ROLE_ARN", tt.terraAwsRoleArn)
 			}
 
 			settings := NewSettings()
@@ -153,8 +139,7 @@ func TestCLIAws_GetCommandChangeAccount(t *testing.T) {
 	roleArn := "arn:aws:iam::123456789012:role/terraform-role"
 
 	// Clear and set environment variable
-	os.Unsetenv("TERRA_AWS_ROLE_ARN")
-	os.Setenv("TERRA_AWS_ROLE_ARN", roleArn)
+	t.Setenv("TERRA_AWS_ROLE_ARN", roleArn)
 
 	settings := NewSettings()
 	cli := NewCLIAws(settings)
@@ -206,10 +191,8 @@ func TestCLIAzm_CanChangeAccount(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// Clear environment variables
-			os.Unsetenv("TERRA_AZURE_SUBSCRIPTION_ID")
-
 			if tt.terraAzureSubscriptionID != "" {
-				os.Setenv("TERRA_AZURE_SUBSCRIPTION_ID", tt.terraAzureSubscriptionID)
+				t.Setenv("TERRA_AZURE_SUBSCRIPTION_ID", tt.terraAzureSubscriptionID)
 			}
 
 			settings := NewSettings()
@@ -230,9 +213,8 @@ func TestCLIAzm_CanChangeAccount(t *testing.T) {
 func TestCLIAzm_GetCommandChangeAccount(t *testing.T) {
 	subscriptionID := "12345678-1234-1234-1234-123456789012"
 
-	// Clear and set environment variable
-	os.Unsetenv("TERRA_AZURE_SUBSCRIPTION_ID")
-	os.Setenv("TERRA_AZURE_SUBSCRIPTION_ID", subscriptionID)
+	// Set environment variable
+	t.Setenv("TERRA_AZURE_SUBSCRIPTION_ID", subscriptionID)
 
 	settings := NewSettings()
 	cli := NewCLIAzm(settings)

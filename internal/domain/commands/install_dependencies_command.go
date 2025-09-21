@@ -253,7 +253,7 @@ func install(url, name string) {
 
 	// Ensure installation directory exists
 	installDir := currentOS.GetInstallationPath()
-	if err := os.MkdirAll(installDir, 0755); err != nil {
+	if err := os.MkdirAll(installDir, 0750); err != nil {
 		logger.Fatalf("Failed to create installation directory %s: %s", installDir, err)
 	}
 
