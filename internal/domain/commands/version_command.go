@@ -50,13 +50,7 @@ func (it *VersionCommand) getTerraformVersion() string {
 		return version
 	}
 
-	// Fallback to fetching latest version from API
-	for _, dep := range it.dependencies {
-		if dep.Name == "Terraform" {
-			return it.getLatestVersionFromAPI(dep.VersionURL, dep.RegexVersion)
-		}
-	}
-
+	// If terraform CLI is not available, return "not installed"
 	return notInstalledVersion
 }
 
@@ -66,13 +60,7 @@ func (it *VersionCommand) getTerragruntVersion() string {
 		return version
 	}
 
-	// Fallback to fetching latest version from API
-	for _, dep := range it.dependencies {
-		if dep.Name == "Terragrunt" {
-			return it.getLatestVersionFromAPI(dep.VersionURL, dep.RegexVersion)
-		}
-	}
-
+	// If terragrunt CLI is not available, return "not installed"
 	return notInstalledVersion
 }
 
