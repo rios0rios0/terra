@@ -3,7 +3,10 @@ package commands_test
 import (
 	"testing"
 
+	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // MockShellRepository for testing FormatFilesCommand
@@ -40,79 +43,45 @@ func (e *MockError) Error() string {
 	return e.message
 }
 
-func TestNewFormatFilesCommand(t *testing.T) {
+func TestNewFormatFilesCommand_ShouldCreateInstance_WhenRepositoryProvided(t *testing.T) {
+	// GIVEN: A mock shell repository
 	mockRepo := &MockShellRepository{}
-	cmd := NewFormatFilesCommand(mockRepo)
 
-	if cmd == nil {
-		t.Fatal("NewFormatFilesCommand returned nil")
-	}
+	// WHEN: Creating a new format files command
+	cmd := commands.NewFormatFilesCommand(mockRepo)
 
-	if cmd.repository != mockRepo {
-		t.Error("Repository was not set correctly")
-	}
+	// THEN: Should create a valid command instance
+	require.NotNil(t, cmd)
 }
 
-func TestFormatFilesCommand_Execute(t *testing.T) {
+func TestFormatFilesCommand_ShouldExecuteFormatCommands_WhenDependenciesProvided(t *testing.T) {
+	// GIVEN: A mock repository and dependencies with formatting commands
 	mockRepo := &MockShellRepository{}
-	dependencies := []entities.Dependency{
-		{
-			Name:              "Terraform",
-			CLI:               "terraform",
-			FormattingCommand: []string{"fmt", "-recursive"},
-		},
-		{
-			Name:              "Terragrunt",
-			CLI:               "terragrunt",
-			FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
-		},
+	terraformDep := entities.Dependency{
+		Name:              "Terraform",
+		CLI:               "terraform",
+		FormattingCommand: []string{"fmt", "-recursive"},
 	}
+	terragruntDep := entities.Dependency{
+		Name:              "Terragrunt",
+		CLI:               "terragrunt",
+		FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
+	}
+	dependencies := []entities.Dependency{terraformDep, terragruntDep}
+	cmd := commands.NewFormatFilesCommand(mockRepo)
 
-	cmd := NewFormatFilesCommand(mockRepo)
+	// WHEN: Executing the format command
 	cmd.Execute(dependencies)
 
-	// Verify that ExecuteCommand was called for each dependency
-	expectedCallCount := len(dependencies)
-	if mockRepo.ExecuteCallCount != expectedCallCount {
-		t.Errorf(
-			"Expected ExecuteCommand to be called %d times, got %d",
-			expectedCallCount,
-			mockRepo.ExecuteCallCount,
-		)
-	}
-
-	// Since we can't easily verify all calls in this simple mock,
-	// we can at least verify the last call was correct
-	lastDep := dependencies[len(dependencies)-1]
-	if mockRepo.LastCommand != lastDep.CLI {
-		t.Errorf("Expected last command to be %s, got %s", lastDep.CLI, mockRepo.LastCommand)
-	}
-
-	if len(mockRepo.LastArguments) != len(lastDep.FormattingCommand) {
-		t.Errorf(
-			"Expected %d arguments, got %d",
-			len(lastDep.FormattingCommand),
-			len(mockRepo.LastArguments),
-		)
-	}
-
-	for i, expectedArg := range lastDep.FormattingCommand {
-		if i < len(mockRepo.LastArguments) && mockRepo.LastArguments[i] != expectedArg {
-			t.Errorf(
-				"Expected argument %s at index %d, got %s",
-				expectedArg,
-				i,
-				mockRepo.LastArguments[i],
-			)
-		}
-	}
-
-	if mockRepo.LastDirectory != "." {
-		t.Errorf("Expected directory to be '.', got %s", mockRepo.LastDirectory)
-	}
+	// THEN: Should execute command for each dependency
+	assert.Equal(t, len(dependencies), mockRepo.ExecuteCallCount)
+	assert.Equal(t, terragruntDep.CLI, mockRepo.LastCommand)
+	assert.Equal(t, terragruntDep.FormattingCommand, mockRepo.LastArguments)
+	assert.Equal(t, ".", mockRepo.LastDirectory)
 }
 
-func TestFormatFilesCommand_ExecuteWithError(t *testing.T) {
+func TestFormatFilesCommand_ShouldContinueExecution_WhenRepositoryReturnsError(t *testing.T) {
+	// GIVEN: A mock repository that returns errors and a single dependency
 	mockRepo := &MockShellRepository{ShouldReturnError: true}
 	dependencies := []entities.Dependency{
 		{
@@ -121,36 +90,30 @@ func TestFormatFilesCommand_ExecuteWithError(t *testing.T) {
 			FormattingCommand: []string{"fmt", "-recursive"},
 		},
 	}
+	cmd := commands.NewFormatFilesCommand(mockRepo)
 
-	cmd := NewFormatFilesCommand(mockRepo)
-
-	// This should not panic even if the repository returns an error
-	// The command should log the error but continue execution
+	// WHEN: Executing the format command
 	cmd.Execute(dependencies)
 
-	// Verify that ExecuteCommand was called
-	if mockRepo.ExecuteCallCount != 1 {
-		t.Errorf("Expected ExecuteCommand to be called once, got %d", mockRepo.ExecuteCallCount)
-	}
+	// THEN: Should execute command despite the error (command handles errors gracefully)
+	assert.Equal(t, 1, mockRepo.ExecuteCallCount)
 }
 
-func TestFormatFilesCommand_ExecuteWithEmptyDependencies(t *testing.T) {
+func TestFormatFilesCommand_ShouldNotExecute_WhenNoDependenciesProvided(t *testing.T) {
+	// GIVEN: A mock repository and empty dependencies list
 	mockRepo := &MockShellRepository{}
 	dependencies := []entities.Dependency{}
+	cmd := commands.NewFormatFilesCommand(mockRepo)
 
-	cmd := NewFormatFilesCommand(mockRepo)
+	// WHEN: Executing the format command
 	cmd.Execute(dependencies)
 
-	// Verify that ExecuteCommand was not called
-	if mockRepo.ExecuteCallCount != 0 {
-		t.Errorf(
-			"Expected ExecuteCommand to not be called, got %d calls",
-			mockRepo.ExecuteCallCount,
-		)
-	}
+	// THEN: Should not execute any commands
+	assert.Equal(t, 0, mockRepo.ExecuteCallCount)
 }
 
-func TestFormatFilesCommand_ExecuteWithDependencyWithoutFormattingCommand(t *testing.T) {
+func TestFormatFilesCommand_ShouldExecuteWithEmptyArguments_WhenDependencyHasNoFormattingCommand(t *testing.T) {
+	// GIVEN: A mock repository and dependency with empty formatting command
 	mockRepo := &MockShellRepository{}
 	dependencies := []entities.Dependency{
 		{
@@ -159,90 +122,61 @@ func TestFormatFilesCommand_ExecuteWithDependencyWithoutFormattingCommand(t *tes
 			FormattingCommand: []string{}, // Empty formatting command
 		},
 	}
+	cmd := commands.NewFormatFilesCommand(mockRepo)
 
-	cmd := NewFormatFilesCommand(mockRepo)
+	// WHEN: Executing the format command
 	cmd.Execute(dependencies)
 
-	// Verify that ExecuteCommand was called even with empty arguments
-	if mockRepo.ExecuteCallCount != 1 {
-		t.Errorf("Expected ExecuteCommand to be called once, got %d", mockRepo.ExecuteCallCount)
-	}
-
-	if mockRepo.LastCommand != "sometool" {
-		t.Errorf("Expected command to be 'sometool', got %s", mockRepo.LastCommand)
-	}
-
-	if len(mockRepo.LastArguments) != 0 {
-		t.Errorf("Expected 0 arguments, got %d", len(mockRepo.LastArguments))
-	}
+	// THEN: Should execute command with empty arguments
+	assert.Equal(t, 1, mockRepo.ExecuteCallCount)
+	assert.Equal(t, "sometool", mockRepo.LastCommand)
+	assert.Empty(t, mockRepo.LastArguments)
 }
 
-func TestFormatFilesCommand_ExecuteWithMultipleDependencies(t *testing.T) {
-	// Create a new mock that records all calls
+func TestFormatFilesCommand_ShouldExecuteAllDependencies_WhenMultipleDependenciesProvided(t *testing.T) {
+	// GIVEN: A recording mock repository and multiple dependencies
 	mockRepo := &MockShellRepositoryWithRecording{}
-
-	dependencies := []entities.Dependency{
-		{
-			Name:              "Terraform",
-			CLI:               "terraform",
-			FormattingCommand: []string{"fmt", "-recursive"},
-		},
-		{
-			Name:              "Terragrunt",
-			CLI:               "terragrunt",
-			FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
-		},
-		{
-			Name:              "CustomTool",
-			CLI:               "customtool",
-			FormattingCommand: []string{"format", "--all"},
-		},
+	terraformDep := entities.Dependency{
+		Name:              "Terraform",
+		CLI:               "terraform",
+		FormattingCommand: []string{"fmt", "-recursive"},
 	}
+	terragruntDep := entities.Dependency{
+		Name:              "Terragrunt",
+		CLI:               "terragrunt",
+		FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
+	}
+	customDep := entities.Dependency{
+		Name:              "CustomTool",
+		CLI:               "customtool",
+		FormattingCommand: []string{"format", "--all"},
+	}
+	dependencies := []entities.Dependency{terraformDep, terragruntDep, customDep}
+	cmd := commands.NewFormatFilesCommand(mockRepo)
 
-	cmd := NewFormatFilesCommand(mockRepo)
+	// WHEN: Executing the format command
 	cmd.Execute(dependencies)
 
-	// Verify correct number of calls
-	if len(mockRepo.CallRecords) != len(dependencies) {
-		t.Errorf("Expected %d calls, got %d", len(dependencies), len(mockRepo.CallRecords))
-	}
-
-	// Verify each call
-	for i, dep := range dependencies {
-		if i >= len(mockRepo.CallRecords) {
-			continue
-		}
-
-		record := mockRepo.CallRecords[i]
-		if record.Command != dep.CLI {
-			t.Errorf("Call %d: expected command %s, got %s", i, dep.CLI, record.Command)
-		}
-
-		if len(record.Arguments) != len(dep.FormattingCommand) {
-			t.Errorf(
-				"Call %d: expected %d arguments, got %d",
-				i,
-				len(dep.FormattingCommand),
-				len(record.Arguments),
-			)
-		}
-
-		for j, expectedArg := range dep.FormattingCommand {
-			if j < len(record.Arguments) && record.Arguments[j] != expectedArg {
-				t.Errorf(
-					"Call %d, arg %d: expected %s, got %s",
-					i,
-					j,
-					expectedArg,
-					record.Arguments[j],
-				)
-			}
-		}
-
-		if record.Directory != "." {
-			t.Errorf("Call %d: expected directory '.', got %s", i, record.Directory)
-		}
-	}
+	// THEN: Should execute all dependencies in order
+	require.Equal(t, len(dependencies), len(mockRepo.CallRecords))
+	
+	// Verify first call (Terraform)
+	firstRecord := mockRepo.CallRecords[0]
+	assert.Equal(t, terraformDep.CLI, firstRecord.Command)
+	assert.Equal(t, terraformDep.FormattingCommand, firstRecord.Arguments)
+	assert.Equal(t, ".", firstRecord.Directory)
+	
+	// Verify second call (Terragrunt)
+	secondRecord := mockRepo.CallRecords[1]
+	assert.Equal(t, terragruntDep.CLI, secondRecord.Command)
+	assert.Equal(t, terragruntDep.FormattingCommand, secondRecord.Arguments)
+	assert.Equal(t, ".", secondRecord.Directory)
+	
+	// Verify third call (CustomTool)
+	thirdRecord := mockRepo.CallRecords[2]
+	assert.Equal(t, customDep.CLI, thirdRecord.Command)
+	assert.Equal(t, customDep.FormattingCommand, thirdRecord.Arguments)
+	assert.Equal(t, ".", thirdRecord.Directory)
 }
 
 // CallRecord represents a single repository call

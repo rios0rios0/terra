@@ -4,7 +4,10 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // MockFormatFilesCommand is a mock implementation of the FormatFiles interface
@@ -18,7 +21,8 @@ func (m *MockFormatFilesCommand) Execute(dependencies []entities.Dependency) {
 	m.LastDependencies = dependencies
 }
 
-func TestNewFormatFilesController(t *testing.T) {
+func TestNewFormatFilesController_ShouldCreateInstance_WhenCommandAndDependenciesProvided(t *testing.T) {
+	// GIVEN: A mock command and test dependencies
 	mockCommand := &MockFormatFilesCommand{}
 	dependencies := []entities.Dependency{
 		{
@@ -28,118 +32,66 @@ func TestNewFormatFilesController(t *testing.T) {
 		},
 	}
 
-	controller := NewFormatFilesController(mockCommand, dependencies)
+	// WHEN: Creating a new format files controller
+	controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 
-	if controller == nil {
-		t.Fatal("NewFormatFilesController returned nil")
-	}
-
-	if controller.command != mockCommand {
-		t.Error("Controller command was not set correctly")
-	}
-
-	if len(controller.dependencies) != len(dependencies) {
-		t.Errorf(
-			"Expected %d dependencies, got %d",
-			len(dependencies),
-			len(controller.dependencies),
-		)
-	}
-
-	if controller.dependencies[0].Name != dependencies[0].Name {
-		t.Errorf(
-			"Expected dependency name %s, got %s",
-			dependencies[0].Name,
-			controller.dependencies[0].Name,
-		)
-	}
+	// THEN: Should create a valid controller instance
+	require.NotNil(t, controller)
 }
 
-func TestFormatFilesController_GetBind(t *testing.T) {
+func TestFormatFilesController_ShouldReturnCorrectBind_WhenGetBindCalled(t *testing.T) {
+	// GIVEN: A format files controller with mock command and empty dependencies
 	mockCommand := &MockFormatFilesCommand{}
 	dependencies := []entities.Dependency{}
+	controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 
-	controller := NewFormatFilesController(mockCommand, dependencies)
+	// WHEN: Getting the controller bind
 	bind := controller.GetBind()
 
-	expectedUse := "format"
-	expectedShort := "Format all files in the current directory"
-	expectedLong := "Format all the Terraform and Terragrunt files in the current directory."
-
-	if bind.Use != expectedUse {
-		t.Errorf("Expected Use to be %q, got %q", expectedUse, bind.Use)
-	}
-
-	if bind.Short != expectedShort {
-		t.Errorf("Expected Short to be %q, got %q", expectedShort, bind.Short)
-	}
-
-	if bind.Long != expectedLong {
-		t.Errorf("Expected Long to be %q, got %q", expectedLong, bind.Long)
-	}
+	// THEN: Should return correct bind configuration
+	assert.Equal(t, "format", bind.Use)
+	assert.Equal(t, "Format all files in the current directory", bind.Short)
+	assert.Equal(t, "Format all the Terraform and Terragrunt files in the current directory.", bind.Long)
 }
 
-func TestFormatFilesController_Execute(t *testing.T) {
+func TestFormatFilesController_ShouldExecuteCommand_WhenExecuteCalled(t *testing.T) {
+	// GIVEN: A format files controller with mock command and test dependencies
 	mockCommand := &MockFormatFilesCommand{}
-	dependencies := []entities.Dependency{
-		{
-			Name: "Terraform",
-			CLI:  "terraform",
-		},
-		{
-			Name: "Terragrunt",
-			CLI:  "terragrunt",
-		},
+	terraformDep := entities.Dependency{
+		Name: "Terraform",
+		CLI:  "terraform",
 	}
-
-	controller := NewFormatFilesController(mockCommand, dependencies)
-
-	// Create a mock cobra command and args
+	terragruntDep := entities.Dependency{
+		Name: "Terragrunt",
+		CLI:  "terragrunt",
+	}
+	dependencies := []entities.Dependency{terraformDep, terragruntDep}
+	controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 	cmd := &cobra.Command{}
 	args := []string{}
 
-	// Execute the controller
+	// WHEN: Executing the controller
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called
-	if mockCommand.ExecuteCallCount != 1 {
-		t.Errorf("Expected Execute to be called once, got %d calls", mockCommand.ExecuteCallCount)
-	}
-
-	// Verify that the correct dependencies were passed
-	if len(mockCommand.LastDependencies) != len(dependencies) {
-		t.Errorf("Expected %d dependencies passed to Execute, got %d",
-			len(dependencies), len(mockCommand.LastDependencies))
-	}
-
-	if mockCommand.LastDependencies[0].Name != dependencies[0].Name {
-		t.Errorf("Expected first dependency name %s, got %s",
-			dependencies[0].Name, mockCommand.LastDependencies[0].Name)
-	}
-
-	if mockCommand.LastDependencies[1].Name != dependencies[1].Name {
-		t.Errorf("Expected second dependency name %s, got %s",
-			dependencies[1].Name, mockCommand.LastDependencies[1].Name)
-	}
+	// THEN: Should execute the command with correct dependencies
+	assert.Equal(t, 1, mockCommand.ExecuteCallCount)
+	require.Len(t, mockCommand.LastDependencies, 2)
+	assert.Equal(t, terraformDep.Name, mockCommand.LastDependencies[0].Name)
+	assert.Equal(t, terragruntDep.Name, mockCommand.LastDependencies[1].Name)
 }
 
-func TestFormatFilesController_ExecuteMultipleCalls(t *testing.T) {
+func TestFormatFilesController_ShouldExecuteCommandMultipleTimes_WhenCalledRepeatedly(t *testing.T) {
+	// GIVEN: A format files controller with mock command and empty dependencies
 	mockCommand := &MockFormatFilesCommand{}
 	dependencies := []entities.Dependency{}
-
-	controller := NewFormatFilesController(mockCommand, dependencies)
+	controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 	cmd := &cobra.Command{}
 	args := []string{}
 
-	// Execute multiple times
+	// WHEN: Executing the controller multiple times
 	controller.Execute(cmd, args)
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called the correct number of times
-	if mockCommand.ExecuteCallCount != 2 {
-		t.Errorf(
-			"Expected Execute to be called 2 times, got %d calls",
-			mockCommand.ExecuteCallCount,
-		)
-	}
+	// THEN: Should execute the command the correct number of times
+	assert.Equal(t, 2, mockCommand.ExecuteCallCount)
 }
