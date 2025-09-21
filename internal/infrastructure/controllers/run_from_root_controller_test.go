@@ -4,7 +4,10 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // MockRunFromRootCommand is a mock implementation of the RunFromRoot interface
@@ -26,7 +29,8 @@ func (m *MockRunFromRootCommand) Execute(
 	m.LastDependencies = dependencies
 }
 
-func TestNewRunFromRootController(t *testing.T) {
+func TestNewRunFromRootController_ShouldCreateInstance_WhenCommandAndDependenciesProvided(t *testing.T) {
+	// GIVEN: A mock command and test dependencies
 	mockCommand := &MockRunFromRootCommand{}
 	dependencies := []entities.Dependency{
 		{
@@ -35,58 +39,30 @@ func TestNewRunFromRootController(t *testing.T) {
 		},
 	}
 
-	controller := NewRunFromRootController(mockCommand, dependencies)
+	// WHEN: Creating a new run from root controller
+	controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 
-	if controller == nil {
-		t.Fatal("NewRunFromRootController returned nil")
-	}
-
-	if controller.command != mockCommand {
-		t.Error("Controller command was not set correctly")
-	}
-
-	if len(controller.dependencies) != len(dependencies) {
-		t.Errorf(
-			"Expected %d dependencies, got %d",
-			len(dependencies),
-			len(controller.dependencies),
-		)
-	}
-
-	if controller.dependencies[0].Name != dependencies[0].Name {
-		t.Errorf(
-			"Expected dependency name %s, got %s",
-			dependencies[0].Name,
-			controller.dependencies[0].Name,
-		)
-	}
+	// THEN: Should create a valid controller instance
+	require.NotNil(t, controller)
 }
 
-func TestRunFromRootController_GetBind(t *testing.T) {
+func TestRunFromRootController_ShouldReturnCorrectBind_WhenGetBindCalled(t *testing.T) {
+	// GIVEN: A run from root controller with mock command and empty dependencies
 	mockCommand := &MockRunFromRootCommand{}
 	dependencies := []entities.Dependency{}
+	controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 
-	controller := NewRunFromRootController(mockCommand, dependencies)
+	// WHEN: Getting the controller bind
 	bind := controller.GetBind()
 
-	expectedUse := "terra [flags] [terragrunt command] [directory]"
-	expectedShort := "Terra is a CLI wrapper for Terragrunt"
-	expectedLong := "Terra is a CLI wrapper for Terragrunt that allows changing directory before executing commands. It also allows changing the account/subscription and workspace for AWS and Azure."
-
-	if bind.Use != expectedUse {
-		t.Errorf("Expected Use to be %q, got %q", expectedUse, bind.Use)
-	}
-
-	if bind.Short != expectedShort {
-		t.Errorf("Expected Short to be %q, got %q", expectedShort, bind.Short)
-	}
-
-	if bind.Long != expectedLong {
-		t.Errorf("Expected Long to be %q, got %q", expectedLong, bind.Long)
-	}
+	// THEN: Should return correct bind configuration
+	assert.Equal(t, "terra [flags] [terragrunt command] [directory]", bind.Use)
+	assert.Equal(t, "Terra is a CLI wrapper for Terragrunt", bind.Short)
+	assert.Equal(t, "Terra is a CLI wrapper for Terragrunt that allows changing directory before executing commands. It also allows changing the account/subscription and workspace for AWS and Azure.", bind.Long)
 }
 
-func TestRunFromRootController_Execute(t *testing.T) {
+func TestRunFromRootController_ShouldExecuteCommand_WhenExecuteCalled(t *testing.T) {
+	// GIVEN: A run from root controller with mock command and test dependencies
 	mockCommand := &MockRunFromRootCommand{}
 	dependencies := []entities.Dependency{
 		{
@@ -94,79 +70,49 @@ func TestRunFromRootController_Execute(t *testing.T) {
 			CLI:  "terraform",
 		},
 	}
-
-	controller := NewRunFromRootController(mockCommand, dependencies)
-
-	// Create a mock cobra command and args - use current directory "." to avoid path issues
+	controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 	cmd := &cobra.Command{}
 	args := []string{"apply", "."}
 
-	// Execute the controller
+	// WHEN: Executing the controller
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called
-	if mockCommand.ExecuteCallCount != 1 {
-		t.Errorf("Expected Execute to be called once, got %d calls", mockCommand.ExecuteCallCount)
-	}
-
-	// Verify that the correct dependencies were passed
-	if len(mockCommand.LastDependencies) != len(dependencies) {
-		t.Errorf("Expected %d dependencies passed to Execute, got %d",
-			len(dependencies), len(mockCommand.LastDependencies))
-	}
-
-	if mockCommand.LastDependencies[0].Name != dependencies[0].Name {
-		t.Errorf("Expected dependency name %s, got %s",
-			dependencies[0].Name, mockCommand.LastDependencies[0].Name)
-	}
-
-	// Note: The actual path handling and argument filtering is done by helpers.ArgumentsHelper
-	// so we verify that the command was called with some arguments
-	if len(mockCommand.LastArguments) == 0 {
-		t.Error("Expected some arguments to be passed to command")
-	}
+	// THEN: Should execute the command with correct dependencies and arguments
+	assert.Equal(t, 1, mockCommand.ExecuteCallCount)
+	assert.Equal(t, len(dependencies), len(mockCommand.LastDependencies))
+	assert.Equal(t, dependencies[0].Name, mockCommand.LastDependencies[0].Name)
+	assert.NotEmpty(t, mockCommand.LastArguments)
 }
 
-func TestRunFromRootController_ExecuteWithDifferentArgs(t *testing.T) {
+func TestRunFromRootController_ShouldExecuteCommand_WhenDifferentArgumentsProvided(t *testing.T) {
+	// GIVEN: A run from root controller with mock command and empty dependencies
 	mockCommand := &MockRunFromRootCommand{}
 	dependencies := []entities.Dependency{}
-
-	controller := NewRunFromRootController(mockCommand, dependencies)
+	controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 	cmd := &cobra.Command{}
 	args := []string{"plan", "--dry-run"}
 
-	// Execute the controller
+	// WHEN: Executing the controller with different arguments
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called
-	if mockCommand.ExecuteCallCount != 1 {
-		t.Errorf("Expected Execute to be called once, got %d calls", mockCommand.ExecuteCallCount)
-	}
-
-	// Verify that some arguments were passed (after helper processing)
-	if len(mockCommand.LastArguments) == 0 {
-		t.Error("Expected some arguments to be passed to command")
-	}
+	// THEN: Should execute the command with the provided arguments
+	assert.Equal(t, 1, mockCommand.ExecuteCallCount)
+	assert.NotEmpty(t, mockCommand.LastArguments)
 }
 
-func TestRunFromRootController_ExecuteMultipleCalls(t *testing.T) {
+func TestRunFromRootController_ShouldExecuteCommandMultipleTimes_WhenCalledRepeatedly(t *testing.T) {
+	// GIVEN: A run from root controller with mock command and empty dependencies
 	mockCommand := &MockRunFromRootCommand{}
 	dependencies := []entities.Dependency{}
-
-	controller := NewRunFromRootController(mockCommand, dependencies)
+	controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 	cmd := &cobra.Command{}
 	args := []string{"plan"}
 
-	// Execute multiple times
+	// WHEN: Executing the controller multiple times
 	controller.Execute(cmd, args)
 	controller.Execute(cmd, args)
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called the correct number of times
-	if mockCommand.ExecuteCallCount != 3 {
-		t.Errorf(
-			"Expected Execute to be called 3 times, got %d calls",
-			mockCommand.ExecuteCallCount,
-		)
-	}
+	// THEN: Should execute the command the correct number of times
+	assert.Equal(t, 3, mockCommand.ExecuteCallCount)
 }
