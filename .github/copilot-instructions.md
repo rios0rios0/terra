@@ -187,10 +187,22 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - **Test helpers in production folders affect coverage unnecessarily** and violate project standards
 - **Use `t.Helper()` in all helper functions** for better test failure reporting
 - **Name helpers with `Helper` prefix** - avoid `Test` prefix to prevent Go test runner conflicts
+- **Follow "one per file" rule** - Each builder, mock, stub, in-memory implementation, dummy, or helper must be in its own file
+
+**Test Utilities Organization Rules:**
+- **One utility per file** - Never combine multiple builders, mocks, stubs, or helpers in a single file
+- **Dedicated `/test` folder** - All test utilities must be placed in the `/test` folder at the project root
+- **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
+  - Builders: `dependency_builder.go`, `test_server_builder.go`
+  - Mocks: `mock_shell_repository.go`, `mock_install_dependencies.go`
+  - Stubs: `stub_api_client.go`, `stub_database.go`
+  - In-memory implementations: `inmemory_cache.go`, `inmemory_storage.go`
+  - Dummies: `dummy_config.go`, `dummy_logger.go`
+  - Helpers: `os_helpers.go`, `network_helpers.go`
 
 **Example Test Helper Structure:**
 ```go
-// File: /test/my_helpers.go
+// File: /test/os_helpers.go (Helpers in separate files)
 package test
 
 import (
@@ -203,6 +215,32 @@ func HelperDownloadSuccess(t *testing.T, osImpl entities.OS, testPrefix string) 
     t.Helper() // Mark as test helper
     // ... implementation
 }
+```
+
+**Example Builder Structure:**
+```go
+// File: /test/dependency_builder.go (Builders in separate files)
+package test
+
+import "github.com/rios0rios0/terra/internal/domain/entities"
+
+// DependencyBuilder helps create test dependencies with a fluent interface
+type DependencyBuilder struct { /* ... */ }
+
+func NewDependencyBuilder() *DependencyBuilder { /* ... */ }
+func (b *DependencyBuilder) WithName(name string) *DependencyBuilder { /* ... */ }
+func (b *DependencyBuilder) Build() entities.Dependency { /* ... */ }
+```
+
+**Example Mock Structure:**
+```go
+// File: /test/mock_shell_repository.go (Mocks in separate files)
+package test
+
+// MockShellRepository for testing shell-related commands
+type MockShellRepository struct { /* ... */ }
+
+func (m *MockShellRepository) ExecuteCommand(/* ... */) error { /* ... */ }
 ```
 
 ### Manual Validation Requirements

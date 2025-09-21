@@ -113,6 +113,69 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
 4. **Keep helpers focused** - Each helper should have a single, clear purpose
 5. **Document helper purpose** - Include comments explaining what the helper does
 
+### Test Builders, Mocks, Stubs, and Helpers Organization
+
+**CRITICAL RULE: All test utilities (builders, mocks, stubs, in-memory implementations, dummies, and helpers) MUST be organized following the "one per file" rule in the `/test` folder.**
+
+#### Organization Guidelines
+
+1. **One utility per file** - Never combine multiple builders, mocks, stubs, or helpers in a single file
+2. **Dedicated `/test` folder** - All test utilities must be placed in the `/test` folder at the project root
+3. **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
+   - Builders: `dependency_builder.go`, `test_server_builder.go`
+   - Mocks: `mock_shell_repository.go`, `mock_install_dependencies.go`
+   - Stubs: `stub_api_client.go`, `stub_database.go`
+   - In-memory implementations: `inmemory_cache.go`, `inmemory_storage.go`
+   - Dummies: `dummy_config.go`, `dummy_logger.go`
+   - Helpers: `os_helpers.go`, `network_helpers.go`
+
+#### File Structure Examples
+
+```go
+// ✅ DO: Separate builder file
+// File: /test/dependency_builder.go
+package test
+
+import "github.com/rios0rios0/terra/internal/domain/entities"
+
+// DependencyBuilder helps create test dependencies with a fluent interface
+type DependencyBuilder struct { /* ... */ }
+
+func NewDependencyBuilder() *DependencyBuilder { /* ... */ }
+func (b *DependencyBuilder) WithName(name string) *DependencyBuilder { /* ... */ }
+func (b *DependencyBuilder) Build() entities.Dependency { /* ... */ }
+```
+
+```go
+// ✅ DO: Separate mock file
+// File: /test/mock_shell_repository.go
+package test
+
+// MockShellRepository for testing shell-related commands
+type MockShellRepository struct { /* ... */ }
+
+func (m *MockShellRepository) ExecuteCommand(/* ... */) error { /* ... */ }
+```
+
+```go
+// ❌ DON'T: Multiple utilities in one file
+// File: /test/test_utilities.go
+package test
+
+// Multiple builders, mocks, and helpers in same file - WRONG!
+type DependencyBuilder struct { /* ... */ }
+type MockShellRepository struct { /* ... */ }
+type NetworkHelper struct { /* ... */ }
+```
+
+#### Benefits of This Organization
+
+1. **Better maintainability** - Easy to locate and modify specific test utilities
+2. **Improved readability** - Clear separation of concerns
+3. **Enhanced discoverability** - Developers can quickly find the utility they need
+4. **Reduced merge conflicts** - Changes to different utilities don't affect each other
+5. **Consistent code organization** - Follows established patterns across the project
+
 ### BDD (Behavior Driven Design) Test Structure
 
 **All tests MUST follow BDD structure with three distinct sections:**

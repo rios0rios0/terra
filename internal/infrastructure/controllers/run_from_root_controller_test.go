@@ -5,36 +5,18 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
+	"github.com/rios0rios0/terra/test"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// MockRunFromRootCommand is a mock implementation of the RunFromRoot interface
-type MockRunFromRootCommand struct {
-	ExecuteCallCount int
-	LastTargetPath   string
-	LastArguments    []string
-	LastDependencies []entities.Dependency
-}
-
-func (m *MockRunFromRootCommand) Execute(
-	targetPath string,
-	arguments []string,
-	dependencies []entities.Dependency,
-) {
-	m.ExecuteCallCount++
-	m.LastTargetPath = targetPath
-	m.LastArguments = arguments
-	m.LastDependencies = dependencies
-}
 
 func TestNewRunFromRootController(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should create instance when command and dependencies provided", func(t *testing.T) {
 		// GIVEN: A mock command and test dependencies
-		mockCommand := &MockRunFromRootCommand{}
+		mockCommand := &test.MockRunFromRootCommand{}
 		dependencies := []entities.Dependency{
 			{
 				Name: "Test Dependency",
@@ -55,7 +37,7 @@ func TestRunFromRootController_GetBind(t *testing.T) {
 	
 	t.Run("should return correct bind when called", func(t *testing.T) {
 		// GIVEN: A run from root controller with mock command and empty dependencies
-		mockCommand := &MockRunFromRootCommand{}
+		mockCommand := &test.MockRunFromRootCommand{}
 		dependencies := []entities.Dependency{}
 		controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 
@@ -74,7 +56,7 @@ func TestRunFromRootController_Execute(t *testing.T) {
 	
 	t.Run("should execute command when called", func(t *testing.T) {
 		// GIVEN: A run from root controller with mock command and test dependencies
-		mockCommand := &MockRunFromRootCommand{}
+		mockCommand := &test.MockRunFromRootCommand{}
 		dependencies := []entities.Dependency{
 			{
 				Name: "Terraform",
@@ -97,7 +79,7 @@ func TestRunFromRootController_Execute(t *testing.T) {
 	
 	t.Run("should execute command when different arguments provided", func(t *testing.T) {
 		// GIVEN: A run from root controller with mock command and empty dependencies
-		mockCommand := &MockRunFromRootCommand{}
+		mockCommand := &test.MockRunFromRootCommand{}
 		dependencies := []entities.Dependency{}
 		controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 		cmd := &cobra.Command{}
@@ -113,7 +95,7 @@ func TestRunFromRootController_Execute(t *testing.T) {
 	
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
 		// GIVEN: A run from root controller with mock command and empty dependencies
-		mockCommand := &MockRunFromRootCommand{}
+		mockCommand := &test.MockRunFromRootCommand{}
 		dependencies := []entities.Dependency{}
 		controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 		cmd := &cobra.Command{}
