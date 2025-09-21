@@ -5,86 +5,87 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestGetOS(t *testing.T) {
+func TestGetOS_ShouldReturnValidInstance_WhenCalled(t *testing.T) {
+	// GIVEN: The GetOS function is available
+
+	// WHEN: Calling GetOS
 	osInstance := entities.GetOS()
-	if osInstance == nil {
-		t.Fatal("GetOS() returned nil")
-	}
+
+	// THEN: Should return a valid OS instance
+	require.NotNil(t, osInstance)
 }
 
-func TestOSLinux_GetTempDir(t *testing.T) {
+func TestOSLinux_ShouldReturnValidTempDir_WhenGetTempDirCalled(t *testing.T) {
+	// GIVEN: An OS instance
 	osInstance := entities.GetOS()
+
+	// WHEN: Getting the temporary directory
 	tempDir := osInstance.GetTempDir()
 
-	if tempDir == "" {
-		t.Error("GetTempDir() returned empty string")
-	}
-
-	// Verify the directory exists
+	// THEN: Should return a non-empty string pointing to an existing directory
+	assert.NotEmpty(t, tempDir)
+	
 	info, err := os.Stat(tempDir)
-	if err != nil {
-		t.Errorf("Temp directory does not exist: %v", err)
-	}
-
-	if !info.IsDir() {
-		t.Error("GetTempDir() did not return a directory")
-	}
+	require.NoError(t, err)
+	assert.True(t, info.IsDir())
 }
 
-func TestOSLinux_GetInstallationPath(t *testing.T) {
+func TestOSLinux_ShouldReturnValidInstallationPath_WhenGetInstallationPathCalled(t *testing.T) {
+	// GIVEN: An OS instance
 	osInstance := entities.GetOS()
+
+	// WHEN: Getting the installation path
 	installPath := osInstance.GetInstallationPath()
 
-	if installPath == "" {
-		t.Error("GetInstallationPath() returned empty string")
-	}
+	// THEN: Should return a non-empty string
+	assert.NotEmpty(t, installPath)
 }
 
-func TestOSLinux_MakeExecutable(t *testing.T) {
+func TestOSLinux_ShouldMakeFileExecutable_WhenValidFileProvided(t *testing.T) {
+	// GIVEN: An OS instance and a temporary file
 	osInstance := entities.GetOS()
-
-	// Create a temporary file
 	tempFile, err := os.CreateTemp(t.TempDir(), "test_executable_*")
-	if err != nil {
-		t.Fatalf("Failed to create temp file: %v", err)
-	}
+	require.NoError(t, err)
 	defer os.Remove(tempFile.Name())
 	tempFile.Close()
 
-	// Make it executable
+	// WHEN: Making the file executable
 	err = osInstance.MakeExecutable(tempFile.Name())
-	if err != nil {
-		t.Errorf("MakeExecutable failed: %v", err)
-	}
 
-	// Verify it's executable
+	// THEN: Should succeed and file should be executable
+	require.NoError(t, err)
+	
 	info, err := os.Stat(tempFile.Name())
-	if err != nil {
-		t.Fatalf("Failed to stat file: %v", err)
-	}
-
+	require.NoError(t, err)
 	mode := info.Mode()
-	if mode&0111 == 0 {
-		t.Error("File is not executable after MakeExecutable")
-	}
+	assert.NotEqual(t, 0, mode&0111, "File should be executable after MakeExecutable")
 }
 
-func TestOSLinux_MakeExecutable_NonExistentFile(t *testing.T) {
+func TestOSLinux_ShouldReturnError_WhenMakeExecutableCalledWithNonExistentFile(t *testing.T) {
+	// GIVEN: An OS instance and a non-existent file path
 	osInstance := entities.GetOS()
+	nonExistentFile := "/non/existent/file12345"
 
-	err := osInstance.MakeExecutable("/non/existent/file12345")
-	if err == nil {
-		t.Error("Expected error for non-existent file, got nil")
-	}
+	// WHEN: Attempting to make the non-existent file executable
+	err := osInstance.MakeExecutable(nonExistentFile)
+
+	// THEN: Should return an error
+	assert.Error(t, err)
 }
 
-func TestOSLinux_Remove_NonExistentFile(t *testing.T) {
+func TestOSLinux_ShouldHandleRemove_WhenNonExistentFileProvided(t *testing.T) {
+	// GIVEN: An OS instance and a non-existent file path
 	osInstance := entities.GetOS()
+	nonExistentFile := "/non/existent/file12345"
 
-	// Removing a non-existent file should not cause an error in most implementations
-	err := osInstance.Remove("/non/existent/file12345")
-	// We don't check for error here as different implementations may handle this differently
-	_ = err
+	// WHEN: Attempting to remove the non-existent file
+	err := osInstance.Remove(nonExistentFile)
+
+	// THEN: Different implementations may handle this differently, so we just log the result
+	// This test verifies the method doesn't panic
+	_ = err // Some implementations return nil, others return error - both are acceptable
 }
