@@ -64,7 +64,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 		{
 			Name:              "Terragrunt",
 			CLI:               "terragrunt",
-			FormattingCommand: []string{"hclfmt", "**/*.hcl"},
+			FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
 		},
 	}
 
@@ -190,7 +190,7 @@ func TestFormatFilesCommand_ExecuteWithMultipleDependencies(t *testing.T) {
 		{
 			Name:              "Terragrunt",
 			CLI:               "terragrunt",
-			FormattingCommand: []string{"hclfmt", "**/*.hcl"},
+			FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
 		},
 		{
 			Name:              "CustomTool",
