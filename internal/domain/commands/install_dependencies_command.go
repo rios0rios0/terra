@@ -272,35 +272,36 @@ func install(url, name string) {
 		logger.Infof("%s is a zip file, extracting...", name)
 		// Create a temporary directory for extraction
 		extractDir := path.Join(currentOS.GetTempDir(), name+"_extract")
-		if err := currentOS.Extract(tempFilePath, extractDir); err != nil {
+		if err = currentOS.Extract(tempFilePath, extractDir); err != nil {
 			logger.Fatalf("Failed to extract %s: %s", name, err)
 		}
 
 		// Find the actual binary in the extracted directory using recursive search
-		binaryPath, err := findBinaryInArchive(extractDir, name)
+		var binaryPath string
+		binaryPath, err = findBinaryInArchive(extractDir, name)
 		if err != nil {
 			logger.Fatalf("Failed to find %s binary in extracted archive: %s", name, err)
 		}
 
 		// Move the binary to the destination
-		if err := currentOS.Move(binaryPath, destPath); err != nil {
+		if err = currentOS.Move(binaryPath, destPath); err != nil {
 			logger.Fatalf("Failed to move %s to %s: %s", name, destPath, err)
 		}
 
 		// Clean up
-		if err := currentOS.Remove(tempFilePath); err != nil {
+		if err = currentOS.Remove(tempFilePath); err != nil {
 			logger.Fatalf("Failed to remove %s: %s", name, err)
 		}
-		if err := os.RemoveAll(extractDir); err != nil {
+		if err = os.RemoveAll(extractDir); err != nil {
 			logger.Fatalf("Failed to remove extraction directory %s: %s", extractDir, err)
 		}
 	} else {
-		if err := currentOS.Move(tempFilePath, destPath); err != nil {
+		if err = currentOS.Move(tempFilePath, destPath); err != nil {
 			logger.Fatalf("Failed to move %s to %s: %s", name, destPath, err)
 		}
 	}
 
-	if err := currentOS.MakeExecutable(destPath); err != nil {
+	if err = currentOS.MakeExecutable(destPath); err != nil {
 		logger.Fatalf("Failed to make %s executable: %s", name, err)
 	}
 }

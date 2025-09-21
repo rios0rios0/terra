@@ -86,7 +86,8 @@ func main() {
 
 		// Set args and execute help
 		tempRoot.SetArgs([]string{"--help"})
-		if err := tempRoot.Execute(); err != nil {
+		err = tempRoot.Execute()
+		if err != nil {
 			logger.Fatalf("Error showing help: %s", err)
 		}
 		return
@@ -103,7 +104,8 @@ func main() {
 	appContext := injectAppContext()
 	addSubcommands(cobraRoot, appContext)
 
-	if err := cobraRoot.Execute(); err != nil {
+	err = cobraRoot.Execute()
+	if err != nil {
 		logger.Fatalf("Error executing 'terra': %s", err)
 	}
 }
