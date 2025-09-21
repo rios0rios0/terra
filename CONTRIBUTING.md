@@ -118,6 +118,47 @@ func TestExample(t *testing.T) {
 }
 ```
 
+#### Avoid Loops in Test Cases
+
+**NEVER use loops (`for range`) to create test cases inside a test method.** Instead:
+
+1. **Create individual test methods** - Each test scenario should be a separate test function
+2. **Use descriptive test names** - Each test should clearly indicate what it's testing
+3. **Keep tests independent** - Each test should be able to run in isolation
+
+```go
+// ❌ DON'T: Use loops for test cases
+func TestValidateInput(t *testing.T) {
+    tests := []struct{
+        name string
+        input string
+        expected bool
+    }{
+        {"valid input", "test", true},
+        {"invalid input", "", false},
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            // test logic
+        })
+    }
+}
+
+// ✅ DO: Create separate test methods
+func TestValidateInput_ShouldReturnTrue_WhenValidInputProvided(t *testing.T) {
+    // GIVEN: Valid input
+    // WHEN: Validation is called
+    // THEN: Should return true
+}
+
+func TestValidateInput_ShouldReturnFalse_WhenEmptyInputProvided(t *testing.T) {
+    // GIVEN: Empty input
+    // WHEN: Validation is called  
+    // THEN: Should return false
+}
+```
+
 ### Testing Private Methods
 
 **NEVER test private methods directly.** Instead:

@@ -3,7 +3,10 @@ package controllers_test
 import (
 	"testing"
 
+	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // MockVersionCommand is a mock implementation of the Version interface
@@ -15,17 +18,15 @@ func (m *MockVersionCommand) Execute() {
 	m.ExecuteCallCount++
 }
 
-func TestNewVersionController(t *testing.T) {
+func TestNewVersionController_ShouldCreateInstance_WhenCommandProvided(t *testing.T) {
+	// GIVEN: A mock version command
 	mockCommand := &MockVersionCommand{}
-	controller := NewVersionController(mockCommand)
 
-	if controller == nil {
-		t.Fatal("NewVersionController returned nil")
-	}
+	// WHEN: Creating a new version controller
+	controller := controllers.NewVersionController(mockCommand)
 
-	if controller.command != mockCommand {
-		t.Error("Controller command was not set correctly")
-	}
+	// THEN: Should create a valid controller instance
+	require.NotNil(t, controller)
 }
 
 func TestVersionController_GetBind(t *testing.T) {
