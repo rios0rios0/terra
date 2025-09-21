@@ -1,7 +1,7 @@
 package test
 
-// MockShellRepositoryForRoot is a mock implementation of repositories.ShellRepository
-type MockShellRepositoryForRoot struct {
+// StubShellRepositoryForRoot is a stub implementation of repositories.ShellRepository
+type StubShellRepositoryForRoot struct {
 	ExecuteCallCount int
 	LastCommand      string
 	LastArguments    []string
@@ -14,7 +14,7 @@ type MockShellRepositoryForRoot struct {
 	}
 }
 
-func (m *MockShellRepositoryForRoot) ExecuteCommand(
+func (m *StubShellRepositoryForRoot) ExecuteCommand(
 	command string,
 	arguments []string,
 	directory string,

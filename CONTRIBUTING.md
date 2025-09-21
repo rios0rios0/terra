@@ -113,21 +113,27 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
 4. **Keep helpers focused** - Each helper should have a single, clear purpose
 5. **Document helper purpose** - Include comments explaining what the helper does
 
-### Test Builders, Mocks, Stubs, and Helpers Organization
+### Test Builders, Stubs, Mocks, and Helpers Organization
 
-**CRITICAL RULE: All test utilities (builders, mocks, stubs, in-memory implementations, dummies, and helpers) MUST be organized following the "one per file" rule in the `/test` folder.**
+**CRITICAL RULE: All test utilities (builders, stubs, mocks, in-memory implementations, dummies, and helpers) MUST be organized following the "one per file" rule in the `/test` folder.**
 
 #### Organization Guidelines
 
-1. **One utility per file** - Never combine multiple builders, mocks, stubs, or helpers in a single file
+1. **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
 2. **Dedicated `/test` folder** - All test utilities must be placed in the `/test` folder at the project root
 3. **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
    - Builders: `dependency_builder.go`, `test_server_builder.go`
-   - Mocks: `mock_shell_repository.go`, `mock_install_dependencies.go`
-   - Stubs: `stub_api_client.go`, `stub_database.go`
+   - Stubs: `stub_shell_repository.go`, `stub_install_dependencies.go`
+   - Mocks: `mock_api_client.go` (when using behavioral verification with testify/mock)
    - In-memory implementations: `inmemory_cache.go`, `inmemory_storage.go`
    - Dummies: `dummy_config.go`, `dummy_logger.go`
    - Helpers: `os_helpers.go`, `network_helpers.go`
+
+#### Test Double Definitions
+
+Following Martin Fowler's definitions:
+- **Stubs**: Test doubles that return fixed responses and enable state verification (most test doubles in this project)
+- **Mocks**: Test doubles with pre-configured behavioral expectations that fail tests if interactions don't match expectations
 
 #### File Structure Examples
 
@@ -147,14 +153,14 @@ func (b *DependencyBuilder) Build() entities.Dependency { /* ... */ }
 ```
 
 ```go
-// ✅ DO: Separate mock file
-// File: /test/mock_shell_repository.go
+// ✅ DO: Separate stub file
+// File: /test/stub_shell_repository.go
 package test
 
-// MockShellRepository for testing shell-related commands
-type MockShellRepository struct { /* ... */ }
+// StubShellRepository for testing shell-related commands
+type StubShellRepository struct { /* ... */ }
 
-func (m *MockShellRepository) ExecuteCommand(/* ... */) error { /* ... */ }
+func (m *StubShellRepository) ExecuteCommand(/* ... */) error { /* ... */ }
 ```
 
 ```go
@@ -162,9 +168,9 @@ func (m *MockShellRepository) ExecuteCommand(/* ... */) error { /* ... */ }
 // File: /test/test_utilities.go
 package test
 
-// Multiple builders, mocks, and helpers in same file - WRONG!
+// Multiple builders, stubs, and helpers in same file - WRONG!
 type DependencyBuilder struct { /* ... */ }
-type MockShellRepository struct { /* ... */ }
+type StubShellRepository struct { /* ... */ }
 type NetworkHelper struct { /* ... */ }
 ```
 

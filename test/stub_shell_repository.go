@@ -1,7 +1,7 @@
 package test
 
-// MockShellRepository for testing shell-related commands
-type MockShellRepository struct {
+// StubShellRepository for testing shell-related commands
+type StubShellRepository struct {
 	ExecuteCallCount  int
 	LastCommand       string
 	LastArguments     []string
@@ -9,7 +9,7 @@ type MockShellRepository struct {
 	ShouldReturnError bool
 }
 
-func (m *MockShellRepository) ExecuteCommand(
+func (m *StubShellRepository) ExecuteCommand(
 	command string,
 	arguments []string,
 	directory string,
@@ -20,7 +20,7 @@ func (m *MockShellRepository) ExecuteCommand(
 	m.LastDirectory = directory
 
 	if m.ShouldReturnError {
-		return &MockError{message: "mock execution error"}
+		return &StubError{message: "stub execution error"}
 	}
 	return nil
 }

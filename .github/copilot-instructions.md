@@ -190,12 +190,12 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - **Follow "one per file" rule** - Each builder, mock, stub, in-memory implementation, dummy, or helper must be in its own file
 
 **Test Utilities Organization Rules:**
-- **One utility per file** - Never combine multiple builders, mocks, stubs, or helpers in a single file
+- **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
 - **Dedicated `/test` folder** - All test utilities must be placed in the `/test` folder at the project root
 - **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
   - Builders: `dependency_builder.go`, `test_server_builder.go`
-  - Mocks: `mock_shell_repository.go`, `mock_install_dependencies.go`
-  - Stubs: `stub_api_client.go`, `stub_database.go`
+  - Stubs: `stub_shell_repository.go`, `stub_install_dependencies.go`
+  - Mocks: `mock_api_client.go` (when using behavioral verification with testify/mock)
   - In-memory implementations: `inmemory_cache.go`, `inmemory_storage.go`
   - Dummies: `dummy_config.go`, `dummy_logger.go`
   - Helpers: `os_helpers.go`, `network_helpers.go`
@@ -232,15 +232,15 @@ func (b *DependencyBuilder) WithName(name string) *DependencyBuilder { /* ... */
 func (b *DependencyBuilder) Build() entities.Dependency { /* ... */ }
 ```
 
-**Example Mock Structure:**
+**Example Stub Structure:**
 ```go
-// File: /test/mock_shell_repository.go (Mocks in separate files)
+// File: /test/stub_shell_repository.go (Stubs in separate files)
 package test
 
-// MockShellRepository for testing shell-related commands
-type MockShellRepository struct { /* ... */ }
+// StubShellRepository for testing shell-related commands
+type StubShellRepository struct { /* ... */ }
 
-func (m *MockShellRepository) ExecuteCommand(/* ... */) error { /* ... */ }
+func (m *StubShellRepository) ExecuteCommand(/* ... */) error { /* ... */ }
 ```
 
 ### Manual Validation Requirements

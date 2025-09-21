@@ -1,7 +1,7 @@
 package test
 
-// MockShellRepositoryForAdditional is a mock implementation of repositories.ShellRepository.
-type MockShellRepositoryForAdditional struct {
+// StubShellRepositoryForAdditional is a stub implementation of repositories.ShellRepository.
+type StubShellRepositoryForAdditional struct {
 	ExecuteCallCount int
 	LastCommand      string
 	LastArguments    []string
@@ -14,7 +14,7 @@ type MockShellRepositoryForAdditional struct {
 	}
 }
 
-func (m *MockShellRepositoryForAdditional) ExecuteCommand(
+func (m *StubShellRepositoryForAdditional) ExecuteCommand(
 	command string,
 	arguments []string,
 	directory string,
