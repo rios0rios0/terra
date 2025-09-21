@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -402,21 +401,6 @@ func TestIsDependencyCLIAvailable(t *testing.T) {
 			_ = result
 		})
 	}
-}
-
-// Helper function to capture output for testing prompt functions
-func captureOutput(f func()) string {
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w //nolint:reassign // Necessary for output capture in tests
-
-	f()
-
-	w.Close()
-	os.Stdout = old //nolint:reassign // Restoring original stdout
-
-	output, _ := io.ReadAll(r)
-	return string(output)
 }
 
 func TestPromptForUpdate(t *testing.T) {
