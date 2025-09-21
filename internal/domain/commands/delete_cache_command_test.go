@@ -1,11 +1,10 @@
-package commands_test
+//nolint:testpackage // Testing private functions and fields requires same package
+package commands
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/rios0rios0/terra/internal/domain/commands"
 )
 
 func TestNewDeleteCacheCommand(t *testing.T) {
