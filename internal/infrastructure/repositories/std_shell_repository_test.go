@@ -3,94 +3,94 @@ package repositories_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/rios0rios0/terra/internal/infrastructure/repositories"
 )
 
-func TestNewStdShellRepository(t *testing.T) {
+func TestNewStdShellRepository_ShouldCreateInstance_WhenCalled(t *testing.T) {
+	// GIVEN: No preconditions needed
+
+	// WHEN: Creating a new std shell repository
 	repo := repositories.NewStdShellRepository()
 
-	if repo == nil {
-		t.Fatal("NewStdShellRepository returned nil")
-	}
+	// THEN: Should return a valid repository instance
+	require.NotNil(t, repo, "NewStdShellRepository should not return nil")
 }
 
-func TestStdShellRepository_ExecuteCommand_ValidCommand(t *testing.T) {
+func TestStdShellRepository_ShouldExecuteSuccessfully_WhenValidCommandProvided(t *testing.T) {
+	// GIVEN: A repository instance and valid command parameters
 	repo := repositories.NewStdShellRepository()
+	command := "echo"
+	args := []string{"test"}
+	workingDir := "."
 
-	// Test with a simple command that should work on any system
-	err := repo.ExecuteCommand("echo", []string{"test"}, ".")
+	// WHEN: Executing a valid command
+	err := repo.ExecuteCommand(command, args, workingDir)
 
-	if err != nil {
-		t.Errorf("Expected no error for valid command, got: %v", err)
-	}
+	// THEN: Should execute without error
+	assert.NoError(t, err, "Expected no error for valid command execution")
 }
 
-func TestStdShellRepository_ExecuteCommand_InvalidCommand(t *testing.T) {
+func TestStdShellRepository_ShouldReturnError_WhenInvalidCommandProvided(t *testing.T) {
+	// GIVEN: A repository instance and invalid command
 	repo := repositories.NewStdShellRepository()
+	invalidCommand := "nonexistentcommand12345"
+	args := []string{}
+	workingDir := "."
 
-	// Test with an invalid command
-	err := repo.ExecuteCommand("nonexistentcommand12345", []string{}, ".")
+	// WHEN: Executing an invalid command
+	err := repo.ExecuteCommand(invalidCommand, args, workingDir)
 
-	if err == nil {
-		t.Error("Expected error for invalid command, got nil")
-	}
-
-	// Verify the error message contains expected text
-	expectedErrorText := "failed to perform command execution"
-	if !containsString(err.Error(), expectedErrorText) {
-		t.Errorf("Expected error to contain %q, got: %v", expectedErrorText, err)
-	}
+	// THEN: Should return an error with expected message
+	require.Error(t, err, "Expected error for invalid command")
+	assert.Contains(t, err.Error(), "failed to perform command execution",
+		"Error message should contain expected text")
 }
 
-func TestStdShellRepository_ExecuteCommand_InvalidDirectory(t *testing.T) {
+func TestStdShellRepository_ShouldReturnError_WhenInvalidDirectoryProvided(t *testing.T) {
+	// GIVEN: A repository instance and invalid working directory
 	repo := repositories.NewStdShellRepository()
+	command := "echo"
+	args := []string{"test"}
+	invalidDir := "/nonexistent/directory/12345"
 
-	// Test with a valid command but invalid directory
-	err := repo.ExecuteCommand("echo", []string{"test"}, "/nonexistent/directory/12345")
+	// WHEN: Executing command in invalid directory
+	err := repo.ExecuteCommand(command, args, invalidDir)
 
-	if err == nil {
-		t.Error("Expected error for invalid directory, got nil")
-	}
-
-	// Verify the error message contains expected text
-	expectedErrorText := "failed to perform command execution"
-	if !containsString(err.Error(), expectedErrorText) {
-		t.Errorf("Expected error to contain %q, got: %v", expectedErrorText, err)
-	}
+	// THEN: Should return an error with expected message
+	require.Error(t, err, "Expected error for invalid directory")
+	assert.Contains(t, err.Error(), "failed to perform command execution",
+		"Error message should contain expected text")
 }
 
-func TestStdShellRepository_ExecuteCommand_EmptyArguments(t *testing.T) {
+func TestStdShellRepository_ShouldExecuteSuccessfully_WhenEmptyArgumentsProvided(t *testing.T) {
+	// GIVEN: A repository instance and command with empty arguments
 	repo := repositories.NewStdShellRepository()
+	command := "echo"
+	emptyArgs := []string{}
+	workingDir := "."
 
-	// Test with empty arguments
-	err := repo.ExecuteCommand("echo", []string{}, ".")
+	// WHEN: Executing command with empty arguments
+	err := repo.ExecuteCommand(command, emptyArgs, workingDir)
 
-	if err != nil {
-		t.Errorf("Expected no error for command with empty arguments, got: %v", err)
-	}
+	// THEN: Should execute without error
+	assert.NoError(t, err, "Expected no error for command with empty arguments")
 }
 
-func TestStdShellRepository_ExecuteCommand_MultipleArguments(t *testing.T) {
+func TestStdShellRepository_ShouldExecuteSuccessfully_WhenMultipleArgumentsProvided(t *testing.T) {
+	// GIVEN: A repository instance and command with multiple arguments
 	repo := repositories.NewStdShellRepository()
+	command := "echo"
+	multipleArgs := []string{"hello", "world", "test"}
+	workingDir := "."
 
-	// Test with multiple arguments
-	err := repo.ExecuteCommand("echo", []string{"hello", "world", "test"}, ".")
+	// WHEN: Executing command with multiple arguments
+	err := repo.ExecuteCommand(command, multipleArgs, workingDir)
 
-	if err != nil {
-		t.Errorf("Expected no error for command with multiple arguments, got: %v", err)
-	}
+	// THEN: Should execute without error
+	assert.NoError(t, err, "Expected no error for command with multiple arguments")
 }
 
-// Helper function to check if a string contains a substring
-func containsString(s, substr string) bool {
-	return len(s) >= len(substr) && (s == substr || containsStringHelper(s, substr))
-}
 
-func containsStringHelper(s, substr string) bool {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return true
-		}
-	}
-	return false
-}
