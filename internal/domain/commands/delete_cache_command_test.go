@@ -33,7 +33,7 @@ func TestDeleteCacheCommand_ShouldDeleteTargetDirectories_WhenExecuteCalledWithV
 	require.NoError(t, os.MkdirAll(nestedTerraformDir, 0755))
 	require.NoError(t, os.WriteFile(filepath.Join(terraformDir, "test.txt"), []byte("test"), 0644))
 
-	// Create terragrunt cache directories  
+	// Create terragrunt cache directories
 	terragruntDir := ".terragrunt-cache"
 	nestedTerragruntDir := "module2/.terragrunt-cache"
 	require.NoError(t, os.MkdirAll(terragruntDir, 0755))
@@ -49,16 +49,16 @@ func TestDeleteCacheCommand_ShouldDeleteTargetDirectories_WhenExecuteCalledWithV
 	// THEN: Should delete target directories but preserve others
 	_, err := os.Stat(terraformDir)
 	assert.True(t, os.IsNotExist(err), "Terraform directory should be deleted")
-	
+
 	_, err = os.Stat(nestedTerraformDir)
 	assert.True(t, os.IsNotExist(err), "Nested terraform directory should be deleted")
-	
+
 	_, err = os.Stat(terragruntDir)
 	assert.True(t, os.IsNotExist(err), "Terragrunt directory should be deleted")
-	
+
 	_, err = os.Stat(nestedTerragruntDir)
 	assert.True(t, os.IsNotExist(err), "Nested terragrunt directory should be deleted")
-	
+
 	_, err = os.Stat(keepDir)
 	assert.False(t, os.IsNotExist(err), "Source directory should be preserved")
 }
@@ -109,7 +109,7 @@ func TestDeleteCacheCommand_ShouldDeleteOnlySpecifiedDirectories_WhenSelectiveEx
 	// THEN: Should delete only terraform directories and preserve terragrunt
 	_, err := os.Stat(terraformDir)
 	assert.True(t, os.IsNotExist(err), "Terraform directory should be deleted")
-	
+
 	_, err = os.Stat(terragruntDir)
 	assert.False(t, os.IsNotExist(err), "Terragrunt directory should be preserved")
 }

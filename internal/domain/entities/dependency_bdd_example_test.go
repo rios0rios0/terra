@@ -1,7 +1,6 @@
 package entities_test
 
 import (
-	"runtime"
 	"strings"
 	"testing"
 
@@ -27,16 +26,17 @@ func TestDependency_ShouldGeneratePlatformSpecificURL_WhenPlatformPlaceholdersPr
 
 	// THEN: URL should contain version, OS, and architecture
 	require.NotEmpty(t, result, "Binary URL should not be empty")
-	
+
+	platform := entities.GetPlatformInfo()
 	expectedSubstrings := []string{
 		"https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0",
-		runtime.GOOS,
-		runtime.GOARCH,
+		platform.GetOSString(),            // Use GetOSString() instead of runtime.GOOS for Android compatibility
+		platform.GetTerraformArchString(), // Use GetTerraformArchString() for consistent arch handling
 		".zip",
 	}
 
 	for _, substring := range expectedSubstrings {
-		assert.Contains(t, result, substring, 
+		assert.Contains(t, result, substring,
 			"URL should contain platform-specific information: %s", substring)
 	}
 
@@ -66,11 +66,12 @@ func TestDependency_ShouldUseFallbackFormat_WhenNoPlatformPlaceholdersFound(t *t
 	expectedURL := "https://example.com/tool_2.1.0.tar.gz"
 	assert.Equal(t, expectedURL, result,
 		"Should use simple version formatting for backward compatibility")
-	
+
 	// And should not contain platform-specific information
-	assert.NotContains(t, result, runtime.GOOS,
+	platform := entities.GetPlatformInfo()
+	assert.NotContains(t, result, platform.GetOSString(),
 		"Backward compatible URLs should not include OS information")
-	assert.NotContains(t, result, runtime.GOARCH,
+	assert.NotContains(t, result, platform.GetTerraformArchString(),
 		"Backward compatible URLs should not include architecture information")
 }
 
@@ -89,10 +90,10 @@ func TestDependency_ShouldHandleEmptyVersion_WhenCalledWithEmptyString(t *testin
 
 	// THEN: URL should still be generated with platform info but empty version
 	require.NotEmpty(t, result, "Should still generate URL even with empty version")
-	
+
 	platform := entities.GetPlatformInfo()
 	expectedURL := "https://example.com/tool__" + platform.GetOSString() + "_" + platform.GetTerraformArchString()
-	
+
 	assert.Equal(t, expectedURL, result,
 		"Should handle empty version gracefully while preserving platform information")
 }
@@ -111,7 +112,7 @@ func TestDependency_ShouldDetectPlatformPlaceholders_WhenOnlyPartialPlaceholders
 			description: "should detect platform format when only OS placeholder present",
 		},
 		{
-			name:        "Architecture placeholder only", 
+			name:        "Architecture placeholder only",
 			binaryURL:   "https://example.com/tool_%[1]s_%[3]s",
 			description: "should detect platform format when only arch placeholder present",
 		},
@@ -133,12 +134,12 @@ func TestDependency_ShouldDetectPlatformPlaceholders_WhenOnlyPartialPlaceholders
 			// THEN: Should use platform-specific formatting
 			platform := entities.GetPlatformInfo()
 			assert.Contains(t, result, version, "Should contain version")
-			
+
 			if strings.Contains(tc.binaryURL, "%[2]s") {
-				assert.Contains(t, result, platform.GetOSString(), 
+				assert.Contains(t, result, platform.GetOSString(),
 					"Should contain OS when OS placeholder present")
 			}
-			
+
 			if strings.Contains(tc.binaryURL, "%[3]s") {
 				assert.Contains(t, result, platform.GetTerraformArchString(),
 					"Should contain architecture when arch placeholder present")

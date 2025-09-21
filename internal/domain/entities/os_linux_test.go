@@ -28,7 +28,7 @@ func TestOSLinux_ShouldReturnValidTempDir_WhenGetTempDirCalled(t *testing.T) {
 
 	// THEN: Should return a non-empty string pointing to an existing directory
 	assert.NotEmpty(t, tempDir)
-	
+
 	info, err := os.Stat(tempDir)
 	require.NoError(t, err)
 	assert.True(t, info.IsDir())
@@ -58,7 +58,7 @@ func TestOSLinux_ShouldMakeFileExecutable_WhenValidFileProvided(t *testing.T) {
 
 	// THEN: Should succeed and file should be executable
 	require.NoError(t, err)
-	
+
 	info, err := os.Stat(tempFile.Name())
 	require.NoError(t, err)
 	mode := info.Mode()
