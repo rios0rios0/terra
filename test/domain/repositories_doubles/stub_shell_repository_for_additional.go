@@ -1,4 +1,4 @@
-package test
+package repositories_doubles
 
 // StubShellRepositoryForAdditional is a stub implementation of repositories.ShellRepository.
 type StubShellRepositoryForAdditional struct {

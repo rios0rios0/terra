@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
-	"github.com/rios0rios0/terra/test"
+	"github.com/rios0rios0/terra/test/domain/commands_doubles"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -15,7 +15,7 @@ func TestNewVersionController(t *testing.T) {
 	
 	t.Run("should create instance when command provided", func(t *testing.T) {
 		// GIVEN: A mock version command
-		mockCommand := &test.StubVersionCommand{}
+		mockCommand := &commands_doubles.StubVersionCommand{}
 
 		// WHEN: Creating a new version controller
 		controller := controllers.NewVersionController(mockCommand)
@@ -30,7 +30,7 @@ func TestVersionController_GetBind(t *testing.T) {
 	
 	t.Run("should return correct bind when called", func(t *testing.T) {
 		// GIVEN: A version controller with mock command
-		mockCommand := &test.StubVersionCommand{}
+		mockCommand := &commands_doubles.StubVersionCommand{}
 		controller := controllers.NewVersionController(mockCommand)
 
 		// WHEN: Getting the controller bind
@@ -48,7 +48,7 @@ func TestVersionController_Execute(t *testing.T) {
 	
 	t.Run("should execute command when called", func(t *testing.T) {
 		// GIVEN: A version controller with mock command
-		mockCommand := &test.StubVersionCommand{}
+		mockCommand := &commands_doubles.StubVersionCommand{}
 		controller := controllers.NewVersionController(mockCommand)
 		cmd := &cobra.Command{}
 		args := []string{}
@@ -62,7 +62,7 @@ func TestVersionController_Execute(t *testing.T) {
 	
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
 		// GIVEN: A version controller with mock command
-		mockCommand := &test.StubVersionCommand{}
+		mockCommand := &commands_doubles.StubVersionCommand{}
 		controller := controllers.NewVersionController(mockCommand)
 		cmd := &cobra.Command{}
 		args := []string{}

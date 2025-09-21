@@ -1,4 +1,4 @@
-package test
+package repositories_doubles
 
 // StubShellRepositoryForRoot is a stub implementation of repositories.ShellRepository
 type StubShellRepositoryForRoot struct {

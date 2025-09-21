@@ -1,4 +1,6 @@
-package test
+package repositories_doubles
+
+import "github.com/rios0rios0/terra/test"
 
 // CallRecord represents a single repository call
 type CallRecord struct {
@@ -25,7 +27,7 @@ func (m *StubShellRepositoryWithRecording) ExecuteCommand(
 	})
 
 	if m.ShouldReturnError {
-		return &StubError{message: "stub execution error"}
+		return test.NewStubError("stub execution error")
 	}
 	return nil
 }

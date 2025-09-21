@@ -1,4 +1,4 @@
-package test
+package commands_doubles
 
 // StubDeleteCacheCommand is a stub implementation of the DeleteCache interface
 type StubDeleteCacheCommand struct {

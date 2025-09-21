@@ -5,6 +5,10 @@ type StubError struct {
 	message string
 }
 
+func NewStubError(message string) *StubError {
+	return &StubError{message: message}
+}
+
 func (e *StubError) Error() string {
 	return e.message
 }
