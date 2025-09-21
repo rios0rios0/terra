@@ -200,6 +200,21 @@ When multiple test files test the same method, use descriptive suffixes to avoid
   - Dummies: `dummy_config.go`, `dummy_logger.go`
   - Helpers: `os_helpers.go`, `network_helpers.go`
 
+**Choosing Between Stubs and Mocks:**
+
+**Use Stubs when:**
+- Testing **state verification** (final output/result)
+- Controlling dependency return values for different test scenarios  
+- Recording calls for later assertion (call count, parameters)
+- Testing query operations (data retrieval without side effects)
+
+**Use Mocks when:**
+- Testing **behavior verification** (specific method calls with expected parameters)
+- Ensuring interactions happen in correct order
+- Testing command operations (operations with side effects)
+- Wanting tests to fail immediately on unexpected interactions
+- Using testify/mock package for behavioral expectations
+
 **Example Test Helper Structure:**
 ```go
 // File: /test/os_helpers.go (Helpers in separate files)

@@ -135,6 +135,55 @@ Following Martin Fowler's definitions:
 - **Stubs**: Test doubles that return fixed responses and enable state verification (most test doubles in this project)
 - **Mocks**: Test doubles with pre-configured behavioral expectations that fail tests if interactions don't match expectations
 
+#### When to Choose Stubs vs Mocks
+
+**Use Stubs when:**
+- You want to verify the **state** of the system after an operation
+- You need to control what a dependency returns to test different scenarios
+- You want to record calls for later assertion (call count, last parameters, etc.)
+- Testing the final output or result of the system under test
+- The dependency is a **query** operation (returns data without side effects)
+
+**Use Mocks when:**
+- You want to verify **behavior** - that specific methods were called with expected parameters
+- You need to ensure interactions happen in a specific order
+- The dependency represents a **command** operation (causes side effects)
+- Testing that the system properly communicates with external services
+- You want the test to fail immediately if unexpected interactions occur
+
+**Examples:**
+
+```go
+// ✅ Stub Example: State verification
+func TestCalculateTotal_ShouldReturnCorrectSum_WhenValidItemsProvided(t *testing.T) {
+    // GIVEN: Stub returns fixed tax rate
+    taxStub := &test.StubTaxService{TaxRate: 0.1}
+    calculator := NewCalculator(taxStub)
+    
+    // WHEN: Calculate total
+    total := calculator.CalculateTotal(items)
+    
+    // THEN: Verify final state/result
+    assert.Equal(t, 110.0, total)
+    assert.Equal(t, 1, taxStub.CallCount) // State verification
+}
+
+// ✅ Mock Example: Behavior verification using testify/mock
+func TestSendNotification_ShouldCallEmailService_WhenNotificationSent(t *testing.T) {
+    // GIVEN: Mock with behavioral expectations
+    emailMock := &mocks.EmailService{}
+    emailMock.On("SendEmail", "user@example.com", "Hello").Return(nil)
+    notifier := NewNotifier(emailMock)
+    
+    // WHEN: Send notification
+    err := notifier.Send("user@example.com", "Hello")
+    
+    // THEN: Verify behavior occurred as expected
+    require.NoError(t, err)
+    emailMock.AssertExpectations(t) // Behavior verification
+}
+```
+
 #### File Structure Examples
 
 ```go
