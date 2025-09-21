@@ -92,5 +92,3 @@ func TestStdShellRepository_ShouldExecuteSuccessfully_WhenMultipleArgumentsProvi
 	// THEN: Should execute without error
 	assert.NoError(t, err, "Expected no error for command with multiple arguments")
 }
-
-
