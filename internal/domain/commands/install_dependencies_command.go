@@ -167,7 +167,7 @@ func compareVersions(v1, v2 string) int {
 		parts2 = append(parts2, "0")
 	}
 
-	for i := 0; i < maxLen; i++ {
+	for i := range maxLen {
 		num1, _ := strconv.Atoi(parts1[i])
 		num2, _ := strconv.Atoi(parts2[i])
 

@@ -68,7 +68,7 @@ func TestOSLinux_MakeExecutable(t *testing.T) {
 	osLinux := &OSLinux{}
 
 	// Create a temporary file
-	tempFile, err := os.CreateTemp("", "test_executable_*")
+	tempFile, err := os.CreateTemp(t.TempDir(), "test_executable_*")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
@@ -122,7 +122,7 @@ func TestOSLinux_Move(t *testing.T) {
 	osLinux := &OSLinux{}
 
 	// Create a temporary file
-	tempFile, err := os.CreateTemp("", "test_move_source_*")
+	tempFile, err := os.CreateTemp(t.TempDir(), "test_move_source_*")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
@@ -184,7 +184,7 @@ func TestOSLinux_Remove(t *testing.T) {
 	osLinux := &OSLinux{}
 
 	// Create a temporary file
-	tempFile, err := os.CreateTemp("", "test_remove_*")
+	tempFile, err := os.CreateTemp(t.TempDir(), "test_remove_*")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
