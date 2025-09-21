@@ -7,6 +7,7 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/test"
 )
 
 // Integration test that creates actual files and tests the complete workflow
@@ -16,13 +17,13 @@ func TestInstallDependenciesIntegration(t *testing.T) {
 	}
 
 	// Use builder pattern to create test servers and dependency
-	versionServer, binaryServer := commands.NewTestServerBuilder().
+	versionServer, binaryServer := test.NewTestServerBuilder().
 		WithTerraformVersion("1.0.0").
 		BuildServers()
 	defer versionServer.Close()
 	defer binaryServer.Close()
 
-	dependency := commands.NewDependencyBuilder().
+	dependency := test.NewDependencyBuilder().
 		WithName("TestTool").
 		WithCLI("test-integration-tool-not-installed").
 		WithBinaryURL(binaryServer.URL + "/testtool_%s").
@@ -52,14 +53,14 @@ func TestInstallDependenciesIntegrationWithZip(t *testing.T) {
 	}
 
 	// Use builder pattern for zip file test
-	versionServer, binaryServer := commands.NewTestServerBuilder().
+	versionServer, binaryServer := test.NewTestServerBuilder().
 		WithTerraformVersion("2.0.0").
 		WithZipContent().
 		BuildServers()
 	defer versionServer.Close()
 	defer binaryServer.Close()
 
-	dependency := commands.NewDependencyBuilder().
+	dependency := test.NewDependencyBuilder().
 		WithName("TestZipTool").
 		WithCLI("test-zip-integration-tool-not-installed").
 		WithBinaryURL(binaryServer.URL + "/testziptool_%s.zip").
@@ -87,7 +88,7 @@ func TestInstallDependenciesIntegrationWithZip(t *testing.T) {
 
 func TestInstallDependenciesExecuteWithMixedDependencies(t *testing.T) {
 	// Use builder pattern for mixed dependencies test
-	versionServer, binaryServer := commands.NewTestServerBuilder().
+	versionServer, binaryServer := test.NewTestServerBuilder().
 		WithTerraformVersion("1.5.0").
 		WithTerragruntVersion("0.50.0").
 		BuildServers()
@@ -96,14 +97,14 @@ func TestInstallDependenciesExecuteWithMixedDependencies(t *testing.T) {
 
 	// Create test dependencies using builder pattern
 	dependencies := []entities.Dependency{
-		commands.NewDependencyBuilder().
+		test.NewDependencyBuilder().
 			WithName("TestTerraform").
 			WithCLI("test-terraform-unique-name").
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
 			WithVersionURL(versionServer.URL + "/terraform").
 			WithTerraformPattern().
 			Build(),
-		commands.NewDependencyBuilder().
+		test.NewDependencyBuilder().
 			WithName("TestTerragrunt").
 			WithCLI("test-terragrunt-unique-name").
 			WithBinaryURL(binaryServer.URL + "/terragrunt_%s").
@@ -140,14 +141,14 @@ func TestInstallDependenciesDownloadFailure(t *testing.T) {
 	t.Skip("Skipping test: cannot reliably test logger.Fatalf behavior that calls os.Exit()")
 
 	// Use builder pattern to create servers that simulate download failure
-	versionServer, binaryServer := commands.NewTestServerBuilder().
+	versionServer, binaryServer := test.NewTestServerBuilder().
 		WithTerraformVersion("1.13.3").
 		WithDownloadFailure(). // This will make binary server return 500 error
 		BuildServers()
 	defer versionServer.Close()
 	defer binaryServer.Close()
 
-	dependency := commands.NewDependencyBuilder().
+	dependency := test.NewDependencyBuilder().
 		WithName("TestDownloadFailure").
 		WithCLI("test-download-failure-tool").
 		WithBinaryURL(binaryServer.URL + "/terraform_%s").
@@ -189,7 +190,7 @@ func TestInstallDependenciesNetworkTimeout(t *testing.T) {
 
 	// Create a dependency with an unreachable URL to simulate network issues
 	// Note: This uses a reserved IP address that should not be reachable
-	dependency := commands.NewDependencyBuilder().
+	dependency := test.NewDependencyBuilder().
 		WithName("TestNetworkFailure").
 		WithCLI("test-network-failure-tool").
 		WithBinaryURL("http://192.0.2.1/terraform_%s"). // RFC3330 reserved address
