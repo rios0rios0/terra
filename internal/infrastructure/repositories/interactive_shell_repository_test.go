@@ -3,46 +3,60 @@ package repositories_test
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
 	"github.com/rios0rios0/terra/internal/infrastructure/repositories"
 )
 
-func TestNewInteractiveShellRepository(t *testing.T) {
+func TestNewInteractiveShellRepository_ShouldCreateInstance_WhenCalled(t *testing.T) {
+	// GIVEN: No preconditions needed
+
+	// WHEN: Creating a new interactive shell repository
 	repo := repositories.NewInteractiveShellRepository()
 
-	if repo == nil {
-		t.Fatal("NewInteractiveShellRepository returned nil")
-	}
+	// THEN: Should return a valid repository instance
+	require.NotNil(t, repo, "NewInteractiveShellRepository should not return nil")
 }
 
-func TestInteractiveShellRepository_ExecuteCommand_ValidCommand(t *testing.T) {
+func TestInteractiveShellRepository_ShouldExecuteSuccessfully_WhenValidCommandProvided(t *testing.T) {
+	// GIVEN: An interactive shell repository instance and valid command parameters
 	repo := repositories.NewInteractiveShellRepository()
+	command := "echo"
+	args := []string{"test"}
+	workingDir := "."
 
-	// Test with a simple command that should work on any system
-	err := repo.ExecuteCommand("echo", []string{"test"}, ".")
+	// WHEN: Executing a valid command
+	err := repo.ExecuteCommand(command, args, workingDir)
 
-	if err != nil {
-		t.Errorf("Expected no error for valid command, got: %v", err)
-	}
+	// THEN: Should execute without error
+	assert.NoError(t, err, "Expected no error for valid command execution")
 }
 
-func TestInteractiveShellRepository_ExecuteCommand_InvalidCommand(t *testing.T) {
+func TestInteractiveShellRepository_ShouldReturnError_WhenInvalidCommandProvided(t *testing.T) {
+	// GIVEN: An interactive shell repository instance and invalid command
 	repo := repositories.NewInteractiveShellRepository()
+	invalidCommand := "nonexistentcommand12345"
+	args := []string{}
+	workingDir := "."
 
-	// Test with an invalid command
-	err := repo.ExecuteCommand("nonexistentcommand12345", []string{}, ".")
+	// WHEN: Executing an invalid command
+	err := repo.ExecuteCommand(invalidCommand, args, workingDir)
 
-	if err == nil {
-		t.Error("Expected error for invalid command, got nil")
-	}
+	// THEN: Should return an error
+	require.Error(t, err, "Expected error for invalid command")
 }
 
-func TestInteractiveShellRepository_ExecuteCommand_InvalidDirectory(t *testing.T) {
+func TestInteractiveShellRepository_ShouldReturnError_WhenInvalidDirectoryProvided(t *testing.T) {
+	// GIVEN: An interactive shell repository instance and invalid working directory
 	repo := repositories.NewInteractiveShellRepository()
+	command := "echo"
+	args := []string{"test"}
+	invalidDir := "/nonexistent/directory/12345"
 
-	// Test with an invalid directory
-	err := repo.ExecuteCommand("echo", []string{"test"}, "/nonexistent/directory/12345")
+	// WHEN: Executing command in invalid directory
+	err := repo.ExecuteCommand(command, args, invalidDir)
 
-	if err == nil {
-		t.Error("Expected error for invalid directory, got nil")
-	}
+	// THEN: Should return an error
+	require.Error(t, err, "Expected error for invalid directory")
 }
