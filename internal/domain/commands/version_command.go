@@ -1,9 +1,11 @@
 package commands
 
 import (
+	"context"
 	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
@@ -12,6 +14,7 @@ import (
 const (
 	notInstalledVersion    = "not installed"
 	latestAvailableVersion = "latest available"
+	commandTimeout         = 10 * time.Second
 )
 
 // TerraVersion will be set at build time via ldflags
@@ -74,7 +77,9 @@ func (it *VersionCommand) getTerragruntVersion() string {
 }
 
 func (it *VersionCommand) getVersionFromCLI(tool string) string {
-	cmd := exec.Command(tool, "--version")
+	ctx, cancel := context.WithTimeout(context.Background(), commandTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, tool, "--version")
 	output, err := cmd.Output()
 	if err != nil {
 		logger.Debugf("Failed to get %s version from CLI: %s", tool, err)

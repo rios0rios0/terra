@@ -1,12 +1,14 @@
-package entities
+package entities_test
 
 import (
 	"runtime"
 	"testing"
+
+	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
 func TestGetPlatformInfo(t *testing.T) {
-	platform := GetPlatformInfo()
+	platform := entities.GetPlatformInfo()
 
 	// Test that we get valid OS and Arch values
 	if platform.OS == "" {
@@ -29,7 +31,7 @@ func TestGetPlatformInfo(t *testing.T) {
 }
 
 func TestPlatformInfo_GetPlatformString(t *testing.T) {
-	platform := PlatformInfo{
+	platform := entities.PlatformInfo{
 		OS:   "linux",
 		Arch: "amd64",
 	}
@@ -55,7 +57,7 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			platform := PlatformInfo{Arch: tc.arch}
+			platform := entities.PlatformInfo{Arch: tc.arch}
 			result := platform.GetTerraformArchString()
 
 			if result != tc.expected {
@@ -78,7 +80,7 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			platform := PlatformInfo{Arch: tc.arch}
+			platform := entities.PlatformInfo{Arch: tc.arch}
 			result := platform.GetTerragruntArchString()
 
 			if result != tc.expected {
@@ -101,7 +103,7 @@ func TestPlatformInfo_GetOSString(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			platform := PlatformInfo{OS: tc.os}
+			platform := entities.PlatformInfo{OS: tc.os}
 			result := platform.GetOSString()
 
 			if result != tc.expected {

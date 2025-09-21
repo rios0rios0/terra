@@ -1,11 +1,13 @@
-package repositories
+package repositories_test
 
 import (
 	"testing"
+
+	"github.com/rios0rios0/terra/internal/infrastructure/repositories"
 )
 
 func TestNewStdShellRepository(t *testing.T) {
-	repo := NewStdShellRepository()
+	repo := repositories.NewStdShellRepository()
 
 	if repo == nil {
 		t.Fatal("NewStdShellRepository returned nil")
@@ -13,7 +15,7 @@ func TestNewStdShellRepository(t *testing.T) {
 }
 
 func TestStdShellRepository_ExecuteCommand_ValidCommand(t *testing.T) {
-	repo := NewStdShellRepository()
+	repo := repositories.NewStdShellRepository()
 
 	// Test with a simple command that should work on any system
 	err := repo.ExecuteCommand("echo", []string{"test"}, ".")
@@ -24,7 +26,7 @@ func TestStdShellRepository_ExecuteCommand_ValidCommand(t *testing.T) {
 }
 
 func TestStdShellRepository_ExecuteCommand_InvalidCommand(t *testing.T) {
-	repo := NewStdShellRepository()
+	repo := repositories.NewStdShellRepository()
 
 	// Test with an invalid command
 	err := repo.ExecuteCommand("nonexistentcommand12345", []string{}, ".")
@@ -41,7 +43,7 @@ func TestStdShellRepository_ExecuteCommand_InvalidCommand(t *testing.T) {
 }
 
 func TestStdShellRepository_ExecuteCommand_InvalidDirectory(t *testing.T) {
-	repo := NewStdShellRepository()
+	repo := repositories.NewStdShellRepository()
 
 	// Test with a valid command but invalid directory
 	err := repo.ExecuteCommand("echo", []string{"test"}, "/nonexistent/directory/12345")
@@ -58,7 +60,7 @@ func TestStdShellRepository_ExecuteCommand_InvalidDirectory(t *testing.T) {
 }
 
 func TestStdShellRepository_ExecuteCommand_EmptyArguments(t *testing.T) {
-	repo := NewStdShellRepository()
+	repo := repositories.NewStdShellRepository()
 
 	// Test with empty arguments
 	err := repo.ExecuteCommand("echo", []string{}, ".")
@@ -69,7 +71,7 @@ func TestStdShellRepository_ExecuteCommand_EmptyArguments(t *testing.T) {
 }
 
 func TestStdShellRepository_ExecuteCommand_MultipleArguments(t *testing.T) {
-	repo := NewStdShellRepository()
+	repo := repositories.NewStdShellRepository()
 
 	// Test with multiple arguments
 	err := repo.ExecuteCommand("echo", []string{"hello", "world", "test"}, ".")

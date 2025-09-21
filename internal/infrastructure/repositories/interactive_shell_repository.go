@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +12,12 @@ import (
 	"time"
 
 	logger "github.com/sirupsen/logrus"
+)
+
+const (
+	outputChannelSize   = 100
+	outputCheckInterval = 100 * time.Millisecond
+	shellTimeout        = 30 * time.Minute // Allow long-running terraform/terragrunt commands
 )
 
 // InteractiveShellRepository handles interactive commands with auto-answering capabilities
@@ -32,7 +39,7 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 		directory,
 	)
 
-	cmd := exec.Command(command, arguments...)
+	cmd := exec.CommandContext(context.Background(), command, arguments...)
 	cmd.Dir = directory
 
 	// Set up pipes for stdin, stdout, and stderr
@@ -52,8 +59,8 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 	}
 
 	// Start the command
-	if err := cmd.Start(); err != nil {
-		return fmt.Errorf("failed to start command: %w", err)
+	if startErr := cmd.Start(); startErr != nil {
+		return fmt.Errorf("failed to start command: %w", startErr)
 	}
 
 	// Handle output and input in separate goroutines
@@ -77,7 +84,7 @@ func (it *InteractiveShellRepository) handleOutput(
 	stderrScanner := bufio.NewScanner(stderr)
 
 	// Channel to coordinate between output handling and input sending
-	outputChan := make(chan string, 100)
+	outputChan := make(chan string, outputChannelSize)
 
 	// Read stdout
 	go func() {
@@ -103,7 +110,7 @@ func (it *InteractiveShellRepository) handleOutput(
 			select {
 			case line := <-outputChan:
 				it.processLineAndRespond(line, stdin)
-			case <-time.After(100 * time.Millisecond):
+			case <-time.After(outputCheckInterval):
 				// Continue checking for output
 			}
 		}

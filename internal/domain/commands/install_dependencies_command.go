@@ -94,18 +94,23 @@ func fetchLatestVersion(url, regexPattern string) string {
 
 // checking if a dependency is available
 func isDependencyCLIAvailable(name string) bool {
-	cmd := exec.Command(name, "-v")
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, name, "-v")
 	return cmd.Run() == nil
 }
 
 // get current version of installed dependency
 func getCurrentVersion(name string) string {
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
+	defer cancel()
+
 	var cmd *exec.Cmd
 	switch name {
 	case "terraform":
-		cmd = exec.Command(name, "--version")
+		cmd = exec.CommandContext(ctx, name, "--version")
 	case "terragrunt":
-		cmd = exec.Command(name, "--version")
+		cmd = exec.CommandContext(ctx, name, "--version")
 	default:
 		return ""
 	}
@@ -262,12 +267,15 @@ func install(url, name string) {
 		logger.Fatalf("Failed to download %s: %s", name, err)
 	}
 
-	fileTypeCmd := exec.Command("file", tempFilePath)
+	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
+	defer cancel()
+	fileTypeCmd := exec.CommandContext(ctx, "file", tempFilePath)
 	fileTypeOutput, err := fileTypeCmd.Output()
 	if err != nil {
 		logger.Fatalf("Failed to determine file type of %s: %s", name, err)
 	}
 
+	//nolint:nestif // Complex file type detection logic requires nested conditions
 	if strings.Contains(string(fileTypeOutput), "Zip archive data") {
 		logger.Infof("%s is a zip file, extracting...", name)
 		// Create a temporary directory for extraction
