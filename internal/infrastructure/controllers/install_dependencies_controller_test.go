@@ -4,7 +4,10 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
 	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // MockInstallDependenciesCommand is a mock implementation of the InstallDependencies interface
@@ -18,7 +21,8 @@ func (m *MockInstallDependenciesCommand) Execute(dependencies []entities.Depende
 	m.LastDependencies = dependencies
 }
 
-func TestNewInstallDependenciesController(t *testing.T) {
+func TestNewInstallDependenciesController_ShouldCreateInstance_WhenCommandAndDependenciesProvided(t *testing.T) {
+	// GIVEN: A mock command and test dependencies
 	mockCommand := &MockInstallDependenciesCommand{}
 	dependencies := []entities.Dependency{
 		{
@@ -31,58 +35,30 @@ func TestNewInstallDependenciesController(t *testing.T) {
 		},
 	}
 
-	controller := NewInstallDependenciesController(mockCommand, dependencies)
+	// WHEN: Creating a new install dependencies controller
+	controller := controllers.NewInstallDependenciesController(mockCommand, dependencies)
 
-	if controller == nil {
-		t.Fatal("NewInstallDependenciesController returned nil")
-	}
-
-	if controller.command != mockCommand {
-		t.Error("Controller command was not set correctly")
-	}
-
-	if len(controller.dependencies) != len(dependencies) {
-		t.Errorf(
-			"Expected %d dependencies, got %d",
-			len(dependencies),
-			len(controller.dependencies),
-		)
-	}
-
-	if controller.dependencies[0].Name != dependencies[0].Name {
-		t.Errorf(
-			"Expected dependency name %s, got %s",
-			dependencies[0].Name,
-			controller.dependencies[0].Name,
-		)
-	}
+	// THEN: Should create a valid controller instance
+	require.NotNil(t, controller)
 }
 
-func TestInstallDependenciesController_GetBind(t *testing.T) {
+func TestInstallDependenciesController_ShouldReturnCorrectBind_WhenGetBindCalled(t *testing.T) {
+	// GIVEN: An install dependencies controller with mock command and empty dependencies
 	mockCommand := &MockInstallDependenciesCommand{}
 	dependencies := []entities.Dependency{}
+	controller := controllers.NewInstallDependenciesController(mockCommand, dependencies)
 
-	controller := NewInstallDependenciesController(mockCommand, dependencies)
+	// WHEN: Getting the controller bind
 	bind := controller.GetBind()
 
-	expectedUse := "install"
-	expectedShort := "Install or update Terraform and Terragrunt to the latest versions"
-	expectedLong := "Install all the dependencies required to run Terra, or update them if newer versions are available. Dependencies are installed to ~/.local/bin on Linux."
-
-	if bind.Use != expectedUse {
-		t.Errorf("Expected Use to be %q, got %q", expectedUse, bind.Use)
-	}
-
-	if bind.Short != expectedShort {
-		t.Errorf("Expected Short to be %q, got %q", expectedShort, bind.Short)
-	}
-
-	if bind.Long != expectedLong {
-		t.Errorf("Expected Long to be %q, got %q", expectedLong, bind.Long)
-	}
+	// THEN: Should return correct bind configuration
+	assert.Equal(t, "install", bind.Use)
+	assert.Equal(t, "Install or update Terraform and Terragrunt to the latest versions", bind.Short)
+	assert.Equal(t, "Install all the dependencies required to run Terra, or update them if newer versions are available. Dependencies are installed to ~/.local/bin on Linux.", bind.Long)
 }
 
-func TestInstallDependenciesController_Execute(t *testing.T) {
+func TestInstallDependenciesController_ShouldExecuteCommand_WhenExecuteCalled(t *testing.T) {
+	// GIVEN: An install dependencies controller with mock command and test dependencies
 	mockCommand := &MockInstallDependenciesCommand{}
 	dependencies := []entities.Dependency{
 		{
@@ -94,58 +70,35 @@ func TestInstallDependenciesController_Execute(t *testing.T) {
 			CLI:  "another",
 		},
 	}
-
-	controller := NewInstallDependenciesController(mockCommand, dependencies)
-
-	// Create a mock cobra command and args
+	controller := controllers.NewInstallDependenciesController(mockCommand, dependencies)
 	cmd := &cobra.Command{}
 	args := []string{}
 
-	// Execute the controller
+	// WHEN: Executing the controller
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called
-	if mockCommand.ExecuteCallCount != 1 {
-		t.Errorf("Expected Execute to be called once, got %d calls", mockCommand.ExecuteCallCount)
-	}
-
-	// Verify that the correct dependencies were passed
-	if len(mockCommand.LastDependencies) != len(dependencies) {
-		t.Errorf("Expected %d dependencies passed to Execute, got %d",
-			len(dependencies), len(mockCommand.LastDependencies))
-	}
-
-	if mockCommand.LastDependencies[0].Name != dependencies[0].Name {
-		t.Errorf("Expected first dependency name %s, got %s",
-			dependencies[0].Name, mockCommand.LastDependencies[0].Name)
-	}
-
-	if mockCommand.LastDependencies[1].Name != dependencies[1].Name {
-		t.Errorf("Expected second dependency name %s, got %s",
-			dependencies[1].Name, mockCommand.LastDependencies[1].Name)
-	}
+	// THEN: Should execute the command with correct dependencies
+	assert.Equal(t, 1, mockCommand.ExecuteCallCount)
+	assert.Equal(t, len(dependencies), len(mockCommand.LastDependencies))
+	assert.Equal(t, dependencies[0].Name, mockCommand.LastDependencies[0].Name)
+	assert.Equal(t, dependencies[1].Name, mockCommand.LastDependencies[1].Name)
 }
 
-func TestInstallDependenciesController_ExecuteMultipleCalls(t *testing.T) {
+func TestInstallDependenciesController_ShouldExecuteCommandMultipleTimes_WhenCalledRepeatedly(t *testing.T) {
+	// GIVEN: An install dependencies controller with mock command and test dependencies
 	mockCommand := &MockInstallDependenciesCommand{}
 	dependencies := []entities.Dependency{
 		{Name: "Test", CLI: "test"},
 	}
-
-	controller := NewInstallDependenciesController(mockCommand, dependencies)
+	controller := controllers.NewInstallDependenciesController(mockCommand, dependencies)
 	cmd := &cobra.Command{}
 	args := []string{}
 
-	// Execute multiple times
+	// WHEN: Executing the controller multiple times
 	controller.Execute(cmd, args)
 	controller.Execute(cmd, args)
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called the correct number of times
-	if mockCommand.ExecuteCallCount != 3 {
-		t.Errorf(
-			"Expected Execute to be called 3 times, got %d calls",
-			mockCommand.ExecuteCallCount,
-		)
-	}
+	// THEN: Should execute the command the correct number of times
+	assert.Equal(t, 3, mockCommand.ExecuteCallCount)
 }

@@ -29,60 +29,45 @@ func TestNewVersionController_ShouldCreateInstance_WhenCommandProvided(t *testin
 	require.NotNil(t, controller)
 }
 
-func TestVersionController_GetBind(t *testing.T) {
+func TestVersionController_ShouldReturnCorrectBind_WhenGetBindCalled(t *testing.T) {
+	// GIVEN: A version controller with mock command
 	mockCommand := &MockVersionCommand{}
-	controller := NewVersionController(mockCommand)
+	controller := controllers.NewVersionController(mockCommand)
+
+	// WHEN: Getting the controller bind
 	bind := controller.GetBind()
 
-	expectedUse := "version"
-	expectedShort := "Show Terra, Terraform, and Terragrunt versions"
-	expectedLong := "Display the version information for Terra and its dependencies (Terraform and Terragrunt)."
-
-	if bind.Use != expectedUse {
-		t.Errorf("Expected Use to be %q, got %q", expectedUse, bind.Use)
-	}
-
-	if bind.Short != expectedShort {
-		t.Errorf("Expected Short to be %q, got %q", expectedShort, bind.Short)
-	}
-
-	if bind.Long != expectedLong {
-		t.Errorf("Expected Long to be %q, got %q", expectedLong, bind.Long)
-	}
+	// THEN: Should return correct bind configuration
+	assert.Equal(t, "version", bind.Use)
+	assert.Equal(t, "Show Terra, Terraform, and Terragrunt versions", bind.Short)
+	assert.Equal(t, "Display the version information for Terra and its dependencies (Terraform and Terragrunt).", bind.Long)
 }
 
-func TestVersionController_Execute(t *testing.T) {
+func TestVersionController_ShouldExecuteCommand_WhenExecuteCalled(t *testing.T) {
+	// GIVEN: A version controller with mock command
 	mockCommand := &MockVersionCommand{}
-	controller := NewVersionController(mockCommand)
-
-	// Create a mock cobra command and args
+	controller := controllers.NewVersionController(mockCommand)
 	cmd := &cobra.Command{}
 	args := []string{}
 
-	// Execute the controller
+	// WHEN: Executing the controller
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called
-	if mockCommand.ExecuteCallCount != 1 {
-		t.Errorf("Expected Execute to be called once, got %d calls", mockCommand.ExecuteCallCount)
-	}
+	// THEN: Should execute the command once
+	assert.Equal(t, 1, mockCommand.ExecuteCallCount)
 }
 
-func TestVersionController_ExecuteMultipleCalls(t *testing.T) {
+func TestVersionController_ShouldExecuteCommandMultipleTimes_WhenCalledRepeatedly(t *testing.T) {
+	// GIVEN: A version controller with mock command
 	mockCommand := &MockVersionCommand{}
-	controller := NewVersionController(mockCommand)
+	controller := controllers.NewVersionController(mockCommand)
 	cmd := &cobra.Command{}
 	args := []string{}
 
-	// Execute multiple times
+	// WHEN: Executing the controller multiple times
 	controller.Execute(cmd, args)
 	controller.Execute(cmd, args)
 
-	// Verify that the command was called the correct number of times
-	if mockCommand.ExecuteCallCount != 2 {
-		t.Errorf(
-			"Expected Execute to be called 2 times, got %d calls",
-			mockCommand.ExecuteCallCount,
-		)
-	}
+	// THEN: Should execute the command the correct number of times
+	assert.Equal(t, 2, mockCommand.ExecuteCallCount)
 }
