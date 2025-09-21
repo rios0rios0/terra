@@ -1,8 +1,10 @@
+//nolint:testpackage // Testing private functions and fields requires same package
 package commands
 
 import (
 	"testing"
 
+	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
@@ -42,7 +44,7 @@ func (e *MockError) Error() string {
 
 func TestNewFormatFilesCommand(t *testing.T) {
 	mockRepo := &MockShellRepository{}
-	cmd := NewFormatFilesCommand(mockRepo)
+	cmd := commands.NewFormatFilesCommand(mockRepo)
 
 	if cmd == nil {
 		t.Fatal("NewFormatFilesCommand returned nil")
