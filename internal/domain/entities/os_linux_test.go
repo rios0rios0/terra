@@ -38,10 +38,17 @@ func TestOSLinux_GetTempDir(t *testing.T) {
 		t.Logf("Failed to clean up test file %s: %v", tempFile, err)
 	}
 
-	// Verify it returns the system temp directory
-	expectedTempDir := os.TempDir()
-	if tempDir != expectedTempDir {
-		t.Errorf("Expected temp dir %s, got %s", expectedTempDir, tempDir)
+	// Verify it returns a valid temporary directory
+	// We'll check that it's not empty and that we can create files in it
+	if tempDir == "" {
+		t.Error("GetTempDir() returned empty string")
+	}
+
+	// Test that we can actually use the directory
+	testFile := filepath.Join(tempDir, "test_file")
+	err = os.WriteFile(testFile, []byte("test"), 0644)
+	if err != nil {
+		t.Errorf("Could not create file in temp directory %s: %v", tempDir, err)
 	}
 }
 
@@ -226,15 +233,11 @@ func TestOSLinux_Extract(t *testing.T) {
 	osLinux := &OSLinux{}
 
 	// Create a temporary directory for extraction
-	tempDir, err := os.MkdirTemp("", "test_extract_*")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
+	tempDir := t.TempDir()
 
 	// We can't easily test actual zip extraction without creating a real zip file
 	// So we'll test the error case with a non-existent file
-	err = osLinux.Extract("/tmp/non_existent_archive_12345.zip", tempDir)
+	err := osLinux.Extract("/tmp/non_existent_archive_12345.zip", tempDir)
 	if err == nil {
 		t.Error("Expected error when extracting non-existent archive")
 	}

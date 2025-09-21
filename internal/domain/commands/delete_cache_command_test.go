@@ -105,7 +105,7 @@ func TestDeleteCacheCommand_ExecuteWithEmptyList(t *testing.T) {
 	cmd.Execute([]string{})
 
 	// Verify directory still exists (should not be deleted)
-	if _, err := os.Stat(testDir); os.IsNotExist(err) {
+	if _, statErr := os.Stat(testDir); os.IsNotExist(statErr) {
 		t.Error("Directory should not have been deleted when no targets specified")
 	}
 }
@@ -152,12 +152,12 @@ func TestDeleteCacheCommand_ExecuteWithSpecificDirectory(t *testing.T) {
 	cmd.Execute([]string{".terraform"})
 
 	// Verify terraform directory was deleted
-	if _, err := os.Stat(terraformDir); !os.IsNotExist(err) {
+	if _, statErr := os.Stat(terraformDir); !os.IsNotExist(statErr) {
 		t.Error("Terraform directory should have been deleted")
 	}
 
 	// Verify terragrunt directory still exists
-	if _, err := os.Stat(terragruntDir); os.IsNotExist(err) {
+	if _, statErr := os.Stat(terragruntDir); os.IsNotExist(statErr) {
 		t.Error("Terragrunt directory should not have been deleted")
 	}
 }
