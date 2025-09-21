@@ -1,4 +1,4 @@
-package entities
+package test
 
 import (
 	"net/http"
@@ -6,12 +6,13 @@ import (
 	"os"
 	"testing"
 
+	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-// TestDownloadSuccess is a helper function to test successful download for any OS implementation
-func TestDownloadSuccess(t *testing.T, osImpl OS, testPrefix string) {
+// HelperDownloadSuccess is a helper function to test successful download for any OS implementation
+func HelperDownloadSuccess(t *testing.T, osImpl entities.OS, testPrefix string) {
 	// Create a test server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		_, _ = w.Write([]byte("test file content"))
@@ -41,8 +42,8 @@ func TestDownloadSuccess(t *testing.T, osImpl OS, testPrefix string) {
 		"Downloaded content should match expected content")
 }
 
-// TestDownloadHTTPError is a helper function to test HTTP error handling for any OS implementation
-func TestDownloadHTTPError(t *testing.T, osImpl OS, testPrefix string) {
+// HelperDownloadHTTPError is a helper function to test HTTP error handling for any OS implementation
+func HelperDownloadHTTPError(t *testing.T, osImpl entities.OS, testPrefix string) {
 	t.Helper()
 	// Create a test server that returns an error
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
