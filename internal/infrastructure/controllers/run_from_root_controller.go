@@ -3,7 +3,7 @@ package controllers
 import (
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	"github.com/rios0rios0/terra/internal/infrastructure/helpers"
+	"github.com/rios0rios0/terra/internal/infrastructure/controllers/helpers"
 	"github.com/spf13/cobra"
 )
 
