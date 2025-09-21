@@ -5,50 +5,17 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/test"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
-
-// MockShellRepository for testing FormatFilesCommand
-type MockShellRepository struct {
-	ExecuteCallCount  int
-	LastCommand       string
-	LastArguments     []string
-	LastDirectory     string
-	ShouldReturnError bool
-}
-
-func (m *MockShellRepository) ExecuteCommand(
-	command string,
-	arguments []string,
-	directory string,
-) error {
-	m.ExecuteCallCount++
-	m.LastCommand = command
-	m.LastArguments = arguments
-	m.LastDirectory = directory
-
-	if m.ShouldReturnError {
-		return &MockError{message: "mock execution error"}
-	}
-	return nil
-}
-
-// MockError implements the error interface
-type MockError struct {
-	message string
-}
-
-func (e *MockError) Error() string {
-	return e.message
-}
 
 func TestNewFormatFilesCommand(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should create instance when repository provided", func(t *testing.T) {
 		// GIVEN: A mock shell repository
-		mockRepo := &MockShellRepository{}
+		mockRepo := &test.MockShellRepository{}
 
 		// WHEN: Creating a new format files command
 		cmd := commands.NewFormatFilesCommand(mockRepo)
@@ -63,7 +30,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	
 	t.Run("should execute format commands when dependencies provided", func(t *testing.T) {
 		// GIVEN: A mock repository and dependencies with formatting commands
-		mockRepo := &MockShellRepository{}
+		mockRepo := &test.MockShellRepository{}
 		terraformDep := entities.Dependency{
 			Name:              "Terraform",
 			CLI:               "terraform",
@@ -89,7 +56,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	
 	t.Run("should continue execution when repository returns error", func(t *testing.T) {
 		// GIVEN: A mock repository that returns errors and a single dependency
-		mockRepo := &MockShellRepository{ShouldReturnError: true}
+		mockRepo := &test.MockShellRepository{ShouldReturnError: true}
 		dependencies := []entities.Dependency{
 			{
 				Name:              "Terraform",
@@ -108,7 +75,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	
 	t.Run("should not execute when no dependencies provided", func(t *testing.T) {
 		// GIVEN: A mock repository and empty dependencies list
-		mockRepo := &MockShellRepository{}
+		mockRepo := &test.MockShellRepository{}
 		dependencies := []entities.Dependency{}
 		cmd := commands.NewFormatFilesCommand(mockRepo)
 
@@ -121,7 +88,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	
 	t.Run("should execute with empty arguments when dependency has no formatting command", func(t *testing.T) {
 		// GIVEN: A mock repository and dependency with empty formatting command
-		mockRepo := &MockShellRepository{}
+		mockRepo := &test.MockShellRepository{}
 		dependencies := []entities.Dependency{
 			{
 				Name:              "SomeTool",
@@ -142,7 +109,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	
 	t.Run("should execute all dependencies when multiple dependencies provided", func(t *testing.T) {
 		// GIVEN: A recording mock repository and multiple dependencies
-		mockRepo := &MockShellRepositoryWithRecording{}
+		mockRepo := &test.MockShellRepositoryWithRecording{}
 		terraformDep := entities.Dependency{
 			Name:              "Terraform",
 			CLI:               "terraform",
@@ -185,34 +152,4 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 		assert.Equal(t, customDep.FormattingCommand, thirdRecord.Arguments)
 		assert.Equal(t, ".", thirdRecord.Directory)
 	})
-}
-
-// CallRecord represents a single repository call
-type CallRecord struct {
-	Command   string
-	Arguments []string
-	Directory string
-}
-
-// MockShellRepositoryWithRecording for testing with call recording
-type MockShellRepositoryWithRecording struct {
-	CallRecords       []CallRecord
-	ShouldReturnError bool
-}
-
-func (m *MockShellRepositoryWithRecording) ExecuteCommand(
-	command string,
-	arguments []string,
-	directory string,
-) error {
-	m.CallRecords = append(m.CallRecords, CallRecord{
-		Command:   command,
-		Arguments: append([]string{}, arguments...), // Copy slice
-		Directory: directory,
-	})
-
-	if m.ShouldReturnError {
-		return &MockError{message: "mock execution error"}
-	}
-	return nil
 }
