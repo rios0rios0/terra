@@ -122,13 +122,13 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
 1. **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
 2. **Domain-specific organization** - All test utilities must be organized by their corresponding production packages:
    - **`test/domain/entities_doubles/`** - Stubs implementing domain entity interfaces (CLI, OS, etc.)
-   - **`test/domain/entities_builders/`** - Builders that create domain entities for testing
+   - **`test/domain/entities_builder/`** - Builders that create domain entities for testing
    - **`test/domain/commands_doubles/`** - Stubs implementing domain command interfaces
    - **`test/infrastructure/repositories_doubles/`** - Stubs implementing repository interfaces (infrastructure layer)
-   - **`test/infrastructure/repositories_builders/`** - Builders for infrastructure testing (HTTP servers, etc.)
-   - **`test/infrastructure/repositories_helpers/`** - Helpers for testing repository/OS functionality
+   - **`test/infrastructure/repository_builders/`** - Builders for infrastructure testing (HTTP servers, etc.)
+   - **`test/infrastructure/repository_helpers/`** - Helpers for testing repository/OS functionality
    - **`test/infrastructure/controllers_doubles/`** - Stubs implementing infrastructure controller interfaces
-   - **`test/infrastructure/controllers_helpers/`** - Helpers for testing controller functionality
+   - **`test/infrastructure/controller_helpers/`** - Helpers for testing controller functionality
 
 3. **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
    - Builders: `dependency_builder.go`, `test_server_builder.go`
@@ -139,10 +139,10 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
    - Helpers: `os_helpers.go`, `network_helpers.go`
 
 4. **Package naming** - Use descriptive package names that reflect the organization:
-   - `entities_doubles`, `entities_builders`
+   - `entities_doubles`, `entities_builder`
    - `commands_doubles`
-   - `repositories_doubles`, `repositories_builders`, `repositories_helpers`
-   - `controllers_doubles`, `controllers_helpers`
+   - `repositories_doubles`, `repository_builders`, `repository_helpers`
+   - `controllers_doubles`, `controller_helpers`
 
 #### Test Double Definitions
 

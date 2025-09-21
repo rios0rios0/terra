@@ -186,13 +186,13 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - **Test helpers MUST be placed in domain-specific subfolders within `/test` folder** - NEVER in production folders (internal/, cmd/, pkg/)
 - **Organization by domain**: 
   - `/test/domain/entities_doubles/` - Stubs implementing entity interfaces (CLI, OS, etc.)
-  - `/test/domain/entities_builders/` - Builders that create domain entities
+  - `/test/domain/entities_builder/` - Builders that create domain entities
   - `/test/domain/commands_doubles/` - Stubs implementing command interfaces
   - `/test/infrastructure/repositories_doubles/` - Stubs implementing repository interfaces (infrastructure layer)
-  - `/test/infrastructure/repositories_builders/` - Builders for infrastructure testing (HTTP servers, etc.)
-  - `/test/infrastructure/repositories_helpers/` - Helpers for testing repository/OS functionality
+  - `/test/infrastructure/repository_builders/` - Builders for infrastructure testing (HTTP servers, etc.)
+  - `/test/infrastructure/repository_helpers/` - Helpers for testing repository/OS functionality
   - `/test/infrastructure/controllers_doubles/` - Stubs implementing controller interfaces
-  - `/test/infrastructure/controllers_helpers/` - Helpers for controller testing
+  - `/test/infrastructure/controller_helpers/` - Helpers for controller testing
 - **Test helpers in production folders affect coverage unnecessarily** and violate project standards
 - **Use `t.Helper()` in all helper functions** for better test failure reporting
 - **Name helpers with `Helper` prefix** - avoid `Test` prefix to prevent Go test runner conflicts
@@ -202,10 +202,10 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
 - **Domain-specific organization** - All test utilities must be organized by their corresponding production packages
 - **Package naming** - Use descriptive package names that reflect the organization:
-  - `entities_doubles`, `entities_builders`
+  - `entities_doubles`, `entities_builder`
   - `commands_doubles`
-  - `repositories_doubles`, `repositories_builders`, `repositories_helpers`
-  - `controllers_doubles`, `controllers_helpers`
+  - `repositories_doubles`, `repository_builders`, `repository_helpers`
+  - `controllers_doubles`, `controller_helpers`
 - **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
   - Builders: `dependency_builder.go`, `test_server_builder.go`
   - Stubs: `stub_shell_repository.go`, `stub_install_dependencies.go`, `stub_cli.go`
@@ -231,8 +231,8 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 
 **Example Test Helper Structure:**
 ```go
-// File: /test/infrastructure/repositories_helpers/os_helpers.go (Helpers in separate files)
-package repositories_helpers
+// File: /test/infrastructure/repository_helpers/os_helpers.go (Helpers in separate files)
+package repository_helpers
 
 import (
     "testing"
@@ -248,8 +248,8 @@ func HelperDownloadSuccess(t *testing.T, osImpl entities.OS, testPrefix string) 
 
 **Example Builder Structure:**
 ```go
-// File: /test/domain/entities_builders/dependency_builder.go (Domain entity builders)
-package entities_builders
+// File: /test/domain/entities_builder/dependency_builder.go (Domain entity builders)
+package entities_builder
 
 import "github.com/rios0rios0/terra/internal/domain/entities"
 
@@ -263,8 +263,8 @@ func (b *DependencyBuilder) Build() entities.Dependency { /* ... */ }
 
 **Example Infrastructure Builder Structure:**
 ```go
-// File: /test/infrastructure/repositories_builders/test_server_builder.go (Infrastructure builders)
-package repositories_builders
+// File: /test/infrastructure/repository_builders/test_server_builder.go (Infrastructure builders)
+package repository_builders
 
 import "net/http/httptest"
 

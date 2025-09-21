@@ -1,4 +1,4 @@
-package repositories_builders
+package repository_builders
 
 import (
 	"net/http"

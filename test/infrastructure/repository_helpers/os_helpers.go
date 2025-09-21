@@ -1,4 +1,4 @@
-package repositories_helpers
+package repository_helpers
 
 import (
 	"net/http"
