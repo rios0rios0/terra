@@ -48,6 +48,9 @@ make all     # Runs lint + horusec + test
 ```
 
 - **Tests exist** in this repository with good coverage across domain and infrastructure layers
+- **All new tests must use testify framework** and follow BDD structure (Given/When/Then)
+- **Bug fixes require unit tests** that reproduce the issue before fixing it
+- **Never test private methods directly** - test through public interfaces with sufficient coverage
 - The CI pipeline uses rios0rios0/pipelines project and runs golangci-lint, horusec security scanning, semgrep, and gitleaks
 - Makefile automatically clones pipelines project using HTTPS (no SSH keys required)
 
@@ -125,6 +128,32 @@ terra apply /path/to/infrastructure/module
 
 ## Validation and Testing
 
+### Testing Guidelines (See CONTRIBUTING.md for detailed requirements)
+
+**CRITICAL Testing Requirements:**
+- **Bug fixes MUST include unit tests** that reproduce the issue before fixing it
+- **All new tests MUST use testify framework** (`github.com/stretchr/testify`)
+- **Follow BDD structure**: Given/When/Then with clear test naming: `TestComponent_ShouldBehavior_WhenCondition`
+- **Never test private methods directly** - test through public interfaces with comprehensive coverage
+- **Use testify assertions**: `assert.*` for non-critical, `require.*` for critical, `mock.*` for test doubles
+
+**Example BDD Test Structure:**
+```go
+func TestService_ShouldReturnError_WhenInvalidInputProvided(t *testing.T) {
+    // GIVEN: Setup test data and mocks
+    invalidInput := "bad-data"
+    service := NewService()
+    
+    // WHEN: Execute the action being tested
+    result, err := service.Process(invalidInput)
+    
+    // THEN: Assert expected outcomes
+    assert.Error(t, err)
+    assert.Nil(t, result)
+    assert.Contains(t, err.Error(), "invalid input")
+}
+```
+
 ### Manual Validation Requirements
 Always test terra functionality after making changes:
 
@@ -180,8 +209,9 @@ internal/infrastructure/ # Controllers and repositories
 
 ### Important Files
 - `Makefile` - Build and install targets
+- `CONTRIBUTING.md` - Comprehensive contributing guidelines including mandatory testing requirements
 - `.golangci.yml` - Linting configuration
-- `go.mod` - Go module dependencies
+- `go.mod` - Go module dependencies (includes testify for testing)
 - `internal/domain/entities/settings.go` - Environment variable configuration
 - `internal/infrastructure/helpers/arguments_helper.go` - Command argument parsing (has known bugs)
 
