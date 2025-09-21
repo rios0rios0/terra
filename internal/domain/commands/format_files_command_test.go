@@ -159,19 +159,19 @@ func TestFormatFilesCommand_ShouldExecuteAllDependencies_WhenMultipleDependencie
 
 	// THEN: Should execute all dependencies in order
 	require.Equal(t, len(dependencies), len(mockRepo.CallRecords))
-	
+
 	// Verify first call (Terraform)
 	firstRecord := mockRepo.CallRecords[0]
 	assert.Equal(t, terraformDep.CLI, firstRecord.Command)
 	assert.Equal(t, terraformDep.FormattingCommand, firstRecord.Arguments)
 	assert.Equal(t, ".", firstRecord.Directory)
-	
+
 	// Verify second call (Terragrunt)
 	secondRecord := mockRepo.CallRecords[1]
 	assert.Equal(t, terragruntDep.CLI, secondRecord.Command)
 	assert.Equal(t, terragruntDep.FormattingCommand, secondRecord.Arguments)
 	assert.Equal(t, ".", secondRecord.Directory)
-	
+
 	// Verify third call (CustomTool)
 	thirdRecord := mockRepo.CallRecords[2]
 	assert.Equal(t, customDep.CLI, thirdRecord.Command)

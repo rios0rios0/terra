@@ -55,8 +55,8 @@ func TestVersionCommand_ShouldCompleteWithoutPanic_WhenEmptyDependenciesProvided
 	cmd.Execute()
 }
 
-// Note: Additional tests that were testing private methods like getTerraformVersion, 
-// getVersionFromCLI, and getLatestVersionFromAPI have been removed in accordance with 
+// Note: Additional tests that were testing private methods like getTerraformVersion,
+// getVersionFromCLI, and getLatestVersionFromAPI have been removed in accordance with
 // the contributing guidelines that state:
 // "NEVER test private methods directly. Instead test through public interfaces."
 //

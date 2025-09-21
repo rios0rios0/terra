@@ -2,7 +2,6 @@ package entities_test
 
 import (
 	"fmt"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -26,11 +25,12 @@ func TestDependency_ShouldGenerateTerraformURL_WhenTerraformDependencyProvided(t
 
 	// THEN: URL should contain all expected components
 	require.NotEmpty(t, result, "Binary URL should not be empty")
-	
+
+	platform := entities.GetPlatformInfo()
 	expectedSubstrings := []string{
 		"https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0",
-		runtime.GOOS,
-		runtime.GOARCH,
+		platform.GetOSString(),            // Use GetOSString() instead of runtime.GOOS for Android compatibility
+		platform.GetTerraformArchString(), // Use GetTerraformArchString() for consistent arch handling
 		".zip",
 	}
 
@@ -61,11 +61,12 @@ func TestDependency_ShouldGenerateTerragruntURL_WhenTerragruntDependencyProvided
 
 	// THEN: URL should contain all expected components
 	require.NotEmpty(t, result, "Binary URL should not be empty")
-	
+
+	platform := entities.GetPlatformInfo()
 	expectedSubstrings := []string{
 		"https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.0/terragrunt",
-		runtime.GOOS,
-		runtime.GOARCH,
+		platform.GetOSString(),             // Use GetOSString() instead of runtime.GOOS for Android compatibility
+		platform.GetTerragruntArchString(), // Use GetTerragruntArchString() for consistent arch handling
 	}
 
 	for _, substring := range expectedSubstrings {
