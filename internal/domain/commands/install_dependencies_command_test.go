@@ -8,26 +8,34 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestNewInstallDependenciesCommand_ShouldCreateInstance_WhenCalled(t *testing.T) {
-	// GIVEN: The NewInstallDependenciesCommand constructor is available
+func TestNewInstallDependenciesCommand(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should create instance when called", func(t *testing.T) {
+		// GIVEN: The NewInstallDependenciesCommand constructor is available
 
-	// WHEN: Creating a new install dependencies command
-	cmd := commands.NewInstallDependenciesCommand()
+		// WHEN: Creating a new install dependencies command
+		cmd := commands.NewInstallDependenciesCommand()
 
-	// THEN: Should return a valid command instance
-	require.NotNil(t, cmd)
+		// THEN: Should return a valid command instance
+		require.NotNil(t, cmd)
+	})
 }
 
-func TestInstallDependenciesCommand_ShouldCompleteWithoutError_WhenEmptyDependenciesProvided(t *testing.T) {
-	// GIVEN: An install dependencies command and empty dependencies list
-	cmd := commands.NewInstallDependenciesCommand()
-	dependencies := []entities.Dependency{}
+func TestInstallDependenciesCommand_Execute(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should complete without error when empty dependencies provided", func(t *testing.T) {
+		// GIVEN: An install dependencies command and empty dependencies list
+		cmd := commands.NewInstallDependenciesCommand()
+		dependencies := []entities.Dependency{}
 
-	// WHEN: Executing the command with empty dependencies
-	// Note: This should complete quickly without attempting downloads
-	cmd.Execute(dependencies)
+		// WHEN: Executing the command with empty dependencies
+		// Note: This should complete quickly without attempting downloads
+		cmd.Execute(dependencies)
 
-	// THEN: Should complete without panicking or errors (verified by not crashing)
+		// THEN: Should complete without panicking or errors (verified by not crashing)
+	})
 }
 
 // Note: Additional tests that were testing private methods like compareVersions, fetchLatestVersion,
