@@ -274,6 +274,43 @@ Use this pattern for test method names:
   - `TestVersionController_GetBind`
   - `TestDependency_GetBinaryURL`
 
+#### Handling Conflicting Method Names
+
+When multiple test files test the same method, use descriptive suffixes to maintain method-based organization while avoiding naming conflicts:
+
+**Problem**: Multiple test files testing the same method create function name conflicts:
+```go
+// ❌ CONFLICT: This will cause compilation error
+// File: dependency_test.go
+func TestDependency_GetBinaryURL(t *testing.T) { ... }
+
+// File: android_fix_test.go  
+func TestDependency_GetBinaryURL(t *testing.T) { ... } // Duplicate name!
+```
+
+**Solution**: Use descriptive suffixes that identify the specific focus of each test file:
+```go
+// ✅ DO: Use descriptive suffixes to avoid conflicts
+// File: dependency_test.go - General functionality tests
+func TestDependency_GetBinaryURL(t *testing.T) { ... }
+
+// File: android_fix_test.go - Android platform-specific tests
+func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) { ... }
+
+// File: dependency_bdd_example_test.go - BDD example tests
+func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) { ... }
+```
+
+**Suffix Guidelines**:
+- Use suffixes that clearly describe the test file's focus
+- Keep suffixes concise but descriptive
+- Examples of good suffixes:
+  - `_AndroidPlatform` for Android-specific functionality
+  - `_Integration` for integration tests
+  - `_BDDExamples` for demonstration/example tests
+  - `_EdgeCases` for edge case testing
+  - `_Performance` for performance testing
+
 #### Naming Convention for Test Cases
 
 Use descriptive names that follow BDD pattern:
@@ -287,7 +324,31 @@ Use descriptive names that follow BDD pattern:
 
 1. **Use `t.Parallel()`** when tests don't modify environment variables or shared state
 2. **Avoid `t.Parallel()`** when using `t.Setenv()` or modifying global state
-3. **Each `t.Run()` test case** can run in parallel by default unless they conflict
+3. **NEVER use `t.Parallel()` with `t.Chdir()`** - This causes a runtime panic as Go detects incompatible test modifications
+4. **Each `t.Run()` test case** can run in parallel by default unless they conflict
+
+**Example of incompatible usage:**
+```go
+// ❌ DON'T: This will cause runtime panic
+func TestSomething(t *testing.T) {
+    t.Parallel() // This line will cause panic
+    
+    t.Run("test case", func(t *testing.T) {
+        tempDir := t.TempDir()
+        t.Chdir(tempDir) // Incompatible with t.Parallel()
+        // ... test logic
+    })
+}
+
+// ✅ DO: Remove t.Parallel() when using t.Chdir()
+func TestSomething(t *testing.T) {
+    t.Run("test case", func(t *testing.T) {
+        tempDir := t.TempDir()
+        t.Chdir(tempDir) // Now safe without t.Parallel()
+        // ... test logic
+    })
+}
+```
 
 #### Constructor Testing
 
