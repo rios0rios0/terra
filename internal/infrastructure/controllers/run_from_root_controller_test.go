@@ -29,90 +29,102 @@ func (m *MockRunFromRootCommand) Execute(
 	m.LastDependencies = dependencies
 }
 
-func TestNewRunFromRootController_ShouldCreateInstance_WhenCommandAndDependenciesProvided(t *testing.T) {
-	// GIVEN: A mock command and test dependencies
-	mockCommand := &MockRunFromRootCommand{}
-	dependencies := []entities.Dependency{
-		{
-			Name: "Test Dependency",
-			CLI:  "test",
-		},
-	}
+func TestNewRunFromRootController(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should create instance when command and dependencies provided", func(t *testing.T) {
+		// GIVEN: A mock command and test dependencies
+		mockCommand := &MockRunFromRootCommand{}
+		dependencies := []entities.Dependency{
+			{
+				Name: "Test Dependency",
+				CLI:  "test",
+			},
+		}
 
-	// WHEN: Creating a new run from root controller
-	controller := controllers.NewRunFromRootController(mockCommand, dependencies)
+		// WHEN: Creating a new run from root controller
+		controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 
-	// THEN: Should create a valid controller instance
-	require.NotNil(t, controller)
+		// THEN: Should create a valid controller instance
+		require.NotNil(t, controller)
+	})
 }
 
-func TestRunFromRootController_ShouldReturnCorrectBind_WhenGetBindCalled(t *testing.T) {
-	// GIVEN: A run from root controller with mock command and empty dependencies
-	mockCommand := &MockRunFromRootCommand{}
-	dependencies := []entities.Dependency{}
-	controller := controllers.NewRunFromRootController(mockCommand, dependencies)
+func TestRunFromRootController_GetBind(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should return correct bind when called", func(t *testing.T) {
+		// GIVEN: A run from root controller with mock command and empty dependencies
+		mockCommand := &MockRunFromRootCommand{}
+		dependencies := []entities.Dependency{}
+		controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 
-	// WHEN: Getting the controller bind
-	bind := controller.GetBind()
+		// WHEN: Getting the controller bind
+		bind := controller.GetBind()
 
-	// THEN: Should return correct bind configuration
-	assert.Equal(t, "terra [flags] [terragrunt command] [directory]", bind.Use)
-	assert.Equal(t, "Terra is a CLI wrapper for Terragrunt", bind.Short)
-	assert.Equal(t, "Terra is a CLI wrapper for Terragrunt that allows changing directory before executing commands. It also allows changing the account/subscription and workspace for AWS and Azure.", bind.Long)
+		// THEN: Should return correct bind configuration
+		assert.Equal(t, "terra [flags] [terragrunt command] [directory]", bind.Use)
+		assert.Equal(t, "Terra is a CLI wrapper for Terragrunt", bind.Short)
+		assert.Equal(t, "Terra is a CLI wrapper for Terragrunt that allows changing directory before executing commands. It also allows changing the account/subscription and workspace for AWS and Azure.", bind.Long)
+	})
 }
 
-func TestRunFromRootController_ShouldExecuteCommand_WhenExecuteCalled(t *testing.T) {
-	// GIVEN: A run from root controller with mock command and test dependencies
-	mockCommand := &MockRunFromRootCommand{}
-	dependencies := []entities.Dependency{
-		{
-			Name: "Terraform",
-			CLI:  "terraform",
-		},
-	}
-	controller := controllers.NewRunFromRootController(mockCommand, dependencies)
-	cmd := &cobra.Command{}
-	args := []string{"apply", "."}
+func TestRunFromRootController_Execute(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should execute command when called", func(t *testing.T) {
+		// GIVEN: A run from root controller with mock command and test dependencies
+		mockCommand := &MockRunFromRootCommand{}
+		dependencies := []entities.Dependency{
+			{
+				Name: "Terraform",
+				CLI:  "terraform",
+			},
+		}
+		controller := controllers.NewRunFromRootController(mockCommand, dependencies)
+		cmd := &cobra.Command{}
+		args := []string{"apply", "."}
 
-	// WHEN: Executing the controller
-	controller.Execute(cmd, args)
+		// WHEN: Executing the controller
+		controller.Execute(cmd, args)
 
-	// THEN: Should execute the command with correct dependencies and arguments
-	assert.Equal(t, 1, mockCommand.ExecuteCallCount)
-	assert.Equal(t, len(dependencies), len(mockCommand.LastDependencies))
-	assert.Equal(t, dependencies[0].Name, mockCommand.LastDependencies[0].Name)
-	assert.NotEmpty(t, mockCommand.LastArguments)
-}
+		// THEN: Should execute the command with correct dependencies and arguments
+		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
+		assert.Equal(t, len(dependencies), len(mockCommand.LastDependencies))
+		assert.Equal(t, dependencies[0].Name, mockCommand.LastDependencies[0].Name)
+		assert.NotEmpty(t, mockCommand.LastArguments)
+	})
+	
+	t.Run("should execute command when different arguments provided", func(t *testing.T) {
+		// GIVEN: A run from root controller with mock command and empty dependencies
+		mockCommand := &MockRunFromRootCommand{}
+		dependencies := []entities.Dependency{}
+		controller := controllers.NewRunFromRootController(mockCommand, dependencies)
+		cmd := &cobra.Command{}
+		args := []string{"plan", "--dry-run"}
 
-func TestRunFromRootController_ShouldExecuteCommand_WhenDifferentArgumentsProvided(t *testing.T) {
-	// GIVEN: A run from root controller with mock command and empty dependencies
-	mockCommand := &MockRunFromRootCommand{}
-	dependencies := []entities.Dependency{}
-	controller := controllers.NewRunFromRootController(mockCommand, dependencies)
-	cmd := &cobra.Command{}
-	args := []string{"plan", "--dry-run"}
+		// WHEN: Executing the controller with different arguments
+		controller.Execute(cmd, args)
 
-	// WHEN: Executing the controller with different arguments
-	controller.Execute(cmd, args)
+		// THEN: Should execute the command with the provided arguments
+		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
+		assert.NotEmpty(t, mockCommand.LastArguments)
+	})
+	
+	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
+		// GIVEN: A run from root controller with mock command and empty dependencies
+		mockCommand := &MockRunFromRootCommand{}
+		dependencies := []entities.Dependency{}
+		controller := controllers.NewRunFromRootController(mockCommand, dependencies)
+		cmd := &cobra.Command{}
+		args := []string{"plan"}
 
-	// THEN: Should execute the command with the provided arguments
-	assert.Equal(t, 1, mockCommand.ExecuteCallCount)
-	assert.NotEmpty(t, mockCommand.LastArguments)
-}
+		// WHEN: Executing the controller multiple times
+		controller.Execute(cmd, args)
+		controller.Execute(cmd, args)
+		controller.Execute(cmd, args)
 
-func TestRunFromRootController_ShouldExecuteCommandMultipleTimes_WhenCalledRepeatedly(t *testing.T) {
-	// GIVEN: A run from root controller with mock command and empty dependencies
-	mockCommand := &MockRunFromRootCommand{}
-	dependencies := []entities.Dependency{}
-	controller := controllers.NewRunFromRootController(mockCommand, dependencies)
-	cmd := &cobra.Command{}
-	args := []string{"plan"}
-
-	// WHEN: Executing the controller multiple times
-	controller.Execute(cmd, args)
-	controller.Execute(cmd, args)
-	controller.Execute(cmd, args)
-
-	// THEN: Should execute the command the correct number of times
-	assert.Equal(t, 3, mockCommand.ExecuteCallCount)
+		// THEN: Should execute the command the correct number of times
+		assert.Equal(t, 3, mockCommand.ExecuteCallCount)
+	})
 }
