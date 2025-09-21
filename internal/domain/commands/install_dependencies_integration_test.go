@@ -2,12 +2,15 @@ package commands_test
 
 import (
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/test"
+	"github.com/stretchr/testify/assert"
 )
 
 // Integration test that creates actual files and tests the complete workflow
@@ -131,16 +134,14 @@ func TestInstallDependenciesExecuteWithMixedDependencies(t *testing.T) {
 	}
 }
 
-// TestInstallDependenciesDownloadFailure tests the scenario where curl fails with exit status 23
+// TestInstallDependenciesDownloadFailure tests the scenario where download fails with HTTP errors
 // This addresses the issue reported where "Failed to download terraform: failed to perform download using 'cURL': exit status 23"
 func TestInstallDependenciesDownloadFailure(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
 
-	t.Skip("Skipping test: cannot reliably test logger.Fatalf behavior that calls os.Exit()")
-
-	// Use builder pattern to create servers that simulate download failure
+	// GIVEN: A mock server that simulates download failure (HTTP 500)
 	versionServer, binaryServer := test.NewTestServerBuilder().
 		WithTerraformVersion("1.13.3").
 		WithDownloadFailure(). // This will make binary server return 500 error
@@ -148,36 +149,17 @@ func TestInstallDependenciesDownloadFailure(t *testing.T) {
 	defer versionServer.Close()
 	defer binaryServer.Close()
 
-	dependency := test.NewDependencyBuilder().
-		WithName("TestDownloadFailure").
-		WithCLI("test-download-failure-tool").
-		WithBinaryURL(binaryServer.URL + "/terraform_%s").
-		WithVersionURL(versionServer.URL + "/terraform").
-		WithTerraformPattern().
-		Build()
+	// WHEN: Testing download error detection directly through OS interface
+	osInstance := entities.GetOS()
+	tempFilePath := path.Join(osInstance.GetTempDir(), "test-download-failure")
 
-	// Execute the install command - this should handle the download failure gracefully
-	// Note: The actual implementation calls logger.Fatalf on download failure,
-	// so in a real scenario this would exit the process. In production code,
-	// we might want to refactor this to return errors instead.
-	cmd := commands.NewInstallDependenciesCommand()
+	// THEN: The download should fail with an HTTP error
+	err := osInstance.Download(binaryServer.URL + "/terraform_1.13.3", tempFilePath)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "HTTP 500")
 
-	// This test verifies that download failures are properly detected
-	// In the real scenario, the curl command will fail and the error will be logged
-	defer func() {
-		if r := recover(); r != nil {
-			// Expected behavior - the function calls logger.Fatalf on download errors
-			t.Logf("Download failure correctly detected and handled: %v", r)
-		}
-	}()
-
-	cmd.Execute([]entities.Dependency{dependency})
-
-	// If we reach here, it means the download "succeeded" with our mock server error response
-	// In real scenarios with curl, this would fail with exit status 23 or similar
-	t.Logf(
-		"Note: With mock server, download failure is simulated differently than real curl errors",
-	)
+	// Clean up any temporary file that might have been created
+	os.Remove(tempFilePath)
 }
 
 // TestInstallDependenciesNetworkTimeout tests network timeout scenarios
@@ -186,27 +168,28 @@ func TestInstallDependenciesNetworkTimeout(t *testing.T) {
 		t.Skip("Skipping integration test in short mode")
 	}
 
-	t.Skip("Skipping test: cannot reliably test logger.Fatalf behavior that calls os.Exit()")
-
-	// Create a dependency with an unreachable URL to simulate network issues
+	// GIVEN: An unreachable URL to simulate network issues
 	// Note: This uses a reserved IP address that should not be reachable
-	dependency := test.NewDependencyBuilder().
-		WithName("TestNetworkFailure").
-		WithCLI("test-network-failure-tool").
-		WithBinaryURL("http://192.0.2.1/terraform_%s"). // RFC3330 reserved address
-		WithVersionURL("http://192.0.2.1/version").     // RFC3330 reserved address
-		WithTerraformPattern().
-		Build()
+	unreachableURL := "http://192.0.2.1/terraform_1.0.0" // RFC3330 reserved address
 
-	cmd := commands.NewInstallDependenciesCommand()
+	// WHEN: Testing network timeout detection directly through OS interface
+	osInstance := entities.GetOS()
+	tempFilePath := path.Join(osInstance.GetTempDir(), "test-network-failure")
 
-	// This test verifies that network failures are properly detected
-	defer func() {
-		if r := recover(); r != nil {
-			// Expected behavior - the function calls logger.Fatalf on network errors
-			t.Logf("Network failure correctly detected and handled: %v", r)
-		}
-	}()
+	// THEN: The download should fail with a network error
+	err := osInstance.Download(unreachableURL, tempFilePath)
+	assert.Error(t, err)
+	// Network errors typically contain timeout or connection-related messages
+	errMsg := strings.ToLower(err.Error())
+	assert.True(t,
+		strings.Contains(errMsg, "timeout") ||
+		strings.Contains(errMsg, "connection") ||
+		strings.Contains(errMsg, "unreachable") ||
+		strings.Contains(errMsg, "no route") ||
+		strings.Contains(errMsg, "failed to perform download") ||
+		strings.Contains(errMsg, "context deadline exceeded"),
+		"Expected network-related error, got: %v", err)
 
-	cmd.Execute([]entities.Dependency{dependency})
+	// Clean up any temporary file that might have been created
+	os.Remove(tempFilePath)
 }

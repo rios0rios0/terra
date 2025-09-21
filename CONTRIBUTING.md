@@ -57,6 +57,62 @@ Use:
 - `require.*` for critical assertions that should stop test execution
 - `mock.*` for creating test doubles and mocks
 
+### Test Helper Organization
+
+**Test helpers and utilities MUST be located in the `/test` folder at the root of the project:**
+
+**CRITICAL RULE: Never create test helper files in production folders (internal/, cmd/, pkg/) as they unnecessarily affect code coverage calculations.**
+
+#### Proper Test Helper Structure
+
+```go
+// ✅ DO: Place test helpers in /test folder
+// File: /test/my_helpers.go
+package test
+
+import (
+    "testing"
+    "github.com/rios0rios0/terra/internal/domain/entities"
+)
+
+// HelperFunctionName provides testing utilities for X functionality
+func HelperFunctionName(t *testing.T, param entities.SomeType) {
+    t.Helper() // Mark as test helper
+    // ... helper implementation
+}
+```
+
+#### Using Test Helpers
+
+```go
+// File: internal/domain/entities/some_test.go
+package entities_test
+
+import (
+    "testing"
+    "github.com/rios0rios0/terra/internal/domain/entities"
+    "github.com/rios0rios0/terra/test" // Import test helpers
+)
+
+func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
+    // GIVEN: Setup using test helper
+    component := entities.NewComponent()
+    
+    // WHEN: Using test helper for consistent testing
+    test.HelperFunctionName(t, component)
+    
+    // THEN: Assertions...
+}
+```
+
+#### Test Helper Guidelines
+
+1. **All test helpers go in `/test` folder** - Never in production folders
+2. **Use `t.Helper()` in helper functions** - This improves test failure reporting
+3. **Name helpers with `Helper` prefix** - Avoid `Test` prefix to prevent conflicts with Go test runner
+4. **Keep helpers focused** - Each helper should have a single, clear purpose
+5. **Document helper purpose** - Include comments explaining what the helper does
+
 ### BDD (Behavior Driven Design) Test Structure
 
 **All tests MUST follow BDD structure with three distinct sections:**
