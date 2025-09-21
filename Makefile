@@ -25,7 +25,7 @@ install:
 SCRIPTS_DIR := $(HOME)/Development/github.com/rios0rios0/pipelines
 REPO_URL    := https://github.com/rios0rios0/pipelines.git
 
-.PHONY: all scripts lint horusec test
+.PHONY: all scripts lint lint-fix horusec test
 
 all: lint horusec test
 
@@ -38,6 +38,9 @@ scripts:
 
 lint: scripts
 	$(SCRIPTS_DIR)/global/scripts/golangci-lint/run.sh .
+
+lint-fix: scripts
+	./scripts/lint-fix.sh
 
 horusec: scripts
 	$(SCRIPTS_DIR)/global/scripts/horusec/run.sh .

@@ -17,7 +17,7 @@ func testDownloadSuccess(t *testing.T, osImpl OS, testPrefix string) {
 	defer server.Close()
 
 	// Create a secure temporary file
-	tempFile, err := os.CreateTemp("", testPrefix+"_*.txt")
+	tempFile, err := os.CreateTemp(t.TempDir(), testPrefix+"_*.txt")
 	if err != nil {
 		t.Fatalf("Failed to create temporary file: %v", err)
 	}
@@ -57,7 +57,7 @@ func testDownloadHTTPError(t *testing.T, osImpl OS, testPrefix string) {
 	defer server.Close()
 
 	// Create a secure temporary file
-	tempFile, err := os.CreateTemp("", testPrefix+"_error_*.txt")
+	tempFile, err := os.CreateTemp(t.TempDir(), testPrefix+"_error_*.txt")
 	if err != nil {
 		t.Fatalf("Failed to create temporary file: %v", err)
 	}

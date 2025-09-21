@@ -94,7 +94,7 @@ func TestArgumentsHelper_FindAbsolutePath_NonExistentDirectory(t *testing.T) {
 
 func TestArgumentsHelper_FindAbsolutePath_FileInsteadOfDirectory(t *testing.T) {
 	// Create a temporary file
-	tempFile, err := os.CreateTemp("", "test_file_*.txt")
+	tempFile, err := os.CreateTemp(t.TempDir(), "test_file_*.txt")
 	if err != nil {
 		t.Fatalf("Failed to create temporary file: %v", err)
 	}
