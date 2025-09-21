@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/test"
 )
 
 func TestOSWindows_ShouldDownloadSuccessfully_WhenValidURLProvided(t *testing.T) {
@@ -12,7 +13,7 @@ func TestOSWindows_ShouldDownloadSuccessfully_WhenValidURLProvided(t *testing.T)
 
 	// WHEN: Testing download functionality
 	// THEN: Should download successfully (using helper for consistent testing)
-	entities.HelperDownloadSuccess(t, osImpl, "test_download_windows")
+	test.HelperDownloadSuccess(t, osImpl, "test_download_windows")
 }
 
 func TestOSWindows_ShouldReturnError_WhenHTTPErrorOccurs(t *testing.T) {
@@ -21,5 +22,5 @@ func TestOSWindows_ShouldReturnError_WhenHTTPErrorOccurs(t *testing.T) {
 
 	// WHEN: Testing download with HTTP error
 	// THEN: Should handle HTTP error appropriately (using helper for consistent testing)
-	entities.HelperDownloadHTTPError(t, osImpl, "test_download_windows")
+	test.HelperDownloadHTTPError(t, osImpl, "test_download_windows")
 }
