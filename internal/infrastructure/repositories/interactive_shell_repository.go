@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -16,6 +17,7 @@ import (
 const (
 	outputChannelSize   = 100
 	outputCheckInterval = 100 * time.Millisecond
+	shellTimeout        = 30 * time.Minute // Allow long-running terraform/terragrunt commands
 )
 
 // InteractiveShellRepository handles interactive commands with auto-answering capabilities
@@ -37,7 +39,7 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 		directory,
 	)
 
-	cmd := exec.Command(command, arguments...)
+	cmd := exec.CommandContext(context.Background(), command, arguments...)
 	cmd.Dir = directory
 
 	// Set up pipes for stdin, stdout, and stderr

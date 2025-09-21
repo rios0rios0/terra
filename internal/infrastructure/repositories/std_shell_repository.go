@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
@@ -8,6 +9,8 @@ import (
 
 	logger "github.com/sirupsen/logrus"
 )
+
+// Allow long-running terraform/terragrunt commands
 
 // StdShellRepository is not totally necessary, but it is rather a good example for other applications
 type StdShellRepository struct{}
@@ -22,7 +25,7 @@ func (it *StdShellRepository) ExecuteCommand(
 	directory string,
 ) error {
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(arguments, " "), directory)
-	cmd := exec.Command(command, arguments...)
+	cmd := exec.CommandContext(context.Background(), command, arguments...)
 	cmd.Dir = directory
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr

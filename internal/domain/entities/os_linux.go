@@ -1,12 +1,17 @@
 package entities
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
+	"time"
 )
 
-const osOrwxGrxUx = 0o755
+const (
+	osOrwxGrxUx      = 0o755
+	operationTimeout = 30 * time.Second
+)
 
 type OSLinux struct{}
 
@@ -15,7 +20,9 @@ func (it *OSLinux) Download(url, tempFilePath string) error {
 }
 
 func (it *OSLinux) Extract(tempFilePath, destPath string) error {
-	unzipCmd := exec.Command("unzip", "-o", tempFilePath, "-d", destPath)
+	ctx, cancel := context.WithTimeout(context.Background(), operationTimeout)
+	defer cancel()
+	unzipCmd := exec.CommandContext(ctx, "unzip", "-o", tempFilePath, "-d", destPath)
 	unzipCmd.Stderr = os.Stderr
 	unzipCmd.Stdout = os.Stdout
 	err := unzipCmd.Run()
@@ -26,7 +33,9 @@ func (it *OSLinux) Extract(tempFilePath, destPath string) error {
 }
 
 func (it *OSLinux) Move(tempFilePath, destPath string) error {
-	mvCmd := exec.Command("mv", tempFilePath, destPath)
+	ctx, cancel := context.WithTimeout(context.Background(), operationTimeout)
+	defer cancel()
+	mvCmd := exec.CommandContext(ctx, "mv", tempFilePath, destPath)
 	err := mvCmd.Run()
 	if err != nil {
 		err = fmt.Errorf("failed to perform moving folder using 'mv': %w", err)
@@ -35,7 +44,9 @@ func (it *OSLinux) Move(tempFilePath, destPath string) error {
 }
 
 func (it *OSLinux) Remove(tempFilePath string) error {
-	rmCmd := exec.Command("rm", tempFilePath)
+	ctx, cancel := context.WithTimeout(context.Background(), operationTimeout)
+	defer cancel()
+	rmCmd := exec.CommandContext(ctx, "rm", tempFilePath)
 	err := rmCmd.Run()
 	if err != nil {
 		err = fmt.Errorf("failed to perform deleting folder using 'rm': %w", err)
