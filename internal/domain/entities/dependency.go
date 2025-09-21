@@ -21,8 +21,16 @@ func (d *Dependency) GetBinaryURL(version string) string {
 	// Check if the URL contains platform placeholders (%[2]s and %[3]s for OS and arch)
 	// If not, fall back to simple version-only formatting for backward compatibility
 	if strings.Contains(d.BinaryURL, "%[2]s") || strings.Contains(d.BinaryURL, "%[3]s") {
+		// Use appropriate architecture method based on the dependency
+		var archString string
+		if d.CLI == "terragrunt" {
+			archString = platform.GetTerragruntArchString()
+		} else {
+			archString = platform.GetTerraformArchString()
+		}
+
 		// Format the URL with version, OS, and architecture
-		return fmt.Sprintf(d.BinaryURL, version, platform.GetOSString(), platform.GetTerraformArchString())
+		return fmt.Sprintf(d.BinaryURL, version, platform.GetOSString(), archString)
 	}
 
 	// Fall back to simple version formatting for backward compatibility

@@ -48,6 +48,10 @@ func (p PlatformInfo) GetTerragruntArchString() string {
 
 // GetOSString returns the OS string as expected by dependency releases
 func (p PlatformInfo) GetOSString() string {
+	// Android uses Linux binaries for Terraform/Terragrunt
+	if p.OS == "android" {
+		return "linux"
+	}
 	// Most tools use the standard Go OS names
 	return p.OS
 }
