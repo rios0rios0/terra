@@ -125,6 +125,7 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
    - **`test/domain/entities_builders/`** - Builders that create domain entities for testing
    - **`test/domain/commands_doubles/`** - Stubs implementing domain command interfaces
    - **`test/infrastructure/repositories_doubles/`** - Stubs implementing repository interfaces (infrastructure layer)
+   - **`test/infrastructure/repositories_builders/`** - Builders for infrastructure testing (HTTP servers, etc.)
    - **`test/infrastructure/repositories_helpers/`** - Helpers for testing repository/OS functionality
    - **`test/infrastructure/controllers_doubles/`** - Stubs implementing infrastructure controller interfaces
    - **`test/infrastructure/controllers_helpers/`** - Helpers for testing controller functionality
@@ -140,7 +141,7 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
 4. **Package naming** - Use descriptive package names that reflect the organization:
    - `entities_doubles`, `entities_builders`
    - `commands_doubles`
-   - `repositories_doubles`, `repositories_helpers`
+   - `repositories_doubles`, `repositories_builders`, `repositories_helpers`
    - `controllers_doubles`, `controllers_helpers`
 
 #### Test Double Definitions
