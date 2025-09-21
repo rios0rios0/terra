@@ -16,7 +16,11 @@ func NewStdShellRepository() *StdShellRepository {
 	return &StdShellRepository{}
 }
 
-func (it *StdShellRepository) ExecuteCommand(command string, arguments []string, directory string) error {
+func (it *StdShellRepository) ExecuteCommand(
+	command string,
+	arguments []string,
+	directory string,
+) error {
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(arguments, " "), directory)
 	cmd := exec.Command(command, arguments...)
 	cmd.Dir = directory

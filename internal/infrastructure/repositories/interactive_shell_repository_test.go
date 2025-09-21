@@ -107,7 +107,7 @@ func TestInteractiveShellRepository_processLineAndRespond(t *testing.T) {
 
 	// Since processLineAndRespond uses channels and goroutines, and writes to stdin,
 	// we'll test it indirectly by testing the pattern matching logic with removeANSICodes
-	
+
 	tests := []struct {
 		name        string
 		input       string
@@ -142,7 +142,7 @@ func TestInteractiveShellRepository_processLineAndRespond(t *testing.T) {
 			if cleanLine == "" && tt.input != "" {
 				t.Errorf("removeANSICodes removed all content from non-empty input %q", tt.input)
 			}
-			
+
 			// The actual pattern matching and response logic is complex to test
 			// without mocking stdin/stdout, so we just verify the method exists
 			// and doesn't panic with basic input

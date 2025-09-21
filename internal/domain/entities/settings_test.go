@@ -104,9 +104,9 @@ func TestCLI_OptionalCloudProvider(t *testing.T) {
 
 func TestCLIAws_CanChangeAccount(t *testing.T) {
 	tests := []struct {
-		name               string
-		terraAwsRoleArn    string
-		expectedCanChange  bool
+		name              string
+		terraAwsRoleArn   string
+		expectedCanChange bool
 	}{
 		{
 			name:              "Empty role ARN should return false",
@@ -139,7 +139,11 @@ func TestCLIAws_CanChangeAccount(t *testing.T) {
 
 			canChange := cli.CanChangeAccount()
 			if canChange != tt.expectedCanChange {
-				t.Errorf("Expected CanChangeAccount to be %v, got %v", tt.expectedCanChange, canChange)
+				t.Errorf(
+					"Expected CanChangeAccount to be %v, got %v",
+					tt.expectedCanChange,
+					canChange,
+				)
 			}
 		})
 	}
@@ -147,7 +151,7 @@ func TestCLIAws_CanChangeAccount(t *testing.T) {
 
 func TestCLIAws_GetCommandChangeAccount(t *testing.T) {
 	roleArn := "arn:aws:iam::123456789012:role/terraform-role"
-	
+
 	// Clear and set environment variable
 	os.Unsetenv("TERRA_AWS_ROLE_ARN")
 	os.Setenv("TERRA_AWS_ROLE_ARN", roleArn)
@@ -156,7 +160,14 @@ func TestCLIAws_GetCommandChangeAccount(t *testing.T) {
 	cli := NewCLIAws(settings)
 
 	command := cli.GetCommandChangeAccount()
-	expectedCommand := []string{"sts", "assume-role", "--role-arn", roleArn, "--role-session-name", "session1"}
+	expectedCommand := []string{
+		"sts",
+		"assume-role",
+		"--role-arn",
+		roleArn,
+		"--role-session-name",
+		"session1",
+	}
 
 	if len(command) != len(expectedCommand) {
 		t.Errorf("Expected command length %d, got %d", len(expectedCommand), len(command))
@@ -171,9 +182,9 @@ func TestCLIAws_GetCommandChangeAccount(t *testing.T) {
 
 func TestCLIAzm_CanChangeAccount(t *testing.T) {
 	tests := []struct {
-		name                       string
-		terraAzureSubscriptionID   string
-		expectedCanChange          bool
+		name                     string
+		terraAzureSubscriptionID string
+		expectedCanChange        bool
 	}{
 		{
 			name:                     "Empty subscription ID should return false",
@@ -206,7 +217,11 @@ func TestCLIAzm_CanChangeAccount(t *testing.T) {
 
 			canChange := cli.CanChangeAccount()
 			if canChange != tt.expectedCanChange {
-				t.Errorf("Expected CanChangeAccount to be %v, got %v", tt.expectedCanChange, canChange)
+				t.Errorf(
+					"Expected CanChangeAccount to be %v, got %v",
+					tt.expectedCanChange,
+					canChange,
+				)
 			}
 		})
 	}
@@ -214,7 +229,7 @@ func TestCLIAzm_CanChangeAccount(t *testing.T) {
 
 func TestCLIAzm_GetCommandChangeAccount(t *testing.T) {
 	subscriptionID := "12345678-1234-1234-1234-123456789012"
-	
+
 	// Clear and set environment variable
 	os.Unsetenv("TERRA_AZURE_SUBSCRIPTION_ID")
 	os.Setenv("TERRA_AZURE_SUBSCRIPTION_ID", subscriptionID)

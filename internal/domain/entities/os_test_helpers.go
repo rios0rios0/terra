@@ -12,7 +12,7 @@ import (
 func testDownloadSuccess(t *testing.T, osImpl OS, testPrefix string) {
 	// Create a test server
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("test file content"))
+		_, _ = w.Write([]byte("test file content"))
 	}))
 	defer server.Close()
 
@@ -38,7 +38,11 @@ func testDownloadSuccess(t *testing.T, osImpl OS, testPrefix string) {
 
 	expectedContent := "test file content"
 	if string(content) != expectedContent {
-		t.Errorf("Downloaded content doesn't match. Expected: '%s', Got: '%s'", expectedContent, string(content))
+		t.Errorf(
+			"Downloaded content doesn't match. Expected: '%s', Got: '%s'",
+			expectedContent,
+			string(content),
+		)
 	}
 }
 
@@ -48,7 +52,7 @@ func testDownloadHTTPError(t *testing.T, osImpl OS, testPrefix string) {
 	// Create a test server that returns an error
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal Server Error"))
+		_, _ = w.Write([]byte("Internal Server Error"))
 	}))
 	defer server.Close()
 

@@ -17,5 +17,12 @@ func (it *CLIAws) CanChangeAccount() bool {
 }
 
 func (it *CLIAws) GetCommandChangeAccount() []string {
-	return []string{"sts", "assume-role", "--role-arn", it.settings.TerraAwsRoleArn, "--role-session-name", "session1"}
+	return []string{
+		"sts",
+		"assume-role",
+		"--role-arn",
+		it.settings.TerraAwsRoleArn,
+		"--role-session-name",
+		"session1",
+	}
 }

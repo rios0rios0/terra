@@ -13,7 +13,15 @@ func (it *OSWindows) Download(url, tempFilePath string) error {
 }
 
 func (it *OSWindows) Extract(tempFilePath, destPath string) error {
-	unzipCmd := exec.Command("powershell", "Expand-Archive", "-Path", tempFilePath, "-DestinationPath", destPath, "-Force")
+	unzipCmd := exec.Command(
+		"powershell",
+		"Expand-Archive",
+		"-Path",
+		tempFilePath,
+		"-DestinationPath",
+		destPath,
+		"-Force",
+	)
 	unzipCmd.Stderr = os.Stderr
 	unzipCmd.Stdout = os.Stdout
 	err := unzipCmd.Run()

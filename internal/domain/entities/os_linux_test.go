@@ -111,7 +111,10 @@ func TestOSLinux_MakeExecutable_NonExistentFile(t *testing.T) {
 
 	// Verify error message contains expected text
 	if !strings.Contains(err.Error(), "failed to perform change binary permissions") {
-		t.Errorf("Expected error to contain 'failed to perform change binary permissions', got: %v", err)
+		t.Errorf(
+			"Expected error to contain 'failed to perform change binary permissions', got: %v",
+			err,
+		)
 	}
 }
 

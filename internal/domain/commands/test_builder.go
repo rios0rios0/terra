@@ -74,38 +74,42 @@ func (b *TestServerBuilder) WithDownloadFailure() *TestServerBuilder {
 
 // BuildServers creates and returns the version and binary servers
 func (b *TestServerBuilder) BuildServers() (*httptest.Server, *httptest.Server) {
-	versionServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
+	versionServer := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
 
-		// Check for specific patterns first (longer matches first)
-		for pattern, response := range b.versionResponses {
-			if pattern != "" && strings.Contains(r.URL.Path, pattern) {
-				w.Write([]byte(response))
+			// Check for specific patterns first (longer matches first)
+			for pattern, response := range b.versionResponses {
+				if pattern != "" && strings.Contains(r.URL.Path, pattern) {
+					_, _ = w.Write([]byte(response))
+					return
+				}
+			}
+
+			// Use default response if available
+			if defaultResponse, exists := b.versionResponses[""]; exists {
+				_, _ = w.Write([]byte(defaultResponse))
 				return
 			}
-		}
 
-		// Use default response if available
-		if defaultResponse, exists := b.versionResponses[""]; exists {
-			w.Write([]byte(defaultResponse))
-			return
-		}
+			// Final fallback
+			_, _ = w.Write([]byte(`{"version":"1.0.0"}`))
+		}),
+	)
 
-		// Final fallback
-		w.Write([]byte(`{"version":"1.0.0"}`))
-	}))
-
-	binaryServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if b.shouldFail {
+	binaryServer := httptest.NewServer(
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if b.shouldFail {
+				w.WriteHeader(b.binaryStatus)
+				_, _ = w.Write([]byte("download failed"))
+				return
+			}
+			w.Header().Set("Content-Type", b.contentType)
 			w.WriteHeader(b.binaryStatus)
-			w.Write([]byte("download failed"))
-			return
-		}
-		w.Header().Set("Content-Type", b.contentType)
-		w.WriteHeader(b.binaryStatus)
-		w.Write(b.binaryResponse)
-	}))
+			_, _ = w.Write(b.binaryResponse)
+		}),
+	)
 
 	return versionServer, binaryServer
 }

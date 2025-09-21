@@ -4,7 +4,7 @@ import (
 	"github.com/google/wire"
 )
 
-//nolint:gochecknoglobals
+//nolint:gochecknoglobals // Wire dependency injection container
 var Container = wire.NewSet(
 	NewDeleteCacheCommand,
 	wire.Bind(new(DeleteCache), new(*DeleteCacheCommand)),

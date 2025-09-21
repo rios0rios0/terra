@@ -88,7 +88,13 @@ func TestCompareVersions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := compareVersions(tt.v1, tt.v2)
 			if result != tt.expected {
-				t.Errorf("compareVersions(%q, %q) = %d, expected %d", tt.v1, tt.v2, result, tt.expected)
+				t.Errorf(
+					"compareVersions(%q, %q) = %d, expected %d",
+					tt.v1,
+					tt.v2,
+					result,
+					tt.expected,
+				)
 			}
 		})
 	}
@@ -121,7 +127,13 @@ func TestCompareVersionsWithNonNumericParts(t *testing.T) {
 			// For non-numeric versions, it should fall back to string comparison
 			expected := strings.Compare(tt.v1, tt.v2)
 			if result != expected {
-				t.Errorf("compareVersions(%q, %q) = %d, expected %d (string comparison)", tt.v1, tt.v2, result, expected)
+				t.Errorf(
+					"compareVersions(%q, %q) = %d, expected %d (string comparison)",
+					tt.v1,
+					tt.v2,
+					result,
+					expected,
+				)
 			}
 		})
 	}
