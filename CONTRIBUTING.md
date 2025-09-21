@@ -215,6 +215,103 @@ func TestValidateInput_ShouldReturnFalse_WhenEmptyInputProvided(t *testing.T) {
 }
 ```
 
+### Test Method Organization
+
+**All test files MUST organize tests by grouping them around the public methods they test.** This provides better structure and makes it easier to understand test coverage.
+
+#### Required Test Structure Pattern
+
+Each test file should have **one test function per public method** being tested, with each function containing multiple test cases using `t.Run()`:
+
+```go
+// For a struct with public methods GetName() and Execute()
+func TestMyStruct_GetName(t *testing.T) {
+    t.Parallel() // Use when no environment variables
+    
+    t.Run("should return correct name when called", func(t *testing.T) {
+        // GIVEN: A struct instance
+        instance := NewMyStruct()
+        
+        // WHEN: Getting the name
+        result := instance.GetName()
+        
+        // THEN: Should return expected name
+        assert.Equal(t, "expected-name", result)
+    })
+    
+    t.Run("should handle empty configuration when no config provided", func(t *testing.T) {
+        // Another test case for the same method
+    })
+}
+
+func TestMyStruct_Execute(t *testing.T) {
+    t.Parallel() // Use when no environment variables
+    
+    t.Run("should complete successfully when valid input provided", func(t *testing.T) {
+        // GIVEN: Valid input and struct instance
+        instance := NewMyStruct()
+        validInput := "test-input"
+        
+        // WHEN: Executing the method
+        err := instance.Execute(validInput)
+        
+        // THEN: Should complete without error
+        assert.NoError(t, err)
+    })
+    
+    t.Run("should return error when invalid input provided", func(t *testing.T) {
+        // Another test case for the same method
+    })
+}
+```
+
+#### Naming Convention for Test Methods
+
+Use this pattern for test method names:
+- **Pattern**: `Test[StructName]_[MethodName]`
+- **Examples**: 
+  - `TestFormatFilesCommand_Execute`
+  - `TestVersionController_GetBind`
+  - `TestDependency_GetBinaryURL`
+
+#### Naming Convention for Test Cases
+
+Use descriptive names that follow BDD pattern:
+- **Pattern**: `"should [expected behavior] when [condition]"`
+- **Examples**:
+  - `"should return error when invalid path provided"`
+  - `"should execute successfully when valid dependencies provided"`
+  - `"should create instance when called with valid parameters"`
+
+#### Parallel Testing Guidelines
+
+1. **Use `t.Parallel()`** when tests don't modify environment variables or shared state
+2. **Avoid `t.Parallel()`** when using `t.Setenv()` or modifying global state
+3. **Each `t.Run()` test case** can run in parallel by default unless they conflict
+
+#### Constructor Testing
+
+For constructors (like `NewMyStruct()`), create a dedicated test function:
+
+```go
+func TestNewMyStruct(t *testing.T) {
+    t.Parallel()
+    
+    t.Run("should create instance when valid parameters provided", func(t *testing.T) {
+        // GIVEN: Valid constructor parameters
+        param1 := "test"
+        param2 := 42
+        
+        // WHEN: Creating instance
+        instance := NewMyStruct(param1, param2)
+        
+        // THEN: Should return valid instance
+        require.NotNil(t, instance)
+        // Additional assertions about the instance state
+    })
+}
+```
+
 ### Testing Private Methods
 
 **NEVER test private methods directly.** Instead:
