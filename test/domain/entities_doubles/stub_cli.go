@@ -1,4 +1,4 @@
-package test
+package entities_doubles
 
 // StubCLI is a stub implementation of entities.CLI.
 type StubCLI struct {

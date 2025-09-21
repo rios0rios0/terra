@@ -1,6 +1,6 @@
 package repositories_doubles
 
-import "github.com/rios0rios0/terra/test"
+import "github.com/rios0rios0/terra/test/domain/entities_doubles"
 
 // StubShellRepository for testing shell-related commands
 type StubShellRepository struct {
@@ -22,7 +22,7 @@ func (m *StubShellRepository) ExecuteCommand(
 	m.LastDirectory = directory
 
 	if m.ShouldReturnError {
-		return test.NewStubError("stub execution error")
+		return entities_doubles.NewStubError("stub execution error")
 	}
 	return nil
 }

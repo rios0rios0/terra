@@ -5,7 +5,7 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	"github.com/rios0rios0/terra/test"
+	"github.com/rios0rios0/terra/test/domain/entities_doubles"
 	"github.com/rios0rios0/terra/test/domain/repositories_doubles"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,7 +20,7 @@ func TestNewRunAdditionalBeforeCommand(t *testing.T) {
 			TerraCloud:              "aws",
 			TerraTerraformWorkspace: "dev",
 		}
-		cli := &test.StubCLI{
+		cli := &entities_doubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
 			CommandChangeAccount:  []string{"sts", "assume-role"},
@@ -41,7 +41,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		cli := &test.StubCLI{
+		cli := &entities_doubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
 			CommandChangeAccount:  []string{"sts", "assume-role", "--role-arn", "test-role"},
@@ -66,7 +66,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		cli := &test.StubCLI{
+		cli := &entities_doubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: false,
 			CommandChangeAccount:  []string{},
@@ -228,7 +228,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			TerraCloud:              "aws",
 			TerraTerraformWorkspace: "staging",
 		}
-		cli := &test.StubCLI{
+		cli := &entities_doubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
 			CommandChangeAccount:  []string{"sts", "assume-role"},
