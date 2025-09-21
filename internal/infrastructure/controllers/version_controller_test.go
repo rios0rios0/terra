@@ -18,56 +18,68 @@ func (m *MockVersionCommand) Execute() {
 	m.ExecuteCallCount++
 }
 
-func TestNewVersionController_ShouldCreateInstance_WhenCommandProvided(t *testing.T) {
-	// GIVEN: A mock version command
-	mockCommand := &MockVersionCommand{}
+func TestNewVersionController(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should create instance when command provided", func(t *testing.T) {
+		// GIVEN: A mock version command
+		mockCommand := &MockVersionCommand{}
 
-	// WHEN: Creating a new version controller
-	controller := controllers.NewVersionController(mockCommand)
+		// WHEN: Creating a new version controller
+		controller := controllers.NewVersionController(mockCommand)
 
-	// THEN: Should create a valid controller instance
-	require.NotNil(t, controller)
+		// THEN: Should create a valid controller instance
+		require.NotNil(t, controller)
+	})
 }
 
-func TestVersionController_ShouldReturnCorrectBind_WhenGetBindCalled(t *testing.T) {
-	// GIVEN: A version controller with mock command
-	mockCommand := &MockVersionCommand{}
-	controller := controllers.NewVersionController(mockCommand)
+func TestVersionController_GetBind(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should return correct bind when called", func(t *testing.T) {
+		// GIVEN: A version controller with mock command
+		mockCommand := &MockVersionCommand{}
+		controller := controllers.NewVersionController(mockCommand)
 
-	// WHEN: Getting the controller bind
-	bind := controller.GetBind()
+		// WHEN: Getting the controller bind
+		bind := controller.GetBind()
 
-	// THEN: Should return correct bind configuration
-	assert.Equal(t, "version", bind.Use)
-	assert.Equal(t, "Show Terra, Terraform, and Terragrunt versions", bind.Short)
-	assert.Equal(t, "Display the version information for Terra and its dependencies (Terraform and Terragrunt).", bind.Long)
+		// THEN: Should return correct bind configuration
+		assert.Equal(t, "version", bind.Use)
+		assert.Equal(t, "Show Terra, Terraform, and Terragrunt versions", bind.Short)
+		assert.Equal(t, "Display the version information for Terra and its dependencies (Terraform and Terragrunt).", bind.Long)
+	})
 }
 
-func TestVersionController_ShouldExecuteCommand_WhenExecuteCalled(t *testing.T) {
-	// GIVEN: A version controller with mock command
-	mockCommand := &MockVersionCommand{}
-	controller := controllers.NewVersionController(mockCommand)
-	cmd := &cobra.Command{}
-	args := []string{}
+func TestVersionController_Execute(t *testing.T) {
+	t.Parallel()
+	
+	t.Run("should execute command when called", func(t *testing.T) {
+		// GIVEN: A version controller with mock command
+		mockCommand := &MockVersionCommand{}
+		controller := controllers.NewVersionController(mockCommand)
+		cmd := &cobra.Command{}
+		args := []string{}
 
-	// WHEN: Executing the controller
-	controller.Execute(cmd, args)
+		// WHEN: Executing the controller
+		controller.Execute(cmd, args)
 
-	// THEN: Should execute the command once
-	assert.Equal(t, 1, mockCommand.ExecuteCallCount)
-}
+		// THEN: Should execute the command once
+		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
+	})
+	
+	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
+		// GIVEN: A version controller with mock command
+		mockCommand := &MockVersionCommand{}
+		controller := controllers.NewVersionController(mockCommand)
+		cmd := &cobra.Command{}
+		args := []string{}
 
-func TestVersionController_ShouldExecuteCommandMultipleTimes_WhenCalledRepeatedly(t *testing.T) {
-	// GIVEN: A version controller with mock command
-	mockCommand := &MockVersionCommand{}
-	controller := controllers.NewVersionController(mockCommand)
-	cmd := &cobra.Command{}
-	args := []string{}
+		// WHEN: Executing the controller multiple times
+		controller.Execute(cmd, args)
+		controller.Execute(cmd, args)
 
-	// WHEN: Executing the controller multiple times
-	controller.Execute(cmd, args)
-	controller.Execute(cmd, args)
-
-	// THEN: Should execute the command the correct number of times
-	assert.Equal(t, 2, mockCommand.ExecuteCallCount)
+		// THEN: Should execute the command the correct number of times
+		assert.Equal(t, 2, mockCommand.ExecuteCallCount)
+	})
 }

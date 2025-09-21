@@ -168,9 +168,19 @@ func TestStructName_MethodBeingTested(t *testing.T) {
 - **Test Methods**: `Test[StructName]_[MethodName]` (e.g., `TestFormatFilesCommand_Execute`)
 - **Test Cases**: `"should [behavior] when [condition]"` (e.g., `"should return error when invalid input provided"`)
 
+**Handling Conflicting Method Names:**
+When multiple test files test the same method, use descriptive suffixes to avoid naming conflicts:
+- `TestDependency_GetBinaryURL` (main functionality)
+- `TestDependency_GetBinaryURL_AndroidPlatform` (Android-specific tests)
+- `TestDependency_GetBinaryURL_BDDExamples` (BDD example tests)
+- `TestInstallDependenciesCommand_Execute_Integration` (integration tests)
+
+**Suffix Guidelines:** Use clear, concise suffixes that describe the test file's focus (_AndroidPlatform, _Integration, _BDDExamples, _EdgeCases, _Performance)
+
 **Parallel Testing Rules:**
 - Use `t.Parallel()` when tests don't use `t.Setenv()` or modify global state
 - Avoid `t.Parallel()` when using environment variables or shared resources
+- **NEVER use `t.Parallel()` with `t.Chdir()`** - This causes runtime panic: "testing: test using t.Setenv or t.Chdir can not use t.Parallel"
 
 **CRITICAL Test Helper Rules:**
 - **Test helpers MUST be placed in `/test` folder at the root** - NEVER in production folders (internal/, cmd/, pkg/)
