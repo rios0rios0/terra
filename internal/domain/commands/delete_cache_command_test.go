@@ -1,13 +1,15 @@
-package commands
+package commands_test
 
 import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/rios0rios0/terra/internal/domain/commands"
 )
 
 func TestNewDeleteCacheCommand(t *testing.T) {
-	cmd := NewDeleteCacheCommand()
+	cmd := commands.NewDeleteCacheCommand()
 
 	if cmd == nil {
 		t.Fatal("NewDeleteCacheCommand returned nil")
@@ -16,23 +18,10 @@ func TestNewDeleteCacheCommand(t *testing.T) {
 
 func TestDeleteCacheCommand_Execute(t *testing.T) {
 	// Create a temporary directory structure for testing
-	tempDir, err := os.MkdirTemp("", "delete_cache_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
+	tempDir := t.TempDir()
 
 	// Change to temp directory for the test
-	originalDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Failed to get current directory: %v", err)
-	}
-	defer os.Chdir(originalDir)
-
-	err = os.Chdir(tempDir)
-	if err != nil {
-		t.Fatalf("Failed to change to temp directory: %v", err)
-	}
+	t.Chdir(tempDir)
 
 	// Create test directories to be deleted
 	testDirs := []string{
@@ -79,7 +68,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 	}
 
 	// Execute the delete command
-	cmd := NewDeleteCacheCommand()
+	cmd := commands.NewDeleteCacheCommand()
 	cmd.Execute([]string{".terraform", ".terragrunt-cache"})
 
 	// Verify that target directories were deleted
@@ -99,63 +88,37 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 
 func TestDeleteCacheCommand_ExecuteWithEmptyList(t *testing.T) {
 	// Create a temporary directory structure for testing
-	tempDir, err := os.MkdirTemp("", "delete_cache_empty_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
+	tempDir := t.TempDir()
 
 	// Change to temp directory for the test
-	originalDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Failed to get current directory: %v", err)
-	}
-	defer os.Chdir(originalDir)
-
-	err = os.Chdir(tempDir)
-	if err != nil {
-		t.Fatalf("Failed to change to temp directory: %v", err)
-	}
+	t.Chdir(tempDir)
 
 	// Create a test directory
 	testDir := ".terraform"
-	err = os.MkdirAll(testDir, 0755)
+	err := os.MkdirAll(testDir, 0755)
 	if err != nil {
 		t.Fatalf("Failed to create test directory: %v", err)
 	}
 
 	// Execute with empty list
-	cmd := NewDeleteCacheCommand()
+	cmd := commands.NewDeleteCacheCommand()
 	cmd.Execute([]string{})
 
 	// Verify directory still exists (should not be deleted)
-	if _, err := os.Stat(testDir); os.IsNotExist(err) {
+	if _, statErr := os.Stat(testDir); os.IsNotExist(statErr) {
 		t.Error("Directory should not have been deleted when no targets specified")
 	}
 }
 
 func TestDeleteCacheCommand_ExecuteWithNonExistentDirectories(t *testing.T) {
 	// Create a temporary directory for testing
-	tempDir, err := os.MkdirTemp("", "delete_cache_nonexistent_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
+	tempDir := t.TempDir()
 
 	// Change to temp directory for the test
-	originalDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Failed to get current directory: %v", err)
-	}
-	defer os.Chdir(originalDir)
-
-	err = os.Chdir(tempDir)
-	if err != nil {
-		t.Fatalf("Failed to change to temp directory: %v", err)
-	}
+	t.Chdir(tempDir)
 
 	// Execute with non-existent directory names
-	cmd := NewDeleteCacheCommand()
+	cmd := commands.NewDeleteCacheCommand()
 
 	// This should not crash or error - it should just find no directories to delete
 	cmd.Execute([]string{".nonexistent", ".alsononexistent"})
@@ -165,29 +128,16 @@ func TestDeleteCacheCommand_ExecuteWithNonExistentDirectories(t *testing.T) {
 
 func TestDeleteCacheCommand_ExecuteWithSpecificDirectory(t *testing.T) {
 	// Create a temporary directory structure for testing
-	tempDir, err := os.MkdirTemp("", "delete_cache_specific_test")
-	if err != nil {
-		t.Fatalf("Failed to create temp directory: %v", err)
-	}
-	defer os.RemoveAll(tempDir)
+	tempDir := t.TempDir()
 
 	// Change to temp directory for the test
-	originalDir, err := os.Getwd()
-	if err != nil {
-		t.Fatalf("Failed to get current directory: %v", err)
-	}
-	defer os.Chdir(originalDir)
-
-	err = os.Chdir(tempDir)
-	if err != nil {
-		t.Fatalf("Failed to change to temp directory: %v", err)
-	}
+	t.Chdir(tempDir)
 
 	// Create test directories
 	terraformDir := "project/.terraform"
 	terragruntDir := "project/.terragrunt-cache"
 
-	err = os.MkdirAll(terraformDir, 0755)
+	err := os.MkdirAll(terraformDir, 0755)
 	if err != nil {
 		t.Fatalf("Failed to create terraform directory: %v", err)
 	}
@@ -198,16 +148,16 @@ func TestDeleteCacheCommand_ExecuteWithSpecificDirectory(t *testing.T) {
 	}
 
 	// Execute command to delete only terraform directories
-	cmd := NewDeleteCacheCommand()
+	cmd := commands.NewDeleteCacheCommand()
 	cmd.Execute([]string{".terraform"})
 
 	// Verify terraform directory was deleted
-	if _, err := os.Stat(terraformDir); !os.IsNotExist(err) {
+	if _, statErr := os.Stat(terraformDir); !os.IsNotExist(statErr) {
 		t.Error("Terraform directory should have been deleted")
 	}
 
 	// Verify terragrunt directory still exists
-	if _, err := os.Stat(terragruntDir); os.IsNotExist(err) {
+	if _, statErr := os.Stat(terragruntDir); os.IsNotExist(statErr) {
 		t.Error("Terragrunt directory should not have been deleted")
 	}
 }
