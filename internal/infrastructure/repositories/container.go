@@ -5,7 +5,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/repositories"
 )
 
-//nolint:gochecknoglobals
+//nolint:gochecknoglobals // Wire dependency injection container
 var Container = wire.NewSet(
 	NewStdShellRepository,
 	NewInteractiveShellRepository,

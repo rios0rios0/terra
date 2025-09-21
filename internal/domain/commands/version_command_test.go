@@ -57,12 +57,12 @@ func TestVersionCommand_Execute(t *testing.T) {
 	// Capture stdout to test output
 	oldStdout := os.Stdout
 	r, w, _ := os.Pipe()
-	os.Stdout = w
+	os.Stdout = w //nolint:reassign // Necessary for output capture in tests
 
 	cmd.Execute()
 
 	w.Close()
-	os.Stdout = oldStdout
+	os.Stdout = oldStdout //nolint:reassign // Restoring original stdout
 
 	var buf bytes.Buffer
 	io.Copy(&buf, r)

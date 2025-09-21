@@ -104,7 +104,7 @@ func (it *VersionCommand) getVersionFromCLI(tool string) string {
 	return version
 }
 
-func (it *VersionCommand) getLatestVersionFromAPI(url, regexPattern string) string {
+func (it *VersionCommand) getLatestVersionFromAPI(_, _ string) string {
 	// Use the same logic as install command, but without the network call for now
 	// to avoid dependencies on external APIs for version display
 	return latestAvailableVersion
