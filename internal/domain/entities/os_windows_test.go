@@ -12,7 +12,7 @@ func TestOSWindows_ShouldDownloadSuccessfully_WhenValidURLProvided(t *testing.T)
 
 	// WHEN: Testing download functionality
 	// THEN: Should download successfully (using helper for consistent testing)
-	entities.TestDownloadSuccess(t, osImpl, "test_download_windows")
+	entities.HelperDownloadSuccess(t, osImpl, "test_download_windows")
 }
 
 func TestOSWindows_ShouldReturnError_WhenHTTPErrorOccurs(t *testing.T) {
@@ -21,5 +21,5 @@ func TestOSWindows_ShouldReturnError_WhenHTTPErrorOccurs(t *testing.T) {
 
 	// WHEN: Testing download with HTTP error
 	// THEN: Should handle HTTP error appropriately (using helper for consistent testing)
-	entities.TestDownloadHTTPError(t, osImpl, "test_download_windows")
+	entities.HelperDownloadHTTPError(t, osImpl, "test_download_windows")
 }
