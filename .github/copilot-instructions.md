@@ -189,6 +189,7 @@ When multiple test files test the same method, use descriptive suffixes to avoid
   - `/test/domain/entities_builders/` - Builders that create domain entities
   - `/test/domain/commands_doubles/` - Stubs implementing command interfaces
   - `/test/infrastructure/repositories_doubles/` - Stubs implementing repository interfaces (infrastructure layer)
+  - `/test/infrastructure/repositories_builders/` - Builders for infrastructure testing (HTTP servers, etc.)
   - `/test/infrastructure/repositories_helpers/` - Helpers for testing repository/OS functionality
   - `/test/infrastructure/controllers_doubles/` - Stubs implementing controller interfaces
   - `/test/infrastructure/controllers_helpers/` - Helpers for controller testing
@@ -203,7 +204,7 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - **Package naming** - Use descriptive package names that reflect the organization:
   - `entities_doubles`, `entities_builders`
   - `commands_doubles`
-  - `repositories_doubles`, `repositories_helpers`
+  - `repositories_doubles`, `repositories_builders`, `repositories_helpers`
   - `controllers_doubles`, `controllers_helpers`
 - **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
   - Builders: `dependency_builder.go`, `test_server_builder.go`
@@ -247,7 +248,7 @@ func HelperDownloadSuccess(t *testing.T, osImpl entities.OS, testPrefix string) 
 
 **Example Builder Structure:**
 ```go
-// File: /test/domain/entities_builders/dependency_builder.go (Builders in separate files)
+// File: /test/domain/entities_builders/dependency_builder.go (Domain entity builders)
 package entities_builders
 
 import "github.com/rios0rios0/terra/internal/domain/entities"
@@ -258,6 +259,21 @@ type DependencyBuilder struct { /* ... */ }
 func NewDependencyBuilder() *DependencyBuilder { /* ... */ }
 func (b *DependencyBuilder) WithName(name string) *DependencyBuilder { /* ... */ }
 func (b *DependencyBuilder) Build() entities.Dependency { /* ... */ }
+```
+
+**Example Infrastructure Builder Structure:**
+```go
+// File: /test/infrastructure/repositories_builders/test_server_builder.go (Infrastructure builders)
+package repositories_builders
+
+import "net/http/httptest"
+
+// TestServerBuilder helps create mock HTTP servers for testing infrastructure
+type TestServerBuilder struct { /* ... */ }
+
+func NewTestServerBuilder() *TestServerBuilder { /* ... */ }
+func (b *TestServerBuilder) WithVersionResponse(path, response string) *TestServerBuilder { /* ... */ }
+func (b *TestServerBuilder) BuildServers() (*httptest.Server, *httptest.Server) { /* ... */ }
 ```
 
 **Example Stub Structure:**
