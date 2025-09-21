@@ -42,11 +42,19 @@ func TestNewInstallDependenciesController(t *testing.T) {
 	}
 
 	if len(controller.dependencies) != len(dependencies) {
-		t.Errorf("Expected %d dependencies, got %d", len(dependencies), len(controller.dependencies))
+		t.Errorf(
+			"Expected %d dependencies, got %d",
+			len(dependencies),
+			len(controller.dependencies),
+		)
 	}
 
 	if controller.dependencies[0].Name != dependencies[0].Name {
-		t.Errorf("Expected dependency name %s, got %s", dependencies[0].Name, controller.dependencies[0].Name)
+		t.Errorf(
+			"Expected dependency name %s, got %s",
+			dependencies[0].Name,
+			controller.dependencies[0].Name,
+		)
 	}
 }
 
@@ -135,6 +143,9 @@ func TestInstallDependenciesController_ExecuteMultipleCalls(t *testing.T) {
 
 	// Verify that the command was called the correct number of times
 	if mockCommand.ExecuteCallCount != 3 {
-		t.Errorf("Expected Execute to be called 3 times, got %d calls", mockCommand.ExecuteCallCount)
+		t.Errorf(
+			"Expected Execute to be called 3 times, got %d calls",
+			mockCommand.ExecuteCallCount,
+		)
 	}
 }

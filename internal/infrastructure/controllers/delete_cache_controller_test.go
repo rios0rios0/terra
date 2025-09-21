@@ -71,12 +71,21 @@ func TestDeleteCacheController_Execute(t *testing.T) {
 	// Verify that the correct directories were passed
 	expectedDirs := []string{".terraform", ".terragrunt-cache"}
 	if len(mockCommand.LastToBeDeleted) != len(expectedDirs) {
-		t.Errorf("Expected %d directories to be deleted, got %d", len(expectedDirs), len(mockCommand.LastToBeDeleted))
+		t.Errorf(
+			"Expected %d directories to be deleted, got %d",
+			len(expectedDirs),
+			len(mockCommand.LastToBeDeleted),
+		)
 	}
 
 	for i, expected := range expectedDirs {
 		if i < len(mockCommand.LastToBeDeleted) && mockCommand.LastToBeDeleted[i] != expected {
-			t.Errorf("Expected directory %s at index %d, got %s", expected, i, mockCommand.LastToBeDeleted[i])
+			t.Errorf(
+				"Expected directory %s at index %d, got %s",
+				expected,
+				i,
+				mockCommand.LastToBeDeleted[i],
+			)
 		}
 	}
 }
@@ -94,6 +103,9 @@ func TestDeleteCacheController_ExecuteMultipleCalls(t *testing.T) {
 
 	// Verify that the command was called the correct number of times
 	if mockCommand.ExecuteCallCount != 3 {
-		t.Errorf("Expected Execute to be called 3 times, got %d calls", mockCommand.ExecuteCallCount)
+		t.Errorf(
+			"Expected Execute to be called 3 times, got %d calls",
+			mockCommand.ExecuteCallCount,
+		)
 	}
 }

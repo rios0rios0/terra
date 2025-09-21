@@ -135,7 +135,7 @@ func TestInstallDependenciesDownloadFailure(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
-	
+
 	t.Skip("Skipping test: cannot reliably test logger.Fatalf behavior that calls os.Exit()")
 
 	// Use builder pattern to create servers that simulate download failure
@@ -173,7 +173,9 @@ func TestInstallDependenciesDownloadFailure(t *testing.T) {
 
 	// If we reach here, it means the download "succeeded" with our mock server error response
 	// In real scenarios with curl, this would fail with exit status 23 or similar
-	t.Logf("Note: With mock server, download failure is simulated differently than real curl errors")
+	t.Logf(
+		"Note: With mock server, download failure is simulated differently than real curl errors",
+	)
 }
 
 // TestInstallDependenciesNetworkTimeout tests network timeout scenarios
@@ -181,7 +183,7 @@ func TestInstallDependenciesNetworkTimeout(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping integration test in short mode")
 	}
-	
+
 	t.Skip("Skipping test: cannot reliably test logger.Fatalf behavior that calls os.Exit()")
 
 	// Create a dependency with an unreachable URL to simulate network issues

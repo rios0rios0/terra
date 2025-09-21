@@ -94,7 +94,10 @@ func main() {
 
 	// "cobra" library needs to start with a cobraRoot command
 	rootController := injectRootController()
-	cobraRoot := buildRootCommand(rootController, false) // disable flag parsing for normal execution
+	cobraRoot := buildRootCommand(
+		rootController,
+		false,
+	) // disable flag parsing for normal execution
 
 	// all other commands are added as subcommands
 	appContext := injectAppContext()

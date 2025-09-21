@@ -5,7 +5,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
-//nolint:gochecknoglobals
+//nolint:gochecknoglobals // Wire dependency injection container
 var Container = wire.NewSet(
 	dependencies,
 	// the root controller is not defined here, it is defined in the "wire.go" file

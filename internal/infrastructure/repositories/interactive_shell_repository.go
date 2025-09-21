@@ -20,8 +20,17 @@ func NewInteractiveShellRepository() *InteractiveShellRepository {
 	return &InteractiveShellRepository{}
 }
 
-func (it *InteractiveShellRepository) ExecuteCommand(command string, arguments []string, directory string) error {
-	logger.Infof("Running [%s %s] in %s with auto-answering", command, strings.Join(arguments, " "), directory)
+func (it *InteractiveShellRepository) ExecuteCommand(
+	command string,
+	arguments []string,
+	directory string,
+) error {
+	logger.Infof(
+		"Running [%s %s] in %s with auto-answering",
+		command,
+		strings.Join(arguments, " "),
+		directory,
+	)
 
 	cmd := exec.Command(command, arguments...)
 	cmd.Dir = directory
@@ -59,7 +68,10 @@ func (it *InteractiveShellRepository) ExecuteCommand(command string, arguments [
 	return err
 }
 
-func (it *InteractiveShellRepository) handleOutput(stdout, stderr io.ReadCloser, stdin io.WriteCloser) {
+func (it *InteractiveShellRepository) handleOutput(
+	stdout, stderr io.ReadCloser,
+	stdin io.WriteCloser,
+) {
 	// Create scanners for both stdout and stderr
 	stdoutScanner := bufio.NewScanner(stdout)
 	stderrScanner := bufio.NewScanner(stderr)
@@ -71,7 +83,7 @@ func (it *InteractiveShellRepository) handleOutput(stdout, stderr io.ReadCloser,
 	go func() {
 		for stdoutScanner.Scan() {
 			line := stdoutScanner.Text()
-			fmt.Println(line) // Print to user
+			logger.Info(line) // Print to user
 			outputChan <- line
 		}
 	}()
@@ -103,7 +115,9 @@ func (it *InteractiveShellRepository) processLineAndRespond(line string, stdin i
 	cleanLine := it.removeANSICodes(line)
 
 	// Pattern 1: External dependency prompt - answer "n"
-	externalDepPattern := regexp.MustCompile(`(?i)should terragrunt apply the external dependency.*\?`)
+	externalDepPattern := regexp.MustCompile(
+		`(?i)should terragrunt apply the external dependency.*\?`,
+	)
 	if externalDepPattern.MatchString(cleanLine) {
 		logger.Debug("Detected external dependency prompt, responding with 'n'")
 		fmt.Fprintln(stdin, "n")

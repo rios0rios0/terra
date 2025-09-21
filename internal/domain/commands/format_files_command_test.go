@@ -15,7 +15,11 @@ type MockShellRepository struct {
 	ShouldReturnError bool
 }
 
-func (m *MockShellRepository) ExecuteCommand(command string, arguments []string, directory string) error {
+func (m *MockShellRepository) ExecuteCommand(
+	command string,
+	arguments []string,
+	directory string,
+) error {
 	m.ExecuteCallCount++
 	m.LastCommand = command
 	m.LastArguments = arguments
@@ -70,7 +74,11 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	// Verify that ExecuteCommand was called for each dependency
 	expectedCallCount := len(dependencies)
 	if mockRepo.ExecuteCallCount != expectedCallCount {
-		t.Errorf("Expected ExecuteCommand to be called %d times, got %d", expectedCallCount, mockRepo.ExecuteCallCount)
+		t.Errorf(
+			"Expected ExecuteCommand to be called %d times, got %d",
+			expectedCallCount,
+			mockRepo.ExecuteCallCount,
+		)
 	}
 
 	// Since we can't easily verify all calls in this simple mock,
@@ -81,12 +89,21 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	}
 
 	if len(mockRepo.LastArguments) != len(lastDep.FormattingCommand) {
-		t.Errorf("Expected %d arguments, got %d", len(lastDep.FormattingCommand), len(mockRepo.LastArguments))
+		t.Errorf(
+			"Expected %d arguments, got %d",
+			len(lastDep.FormattingCommand),
+			len(mockRepo.LastArguments),
+		)
 	}
 
 	for i, expectedArg := range lastDep.FormattingCommand {
 		if i < len(mockRepo.LastArguments) && mockRepo.LastArguments[i] != expectedArg {
-			t.Errorf("Expected argument %s at index %d, got %s", expectedArg, i, mockRepo.LastArguments[i])
+			t.Errorf(
+				"Expected argument %s at index %d, got %s",
+				expectedArg,
+				i,
+				mockRepo.LastArguments[i],
+			)
 		}
 	}
 
@@ -106,7 +123,7 @@ func TestFormatFilesCommand_ExecuteWithError(t *testing.T) {
 	}
 
 	cmd := NewFormatFilesCommand(mockRepo)
-	
+
 	// This should not panic even if the repository returns an error
 	// The command should log the error but continue execution
 	cmd.Execute(dependencies)
@@ -126,7 +143,10 @@ func TestFormatFilesCommand_ExecuteWithEmptyDependencies(t *testing.T) {
 
 	// Verify that ExecuteCommand was not called
 	if mockRepo.ExecuteCallCount != 0 {
-		t.Errorf("Expected ExecuteCommand to not be called, got %d calls", mockRepo.ExecuteCallCount)
+		t.Errorf(
+			"Expected ExecuteCommand to not be called, got %d calls",
+			mockRepo.ExecuteCallCount,
+		)
 	}
 }
 
@@ -168,7 +188,7 @@ func TestFormatFilesCommand_ExecuteWithMultipleDependencies(t *testing.T) {
 			FormattingCommand: []string{"fmt", "-recursive"},
 		},
 		{
-			Name:              "Terragrunt", 
+			Name:              "Terragrunt",
 			CLI:               "terragrunt",
 			FormattingCommand: []string{"hclfmt", "**/*.hcl"},
 		},
@@ -199,12 +219,23 @@ func TestFormatFilesCommand_ExecuteWithMultipleDependencies(t *testing.T) {
 		}
 
 		if len(record.Arguments) != len(dep.FormattingCommand) {
-			t.Errorf("Call %d: expected %d arguments, got %d", i, len(dep.FormattingCommand), len(record.Arguments))
+			t.Errorf(
+				"Call %d: expected %d arguments, got %d",
+				i,
+				len(dep.FormattingCommand),
+				len(record.Arguments),
+			)
 		}
 
 		for j, expectedArg := range dep.FormattingCommand {
 			if j < len(record.Arguments) && record.Arguments[j] != expectedArg {
-				t.Errorf("Call %d, arg %d: expected %s, got %s", i, j, expectedArg, record.Arguments[j])
+				t.Errorf(
+					"Call %d, arg %d: expected %s, got %s",
+					i,
+					j,
+					expectedArg,
+					record.Arguments[j],
+				)
 			}
 		}
 
@@ -227,7 +258,11 @@ type MockShellRepositoryWithRecording struct {
 	ShouldReturnError bool
 }
 
-func (m *MockShellRepositoryWithRecording) ExecuteCommand(command string, arguments []string, directory string) error {
+func (m *MockShellRepositoryWithRecording) ExecuteCommand(
+	command string,
+	arguments []string,
+	directory string,
+) error {
 	m.CallRecords = append(m.CallRecords, CallRecord{
 		Command:   command,
 		Arguments: append([]string{}, arguments...), // Copy slice
