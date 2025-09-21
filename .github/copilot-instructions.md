@@ -187,11 +187,10 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - **Organization by domain**: 
   - `/test/domain/entities_doubles/` - Stubs implementing entity interfaces (CLI, OS, etc.)
   - `/test/domain/entities_builders/` - Builders that create domain entities
-  - `/test/domain/entities_helpers/` - Helpers for testing entity functionality
   - `/test/domain/commands_doubles/` - Stubs implementing command interfaces
-  - `/test/domain/repositories_doubles/` - Stubs implementing repository interfaces
+  - `/test/infrastructure/repositories_doubles/` - Stubs implementing repository interfaces (infrastructure layer)
+  - `/test/infrastructure/repositories_helpers/` - Helpers for testing repository/OS functionality
   - `/test/infrastructure/controllers_doubles/` - Stubs implementing controller interfaces
-  - `/test/infrastructure/repositories_doubles/` - Infrastructure repository stubs
   - `/test/infrastructure/controllers_helpers/` - Helpers for controller testing
 - **Test helpers in production folders affect coverage unnecessarily** and violate project standards
 - **Use `t.Helper()` in all helper functions** for better test failure reporting
@@ -202,8 +201,9 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
 - **Domain-specific organization** - All test utilities must be organized by their corresponding production packages
 - **Package naming** - Use descriptive package names that reflect the organization:
-  - `entities_doubles`, `entities_builders`, `entities_helpers`
-  - `commands_doubles`, `repositories_doubles`
+  - `entities_doubles`, `entities_builders`
+  - `commands_doubles`
+  - `repositories_doubles`, `repositories_helpers`
   - `controllers_doubles`, `controllers_helpers`
 - **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
   - Builders: `dependency_builder.go`, `test_server_builder.go`
@@ -230,8 +230,8 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 
 **Example Test Helper Structure:**
 ```go
-// File: /test/domain/entities_helpers/os_helpers.go (Helpers in separate files)
-package entities_helpers
+// File: /test/infrastructure/repositories_helpers/os_helpers.go (Helpers in separate files)
+package repositories_helpers
 
 import (
     "testing"
@@ -262,7 +262,7 @@ func (b *DependencyBuilder) Build() entities.Dependency { /* ... */ }
 
 **Example Stub Structure:**
 ```go
-// File: /test/domain/repositories_doubles/stub_shell_repository.go (Stubs in separate files)
+// File: /test/infrastructure/repositories_doubles/stub_shell_repository.go (Stubs in separate files)
 package repositories_doubles
 
 // StubShellRepository for testing shell-related commands

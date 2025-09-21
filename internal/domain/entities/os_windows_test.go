@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	"github.com/rios0rios0/terra/test/domain/entities_helpers"
+	"github.com/rios0rios0/terra/test/infrastructure/repositories_helpers"
 )
 
 func TestOSWindows_Download(t *testing.T) {
@@ -16,7 +16,7 @@ func TestOSWindows_Download(t *testing.T) {
 
 		// WHEN: Testing download functionality
 		// THEN: Should download successfully (using helper for consistent testing)
-		entities_helpers.HelperDownloadSuccess(t, osImpl, "test_download_windows")
+		repositories_helpers.HelperDownloadSuccess(t, osImpl, "test_download_windows")
 	})
 	
 	t.Run("should return error when HTTP error occurs", func(t *testing.T) {
@@ -25,6 +25,6 @@ func TestOSWindows_Download(t *testing.T) {
 
 		// WHEN: Testing download with HTTP error
 		// THEN: Should handle HTTP error appropriately (using helper for consistent testing)
-		entities_helpers.HelperDownloadHTTPError(t, osImpl, "test_download_windows")
+		repositories_helpers.HelperDownloadHTTPError(t, osImpl, "test_download_windows")
 	})
 }

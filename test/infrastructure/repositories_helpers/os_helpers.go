@@ -1,4 +1,4 @@
-package entities_helpers
+package repositories_helpers
 
 import (
 	"net/http"

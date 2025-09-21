@@ -7,7 +7,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	infrastructure_repositories "github.com/rios0rios0/terra/internal/infrastructure/repositories"
 	"github.com/rios0rios0/terra/test/domain/commands_doubles"
-	"github.com/rios0rios0/terra/test/domain/repositories_doubles"
+	"github.com/rios0rios0/terra/test/infrastructure/repositories_doubles"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
