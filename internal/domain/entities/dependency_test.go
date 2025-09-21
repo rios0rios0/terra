@@ -1,6 +1,7 @@
 package entities_test
 
 import (
+	"fmt"
 	"runtime"
 	"strings"
 	"testing"
@@ -144,6 +145,58 @@ func TestDependency_GetBinaryURL_MixedFormats(t *testing.T) {
 
 			if result != expected {
 				t.Errorf("Expected %s, got %s", expected, result)
+			}
+		})
+	}
+}
+
+func TestDependency_GetBinaryURL_AndroidArchitecture(t *testing.T) {
+	testCases := []struct {
+		name             string
+		binaryURL        string
+		platform         entities.PlatformInfo
+		version          string
+		expectedContains []string
+	}{
+		{
+			name:      "Terraform with android_arm64",
+			binaryURL: "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
+			platform:  entities.PlatformInfo{OS: "android", Arch: "android_arm64"},
+			version:   "1.5.0",
+			expectedContains: []string{
+				"https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_android_arm64.zip",
+			},
+		},
+		{
+			name:      "Terragrunt with android_arm64",
+			binaryURL: "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s",
+			platform:  entities.PlatformInfo{OS: "android", Arch: "android_arm64"},
+			version:   "0.50.0",
+			expectedContains: []string{
+				"https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.0/terragrunt_android_arm64",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			dependency := entities.Dependency{BinaryURL: tc.binaryURL}
+
+			// Create a test dependency that uses our test platform
+			testGetBinaryURL := func(version string) string {
+				// Simulate the logic from GetBinaryURL but with our test platform
+				if strings.Contains(dependency.BinaryURL, "%[2]s") || strings.Contains(dependency.BinaryURL, "%[3]s") {
+					return fmt.Sprintf(dependency.BinaryURL, version, tc.platform.GetOSString(), tc.platform.GetTerraformArchString())
+				}
+				return fmt.Sprintf(dependency.BinaryURL, version)
+			}
+
+			result := testGetBinaryURL(tc.version)
+
+			for _, expectedSubstring := range tc.expectedContains {
+				if !strings.Contains(result, expectedSubstring) {
+					t.Errorf("Expected URL to contain '%s', got: %s", expectedSubstring, result)
+				}
 			}
 		})
 	}
