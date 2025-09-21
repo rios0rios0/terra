@@ -154,6 +154,29 @@ func TestService_ShouldReturnError_WhenInvalidInputProvided(t *testing.T) {
 }
 ```
 
+**CRITICAL Test Helper Rules:**
+- **Test helpers MUST be placed in `/test` folder at the root** - NEVER in production folders (internal/, cmd/, pkg/)
+- **Test helpers in production folders affect coverage unnecessarily** and violate project standards
+- **Use `t.Helper()` in all helper functions** for better test failure reporting
+- **Name helpers with `Helper` prefix** - avoid `Test` prefix to prevent Go test runner conflicts
+
+**Example Test Helper Structure:**
+```go
+// File: /test/my_helpers.go
+package test
+
+import (
+    "testing"
+    "github.com/rios0rios0/terra/internal/domain/entities"
+)
+
+// HelperDownloadSuccess tests successful download scenarios
+func HelperDownloadSuccess(t *testing.T, osImpl entities.OS, testPrefix string) {
+    t.Helper() // Mark as test helper
+    // ... implementation
+}
+```
+
 ### Manual Validation Requirements
 Always test terra functionality after making changes:
 
