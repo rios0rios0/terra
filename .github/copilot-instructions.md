@@ -171,6 +171,7 @@ func TestStructName_MethodBeingTested(t *testing.T) {
 **Parallel Testing Rules:**
 - Use `t.Parallel()` when tests don't use `t.Setenv()` or modify global state
 - Avoid `t.Parallel()` when using environment variables or shared resources
+- **NEVER use `t.Parallel()` with `t.Chdir()`** - This causes runtime panic: "testing: test using t.Setenv or t.Chdir can not use t.Parallel"
 
 **CRITICAL Test Helper Rules:**
 - **Test helpers MUST be placed in `/test` folder at the root** - NEVER in production folders (internal/, cmd/, pkg/)

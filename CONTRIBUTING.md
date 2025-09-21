@@ -287,7 +287,31 @@ Use descriptive names that follow BDD pattern:
 
 1. **Use `t.Parallel()`** when tests don't modify environment variables or shared state
 2. **Avoid `t.Parallel()`** when using `t.Setenv()` or modifying global state
-3. **Each `t.Run()` test case** can run in parallel by default unless they conflict
+3. **NEVER use `t.Parallel()` with `t.Chdir()`** - This causes a runtime panic as Go detects incompatible test modifications
+4. **Each `t.Run()` test case** can run in parallel by default unless they conflict
+
+**Example of incompatible usage:**
+```go
+// ❌ DON'T: This will cause runtime panic
+func TestSomething(t *testing.T) {
+    t.Parallel() // This line will cause panic
+    
+    t.Run("test case", func(t *testing.T) {
+        tempDir := t.TempDir()
+        t.Chdir(tempDir) // Incompatible with t.Parallel()
+        // ... test logic
+    })
+}
+
+// ✅ DO: Remove t.Parallel() when using t.Chdir()
+func TestSomething(t *testing.T) {
+    t.Run("test case", func(t *testing.T) {
+        tempDir := t.TempDir()
+        t.Chdir(tempDir) // Now safe without t.Parallel()
+        // ... test logic
+    })
+}
+```
 
 #### Constructor Testing
 
