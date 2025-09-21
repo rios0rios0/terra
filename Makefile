@@ -40,7 +40,7 @@ lint: scripts
 	$(SCRIPTS_DIR)/global/scripts/golangci-lint/run.sh .
 
 lint-fix: scripts
-	./scripts/lint-fix.sh
+	$(SCRIPTS_DIR)/global/scripts/golang/test/run.sh --fix .
 
 horusec: scripts
 	$(SCRIPTS_DIR)/global/scripts/horusec/run.sh .
