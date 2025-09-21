@@ -76,7 +76,7 @@ func TestOSLinux_MakeExecutable(t *testing.T) {
 	tempFile.Close()
 
 	// Initially the file should not be executable
-	info, err := os.Stat(tempFile.Name())
+	_, err = os.Stat(tempFile.Name())
 	if err != nil {
 		t.Fatalf("Failed to stat temp file: %v", err)
 	}
@@ -88,7 +88,7 @@ func TestOSLinux_MakeExecutable(t *testing.T) {
 	}
 
 	// Verify it's now executable
-	info, err = os.Stat(tempFile.Name())
+	info, err := os.Stat(tempFile.Name())
 	if err != nil {
 		t.Fatalf("Failed to stat temp file after making executable: %v", err)
 	}
@@ -111,7 +111,10 @@ func TestOSLinux_MakeExecutable_NonExistentFile(t *testing.T) {
 
 	// Verify error message contains expected text
 	if !strings.Contains(err.Error(), "failed to perform change binary permissions") {
-		t.Errorf("Expected error to contain 'failed to perform change binary permissions', got: %v", err)
+		t.Errorf(
+			"Expected error to contain 'failed to perform change binary permissions', got: %v",
+			err,
+		)
 	}
 }
 

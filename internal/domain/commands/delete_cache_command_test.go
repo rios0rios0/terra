@@ -37,7 +37,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 	// Create test directories to be deleted
 	testDirs := []string{
 		".terraform",
-		"module1/.terraform", 
+		"module1/.terraform",
 		"module2/.terragrunt-cache",
 		"nested/deep/.terraform",
 		"nested/deep/.terragrunt-cache",
@@ -48,7 +48,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create test directory %s: %v", dir, err)
 		}
-		
+
 		// Create a test file in each directory
 		testFile := filepath.Join(dir, "test.txt")
 		err = os.WriteFile(testFile, []byte("test content"), 0644)
@@ -156,7 +156,7 @@ func TestDeleteCacheCommand_ExecuteWithNonExistentDirectories(t *testing.T) {
 
 	// Execute with non-existent directory names
 	cmd := NewDeleteCacheCommand()
-	
+
 	// This should not crash or error - it should just find no directories to delete
 	cmd.Execute([]string{".nonexistent", ".alsononexistent"})
 
@@ -186,12 +186,12 @@ func TestDeleteCacheCommand_ExecuteWithSpecificDirectory(t *testing.T) {
 	// Create test directories
 	terraformDir := "project/.terraform"
 	terragruntDir := "project/.terragrunt-cache"
-	
+
 	err = os.MkdirAll(terraformDir, 0755)
 	if err != nil {
 		t.Fatalf("Failed to create terraform directory: %v", err)
 	}
-	
+
 	err = os.MkdirAll(terragruntDir, 0755)
 	if err != nil {
 		t.Fatalf("Failed to create terragrunt directory: %v", err)

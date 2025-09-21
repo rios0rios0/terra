@@ -51,7 +51,9 @@ func findRelativePath(arguments []string) (string, int) {
 
 	// Helper function to check if an argument looks like a path
 	isPathLike := func(arg string) bool {
-		return strings.HasPrefix(arg, "/") || strings.HasPrefix(arg, "./") || strings.HasPrefix(arg, "../") || arg == "."
+		return strings.HasPrefix(arg, "/") || strings.HasPrefix(arg, "./") ||
+			strings.HasPrefix(arg, "../") ||
+			arg == "."
 	}
 
 	// Check if the first argument is a directory (existing) or looks like a path

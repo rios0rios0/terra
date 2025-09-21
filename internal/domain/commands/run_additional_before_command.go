@@ -29,7 +29,11 @@ func NewRunAdditionalBeforeCommand(
 func (it *RunAdditionalBeforeCommand) Execute(targetPath string, arguments []string) {
 	// change account if necessary
 	if it.cli != nil && it.cli.CanChangeAccount() {
-		err := it.repository.ExecuteCommand(it.cli.GetName(), it.cli.GetCommandChangeAccount(), targetPath)
+		err := it.repository.ExecuteCommand(
+			it.cli.GetName(),
+			it.cli.GetCommandChangeAccount(),
+			targetPath,
+		)
 		if err != nil {
 			logger.Fatalf("Error changing account: %s", err)
 		}
@@ -42,7 +46,11 @@ func (it *RunAdditionalBeforeCommand) Execute(targetPath string, arguments []str
 
 	// change workspace if necessary
 	if value, ok := it.shouldChangeWorkspace(); ok {
-		err := it.repository.ExecuteCommand("terragrunt", []string{"workspace", "select", "-or-create", value}, targetPath)
+		err := it.repository.ExecuteCommand(
+			"terragrunt",
+			[]string{"workspace", "select", "-or-create", value},
+			targetPath,
+		)
 		if err != nil {
 			logger.Fatalf("Error changing workspace: %s", err)
 		}

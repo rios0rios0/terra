@@ -79,6 +79,9 @@ func TestVersionController_ExecuteMultipleCalls(t *testing.T) {
 
 	// Verify that the command was called the correct number of times
 	if mockCommand.ExecuteCallCount != 2 {
-		t.Errorf("Expected Execute to be called 2 times, got %d calls", mockCommand.ExecuteCallCount)
+		t.Errorf(
+			"Expected Execute to be called 2 times, got %d calls",
+			mockCommand.ExecuteCallCount,
+		)
 	}
 }
