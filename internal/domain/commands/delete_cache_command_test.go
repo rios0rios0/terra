@@ -4,12 +4,10 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
-
-	"github.com/rios0rios0/terra/internal/domain/commands"
 )
 
 func TestNewDeleteCacheCommand(t *testing.T) {
-	cmd := commands.NewDeleteCacheCommand()
+	cmd := NewDeleteCacheCommand()
 
 	if cmd == nil {
 		t.Fatal("NewDeleteCacheCommand returned nil")
@@ -68,7 +66,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 	}
 
 	// Execute the delete command
-	cmd := commands.NewDeleteCacheCommand()
+	cmd := NewDeleteCacheCommand()
 	cmd.Execute([]string{".terraform", ".terragrunt-cache"})
 
 	// Verify that target directories were deleted
@@ -101,7 +99,7 @@ func TestDeleteCacheCommand_ExecuteWithEmptyList(t *testing.T) {
 	}
 
 	// Execute with empty list
-	cmd := commands.NewDeleteCacheCommand()
+	cmd := NewDeleteCacheCommand()
 	cmd.Execute([]string{})
 
 	// Verify directory still exists (should not be deleted)
@@ -118,7 +116,7 @@ func TestDeleteCacheCommand_ExecuteWithNonExistentDirectories(t *testing.T) {
 	t.Chdir(tempDir)
 
 	// Execute with non-existent directory names
-	cmd := commands.NewDeleteCacheCommand()
+	cmd := NewDeleteCacheCommand()
 
 	// This should not crash or error - it should just find no directories to delete
 	cmd.Execute([]string{".nonexistent", ".alsononexistent"})
@@ -148,7 +146,7 @@ func TestDeleteCacheCommand_ExecuteWithSpecificDirectory(t *testing.T) {
 	}
 
 	// Execute command to delete only terraform directories
-	cmd := commands.NewDeleteCacheCommand()
+	cmd := NewDeleteCacheCommand()
 	cmd.Execute([]string{".terraform"})
 
 	// Verify terraform directory was deleted

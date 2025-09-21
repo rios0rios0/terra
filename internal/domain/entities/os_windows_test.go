@@ -1,4 +1,4 @@
-package entities
+package entities_test
 
 import (
 	"testing"
