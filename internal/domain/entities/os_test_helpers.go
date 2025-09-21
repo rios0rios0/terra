@@ -21,8 +21,8 @@ func testDownloadSuccess(t *testing.T, osImpl OS, testPrefix string) {
 	if err != nil {
 		t.Fatalf("Failed to create temporary file: %v", err)
 	}
-	if err := tempFile.Close(); err != nil { // Close the file so Download can create it
-		t.Fatalf("Failed to close temporary file: %v", err)
+	if closeErr := tempFile.Close(); closeErr != nil { // Close the file so Download can create it
+		t.Fatalf("Failed to close temporary file: %v", closeErr)
 	}
 	defer os.Remove(tempFile.Name())
 
@@ -63,8 +63,8 @@ func testDownloadHTTPError(t *testing.T, osImpl OS, testPrefix string) {
 	if err != nil {
 		t.Fatalf("Failed to create temporary file: %v", err)
 	}
-	if err := tempFile.Close(); err != nil { // Close the file so Download can create it
-		t.Fatalf("Failed to close temporary file: %v", err)
+	if closeErr := tempFile.Close(); closeErr != nil { // Close the file so Download can create it
+		t.Fatalf("Failed to close temporary file: %v", closeErr)
 	}
 	defer os.Remove(tempFile.Name())
 

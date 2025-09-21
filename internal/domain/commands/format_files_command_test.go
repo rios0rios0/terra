@@ -4,7 +4,6 @@ package commands
 import (
 	"testing"
 
-	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
@@ -44,7 +43,7 @@ func (e *MockError) Error() string {
 
 func TestNewFormatFilesCommand(t *testing.T) {
 	mockRepo := &MockShellRepository{}
-	cmd := commands.NewFormatFilesCommand(mockRepo)
+	cmd := NewFormatFilesCommand(mockRepo)
 
 	if cmd == nil {
 		t.Fatal("NewFormatFilesCommand returned nil")

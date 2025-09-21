@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+const (
+	downloadTimeout = 10 * time.Minute
+)
+
 type OS interface {
 	Download(url, tempFilePath string) error
 	Extract(tempFilePath, destPath string) error
@@ -22,7 +26,7 @@ type OS interface {
 // downloadFile provides a common implementation for downloading files via HTTP
 func downloadFile(url, tempFilePath string) error {
 	// Create context with timeout for the download
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
 	defer cancel()
 
 	// Create HTTP request with context

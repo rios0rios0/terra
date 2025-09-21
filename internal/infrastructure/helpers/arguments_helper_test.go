@@ -86,7 +86,7 @@ func TestArgumentsHelper_FindAbsolutePath_NonExistentDirectory(t *testing.T) {
 			}
 
 			// Verify the path doesn't exist
-			if _, err := os.Stat(absolutePath); !os.IsNotExist(err) {
+			if _, statErr := os.Stat(absolutePath); !os.IsNotExist(statErr) {
 				t.Errorf("Expected path to not exist: %s", absolutePath)
 			}
 		})
