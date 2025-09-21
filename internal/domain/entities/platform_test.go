@@ -105,6 +105,7 @@ func TestPlatformInfo_GetOSString(t *testing.T) {
 		{"linux", "linux", "linux"},
 		{"windows", "windows", "windows"},
 		{"darwin", "darwin", "darwin"},
+		{"android", "android", "linux"}, // Android should map to linux
 	}
 
 	for _, tc := range testCases {

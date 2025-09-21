@@ -164,7 +164,7 @@ func TestDependency_GetBinaryURL_AndroidArchitecture(t *testing.T) {
 			platform:  entities.PlatformInfo{OS: "android", Arch: "android_arm64"},
 			version:   "1.5.0",
 			expectedContains: []string{
-				"https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_android_arm64.zip",
+				"https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0_linux_arm64.zip",
 			},
 		},
 		{
@@ -173,7 +173,7 @@ func TestDependency_GetBinaryURL_AndroidArchitecture(t *testing.T) {
 			platform:  entities.PlatformInfo{OS: "android", Arch: "android_arm64"},
 			version:   "0.50.0",
 			expectedContains: []string{
-				"https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.0/terragrunt_android_arm64",
+				"https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.0/terragrunt_linux_arm64",
 			},
 		},
 	}
@@ -186,7 +186,14 @@ func TestDependency_GetBinaryURL_AndroidArchitecture(t *testing.T) {
 			testGetBinaryURL := func(version string) string {
 				// Simulate the logic from GetBinaryURL but with our test platform
 				if strings.Contains(dependency.BinaryURL, "%[2]s") || strings.Contains(dependency.BinaryURL, "%[3]s") {
-					return fmt.Sprintf(dependency.BinaryURL, version, tc.platform.GetOSString(), tc.platform.GetTerraformArchString())
+					// Determine which arch method to use based on dependency type
+					var archString string
+					if strings.Contains(dependency.BinaryURL, "terragrunt") {
+						archString = tc.platform.GetTerragruntArchString()
+					} else {
+						archString = tc.platform.GetTerraformArchString()
+					}
+					return fmt.Sprintf(dependency.BinaryURL, version, tc.platform.GetOSString(), archString)
 				}
 				return fmt.Sprintf(dependency.BinaryURL, version)
 			}
