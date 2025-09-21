@@ -36,7 +36,7 @@ var dependencies = wire.Value([]entities.Dependency{
 	{
 		Name:              "Terraform",
 		CLI:               "terraform",
-		BinaryURL:         "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_linux_amd64.zip",
+		BinaryURL:         "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
 		VersionURL:        "https://checkpoint-api.hashicorp.com/v1/check/terraform",
 		RegexVersion:      `"current_version":"([^"]+)"`,
 		FormattingCommand: []string{"fmt", "-recursive"},
@@ -44,7 +44,7 @@ var dependencies = wire.Value([]entities.Dependency{
 	{
 		Name:              "Terragrunt",
 		CLI:               "terragrunt",
-		BinaryURL:         "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_linux_amd64",
+		BinaryURL:         "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s",
 		VersionURL:        "https://api.github.com/repos/gruntwork-io/terragrunt/releases/latest",
 		RegexVersion:      `"tag_name":"v([^"]+)"`,
 		FormattingCommand: []string{"hclfmt", "**/*.hcl"},

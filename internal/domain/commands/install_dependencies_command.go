@@ -33,7 +33,7 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 
 		if !isDependencyCLIAvailable(dependency.CLI) {
 			logger.Warnf("%s is not installed, installing now...", dependency.Name)
-			install(fmt.Sprintf(dependency.BinaryURL, latestVersion), dependency.CLI)
+			install(dependency.GetBinaryURL(latestVersion), dependency.CLI)
 		} else {
 			// Dependency is installed, check if it's the latest version
 			currentVersion := getCurrentVersion(dependency.CLI)
@@ -48,7 +48,7 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 				// Current version is older than latest
 				if promptForUpdate(dependency.Name, currentVersion, latestVersion) {
 					logger.Infof("Updating %s from %s to %s...", dependency.Name, currentVersion, latestVersion)
-					install(fmt.Sprintf(dependency.BinaryURL, latestVersion), dependency.CLI)
+					install(dependency.GetBinaryURL(latestVersion), dependency.CLI)
 				} else {
 					logger.Infof("Skipping update for %s", dependency.Name)
 				}
