@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -10,7 +9,14 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+const (
+	notInstalledVersion    = "not installed"
+	latestAvailableVersion = "latest available"
+)
+
 // TerraVersion will be set at build time via ldflags
+//
+//nolint:gochecknoglobals // Version set at build time via ldflags
 var TerraVersion = "1.4.0"
 
 type VersionCommand struct {
@@ -24,15 +30,15 @@ func NewVersionCommand(dependencies []entities.Dependency) *VersionCommand {
 }
 
 func (it *VersionCommand) Execute() {
-	fmt.Printf("Terra version: %s\n", TerraVersion)
+	logger.Infof("Terra version: %s", TerraVersion)
 
 	// Get Terraform version
 	terraformVersion := it.getTerraformVersion()
-	fmt.Printf("Terraform version: %s\n", terraformVersion)
+	logger.Infof("Terraform version: %s", terraformVersion)
 
 	// Get Terragrunt version
 	terragruntVersion := it.getTerragruntVersion()
-	fmt.Printf("Terragrunt version: %s\n", terragruntVersion)
+	logger.Infof("Terragrunt version: %s", terragruntVersion)
 }
 
 func (it *VersionCommand) getTerraformVersion() string {
@@ -48,7 +54,7 @@ func (it *VersionCommand) getTerraformVersion() string {
 		}
 	}
 
-	return "not installed"
+	return notInstalledVersion
 }
 
 func (it *VersionCommand) getTerragruntVersion() string {
@@ -64,7 +70,7 @@ func (it *VersionCommand) getTerragruntVersion() string {
 		}
 	}
 
-	return "not installed"
+	return notInstalledVersion
 }
 
 func (it *VersionCommand) getVersionFromCLI(tool string) string {
@@ -98,8 +104,8 @@ func (it *VersionCommand) getVersionFromCLI(tool string) string {
 	return version
 }
 
-func (it *VersionCommand) getLatestVersionFromAPI(url, regexPattern string) string {
+func (it *VersionCommand) getLatestVersionFromAPI(_, _ string) string {
 	// Use the same logic as install command, but without the network call for now
 	// to avoid dependencies on external APIs for version display
-	return "latest available"
+	return latestAvailableVersion
 }

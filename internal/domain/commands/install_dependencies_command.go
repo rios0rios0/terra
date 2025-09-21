@@ -43,7 +43,8 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 			}
 
 			comparison := compareVersions(currentVersion, latestVersion)
-			if comparison < 0 {
+			switch {
+			case comparison < 0:
 				// Current version is older than latest
 				if promptForUpdate(dependency.Name, currentVersion, latestVersion) {
 					logger.Infof("Updating %s from %s to %s...", dependency.Name, currentVersion, latestVersion)
@@ -51,9 +52,9 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 				} else {
 					logger.Infof("Skipping update for %s", dependency.Name)
 				}
-			} else if comparison == 0 {
+			case comparison == 0:
 				logger.Infof("%s is already up to date (version %s)", dependency.Name, currentVersion)
-			} else {
+			default:
 				logger.Infof("%s version %s is newer than latest available %s", dependency.Name, currentVersion, latestVersion)
 			}
 		}
@@ -136,13 +137,19 @@ func compareVersions(v1, v2 string) int {
 	// Validate that all parts are numeric for proper semantic version comparison
 	for _, part := range parts1 {
 		if _, err := strconv.Atoi(part); err != nil {
-			logger.Warnf("Version %s contains non-numeric parts, cannot perform reliable comparison", v1)
+			logger.Warnf(
+				"Version %s contains non-numeric parts, cannot perform reliable comparison",
+				v1,
+			)
 			return strings.Compare(v1, v2)
 		}
 	}
 	for _, part := range parts2 {
 		if _, err := strconv.Atoi(part); err != nil {
-			logger.Warnf("Version %s contains non-numeric parts, cannot perform reliable comparison", v2)
+			logger.Warnf(
+				"Version %s contains non-numeric parts, cannot perform reliable comparison",
+				v2,
+			)
 			return strings.Compare(v1, v2)
 		}
 	}
@@ -176,9 +183,9 @@ func compareVersions(v1, v2 string) int {
 
 // prompt user for update confirmation
 func promptForUpdate(dependencyName, currentVersion, latestVersion string) bool {
-	fmt.Printf("%s is installed (version %s) but a newer version is available (%s).\n",
+	logger.Infof("%s is installed (version %s) but a newer version is available (%s).",
 		dependencyName, currentVersion, latestVersion)
-	fmt.Print("Do you want to update? [y/N]: ")
+	logger.Info("Do you want to update? [y/N]: ")
 
 	scanner := bufio.NewScanner(os.Stdin)
 	if !scanner.Scan() {

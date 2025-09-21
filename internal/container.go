@@ -8,7 +8,7 @@ import (
 	"github.com/rios0rios0/terra/internal/infrastructure/repositories"
 )
 
-//nolint:gochecknoglobals
+//nolint:gochecknoglobals // Wire dependency injection container
 var Container = wire.NewSet(
 	repositories.Container,
 	entities.Container,

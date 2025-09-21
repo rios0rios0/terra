@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -88,7 +87,13 @@ func TestCompareVersions(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			result := compareVersions(tt.v1, tt.v2)
 			if result != tt.expected {
-				t.Errorf("compareVersions(%q, %q) = %d, expected %d", tt.v1, tt.v2, result, tt.expected)
+				t.Errorf(
+					"compareVersions(%q, %q) = %d, expected %d",
+					tt.v1,
+					tt.v2,
+					result,
+					tt.expected,
+				)
 			}
 		})
 	}
@@ -121,7 +126,13 @@ func TestCompareVersionsWithNonNumericParts(t *testing.T) {
 			// For non-numeric versions, it should fall back to string comparison
 			expected := strings.Compare(tt.v1, tt.v2)
 			if result != expected {
-				t.Errorf("compareVersions(%q, %q) = %d, expected %d (string comparison)", tt.v1, tt.v2, result, expected)
+				t.Errorf(
+					"compareVersions(%q, %q) = %d, expected %d (string comparison)",
+					tt.v1,
+					tt.v2,
+					result,
+					expected,
+				)
 			}
 		})
 	}
@@ -197,6 +208,37 @@ func TestFetchLatestVersionWithServerError(t *testing.T) {
 // which terminates the process. In a real-world scenario, we would refactor this function
 // to return an error instead of calling Fatalf.
 
+// setupTestFiles creates test files in the given directory
+func setupTestFiles(t *testing.T, tempDir string, files []string) {
+	t.Helper()
+	for _, file := range files {
+		filePath := filepath.Join(tempDir, file)
+		dir := filepath.Dir(filePath)
+		if err := os.MkdirAll(dir, 0755); err != nil {
+			t.Fatalf("Failed to create directory %s: %v", dir, err)
+		}
+		if err := os.WriteFile(filePath, []byte("test content"), 0644); err != nil {
+			t.Fatalf("Failed to create test file %s: %v", filePath, err)
+		}
+	}
+}
+
+// validateTestResult checks if the result matches expected outcome
+func validateTestResult(t *testing.T, result string, err error, expectedFound bool, expectedSuffix string) {
+	t.Helper()
+	if expectedFound {
+		if err != nil {
+			t.Errorf("Expected to find binary, but got error: %v", err)
+		} else if !strings.HasSuffix(result, expectedSuffix) {
+			t.Errorf("Expected result to end with %q, got %q", expectedSuffix, result)
+		}
+	} else {
+		if err == nil {
+			t.Errorf("Expected error when binary not found, but got result: %s", result)
+		}
+	}
+}
+
 func TestFindBinaryInArchive(t *testing.T) {
 	// Create a temporary directory structure for testing
 	tempDir := t.TempDir()
@@ -269,31 +311,13 @@ func TestFindBinaryInArchive(t *testing.T) {
 			}
 
 			// Create test files
-			for _, file := range tt.createFiles {
-				filePath := filepath.Join(tempDir, file)
-				dir := filepath.Dir(filePath)
-				if err := os.MkdirAll(dir, 0755); err != nil {
-					t.Fatalf("Failed to create directory %s: %v", dir, err)
-				}
-				if err := os.WriteFile(filePath, []byte("test content"), 0644); err != nil {
-					t.Fatalf("Failed to create test file %s: %v", filePath, err)
-				}
-			}
+			setupTestFiles(t, tempDir, tt.createFiles)
 
 			// Test the function
 			result, err := findBinaryInArchive(tempDir, tt.binaryName)
 
-			if tt.expectedFound {
-				if err != nil {
-					t.Errorf("Expected to find binary, but got error: %v", err)
-				} else if !strings.HasSuffix(result, tt.expectedSuffix) {
-					t.Errorf("Expected result to end with %q, got %q", tt.expectedSuffix, result)
-				}
-			} else {
-				if err == nil {
-					t.Errorf("Expected error when binary not found, but got result: %s", result)
-				}
-			}
+			// Validate results
+			validateTestResult(t, result, err, tt.expectedFound, tt.expectedSuffix)
 		})
 	}
 }
@@ -370,28 +394,13 @@ func TestIsDependencyCLIAvailable(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+		t.Run(tt.name, func(_ *testing.T) {
 			// Just verify it doesn't panic
 			result := isDependencyCLIAvailable(tt.cliName)
 			// Result should be a boolean
 			_ = result
 		})
 	}
-}
-
-// Helper function to capture output for testing prompt functions
-func captureOutput(f func()) string {
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
-
-	f()
-
-	w.Close()
-	os.Stdout = old
-
-	output, _ := io.ReadAll(r)
-	return string(output)
 }
 
 func TestPromptForUpdate(t *testing.T) {
@@ -463,10 +472,10 @@ func TestPromptForUpdate(t *testing.T) {
 
 			// Save original stdin
 			oldStdin := os.Stdin
-			defer func() { os.Stdin = oldStdin }()
+			defer func() { os.Stdin = oldStdin }() //nolint:reassign // Restoring original stdin
 
 			// Replace stdin with our pipe
-			os.Stdin = r
+			os.Stdin = r //nolint:reassign // Necessary for input simulation in tests
 
 			// Write the test input in a goroutine
 			go func() {

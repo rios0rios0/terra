@@ -9,13 +9,17 @@ import (
 
 // MockRunFromRootCommand is a mock implementation of the RunFromRoot interface
 type MockRunFromRootCommand struct {
-	ExecuteCallCount   int
-	LastTargetPath     string
-	LastArguments      []string
-	LastDependencies   []entities.Dependency
+	ExecuteCallCount int
+	LastTargetPath   string
+	LastArguments    []string
+	LastDependencies []entities.Dependency
 }
 
-func (m *MockRunFromRootCommand) Execute(targetPath string, arguments []string, dependencies []entities.Dependency) {
+func (m *MockRunFromRootCommand) Execute(
+	targetPath string,
+	arguments []string,
+	dependencies []entities.Dependency,
+) {
 	m.ExecuteCallCount++
 	m.LastTargetPath = targetPath
 	m.LastArguments = arguments
@@ -42,11 +46,19 @@ func TestNewRunFromRootController(t *testing.T) {
 	}
 
 	if len(controller.dependencies) != len(dependencies) {
-		t.Errorf("Expected %d dependencies, got %d", len(dependencies), len(controller.dependencies))
+		t.Errorf(
+			"Expected %d dependencies, got %d",
+			len(dependencies),
+			len(controller.dependencies),
+		)
 	}
 
 	if controller.dependencies[0].Name != dependencies[0].Name {
-		t.Errorf("Expected dependency name %s, got %s", dependencies[0].Name, controller.dependencies[0].Name)
+		t.Errorf(
+			"Expected dependency name %s, got %s",
+			dependencies[0].Name,
+			controller.dependencies[0].Name,
+		)
 	}
 }
 
@@ -152,6 +164,9 @@ func TestRunFromRootController_ExecuteMultipleCalls(t *testing.T) {
 
 	// Verify that the command was called the correct number of times
 	if mockCommand.ExecuteCallCount != 3 {
-		t.Errorf("Expected Execute to be called 3 times, got %d calls", mockCommand.ExecuteCallCount)
+		t.Errorf(
+			"Expected Execute to be called 3 times, got %d calls",
+			mockCommand.ExecuteCallCount,
+		)
 	}
 }

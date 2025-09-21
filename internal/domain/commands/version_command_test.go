@@ -30,7 +30,11 @@ func TestNewVersionCommand(t *testing.T) {
 	}
 
 	if cmd.dependencies[0].Name != dependencies[0].Name {
-		t.Errorf("Expected dependency name %s, got %s", dependencies[0].Name, cmd.dependencies[0].Name)
+		t.Errorf(
+			"Expected dependency name %s, got %s",
+			dependencies[0].Name,
+			cmd.dependencies[0].Name,
+		)
 	}
 }
 
@@ -53,12 +57,12 @@ func TestVersionCommand_Execute(t *testing.T) {
 	// Capture stdout to test output
 	oldStdout := os.Stdout
 	r, w, _ := os.Pipe()
-	os.Stdout = w
+	os.Stdout = w //nolint:reassign // Necessary for output capture in tests
 
 	cmd.Execute()
 
 	w.Close()
-	os.Stdout = oldStdout
+	os.Stdout = oldStdout //nolint:reassign // Restoring original stdout
 
 	var buf bytes.Buffer
 	io.Copy(&buf, r)
@@ -102,7 +106,10 @@ func TestVersionCommand_getTerraformVersion(t *testing.T) {
 	if version != "latest available" && version != "not installed" {
 		// If terraform is actually installed, the version should be a valid version string
 		if !strings.Contains(version, ".") {
-			t.Errorf("Expected version to be 'latest available', 'not installed', or a valid version, got: %s", version)
+			t.Errorf(
+				"Expected version to be 'latest available', 'not installed', or a valid version, got: %s",
+				version,
+			)
 		}
 	}
 }
@@ -125,7 +132,10 @@ func TestVersionCommand_getTerragruntVersion(t *testing.T) {
 	if version != "latest available" && version != "not installed" {
 		// If terragrunt is actually installed, the version should be a valid version string
 		if !strings.Contains(version, ".") {
-			t.Errorf("Expected version to be 'latest available', 'not installed', or a valid version, got: %s", version)
+			t.Errorf(
+				"Expected version to be 'latest available', 'not installed', or a valid version, got: %s",
+				version,
+			)
 		}
 	}
 }

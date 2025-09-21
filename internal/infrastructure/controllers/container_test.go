@@ -33,7 +33,7 @@ func TestNewControllers(t *testing.T) {
 
 	// Verify the controllers are in the expected order
 	controllerSlice := *controllers
-	
+
 	if controllerSlice[0] != deleteCacheController {
 		t.Error("Expected first controller to be deleteCacheController")
 	}

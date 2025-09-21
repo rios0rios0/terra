@@ -11,8 +11,8 @@ import (
 // testDownloadSuccess is a helper function to test successful download for any OS implementation
 func testDownloadSuccess(t *testing.T, osImpl OS, testPrefix string) {
 	// Create a test server
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("test file content"))
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = w.Write([]byte("test file content"))
 	}))
 	defer server.Close()
 
@@ -38,7 +38,11 @@ func testDownloadSuccess(t *testing.T, osImpl OS, testPrefix string) {
 
 	expectedContent := "test file content"
 	if string(content) != expectedContent {
-		t.Errorf("Downloaded content doesn't match. Expected: '%s', Got: '%s'", expectedContent, string(content))
+		t.Errorf(
+			"Downloaded content doesn't match. Expected: '%s', Got: '%s'",
+			expectedContent,
+			string(content),
+		)
 	}
 }
 
@@ -46,9 +50,9 @@ func testDownloadSuccess(t *testing.T, osImpl OS, testPrefix string) {
 func testDownloadHTTPError(t *testing.T, osImpl OS, testPrefix string) {
 	t.Helper()
 	// Create a test server that returns an error
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal Server Error"))
+		_, _ = w.Write([]byte("Internal Server Error"))
 	}))
 	defer server.Close()
 
