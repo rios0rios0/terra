@@ -123,11 +123,10 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
 2. **Domain-specific organization** - All test utilities must be organized by their corresponding production packages:
    - **`test/domain/entities_doubles/`** - Stubs implementing domain entity interfaces (CLI, OS, etc.)
    - **`test/domain/entities_builders/`** - Builders that create domain entities for testing
-   - **`test/domain/entities_helpers/`** - Helpers that assist testing domain entity functionality
    - **`test/domain/commands_doubles/`** - Stubs implementing domain command interfaces
-   - **`test/domain/repositories_doubles/`** - Stubs implementing domain repository interfaces
+   - **`test/infrastructure/repositories_doubles/`** - Stubs implementing repository interfaces (infrastructure layer)
+   - **`test/infrastructure/repositories_helpers/`** - Helpers for testing repository/OS functionality
    - **`test/infrastructure/controllers_doubles/`** - Stubs implementing infrastructure controller interfaces
-   - **`test/infrastructure/repositories_doubles/`** - Stubs implementing infrastructure repository interfaces
    - **`test/infrastructure/controllers_helpers/`** - Helpers for testing controller functionality
 
 3. **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
@@ -139,8 +138,9 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
    - Helpers: `os_helpers.go`, `network_helpers.go`
 
 4. **Package naming** - Use descriptive package names that reflect the organization:
-   - `entities_doubles`, `entities_builders`, `entities_helpers`
-   - `commands_doubles`, `repositories_doubles`
+   - `entities_doubles`, `entities_builders`
+   - `commands_doubles`
+   - `repositories_doubles`, `repositories_helpers`
    - `controllers_doubles`, `controllers_helpers`
 
 #### Test Double Definitions
