@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
@@ -15,13 +16,13 @@ func TestInstallDependenciesIntegration(t *testing.T) {
 	}
 
 	// Use builder pattern to create test servers and dependency
-	versionServer, binaryServer := NewTestServerBuilder().
+	versionServer, binaryServer := commands.NewTestServerBuilder().
 		WithTerraformVersion("1.0.0").
 		BuildServers()
 	defer versionServer.Close()
 	defer binaryServer.Close()
 
-	dependency := NewDependencyBuilder().
+	dependency := commands.NewDependencyBuilder().
 		WithName("TestTool").
 		WithCLI("test-integration-tool-not-installed").
 		WithBinaryURL(binaryServer.URL + "/testtool_%s").
@@ -30,7 +31,7 @@ func TestInstallDependenciesIntegration(t *testing.T) {
 		Build()
 
 	// Execute the install command
-	cmd := NewInstallDependenciesCommand()
+	cmd := commands.NewInstallDependenciesCommand()
 	cmd.Execute([]entities.Dependency{dependency})
 
 	// Verify the installation completed
@@ -51,14 +52,14 @@ func TestInstallDependenciesIntegrationWithZip(t *testing.T) {
 	}
 
 	// Use builder pattern for zip file test
-	versionServer, binaryServer := NewTestServerBuilder().
+	versionServer, binaryServer := commands.NewTestServerBuilder().
 		WithTerraformVersion("2.0.0").
 		WithZipContent().
 		BuildServers()
 	defer versionServer.Close()
 	defer binaryServer.Close()
 
-	dependency := NewDependencyBuilder().
+	dependency := commands.NewDependencyBuilder().
 		WithName("TestZipTool").
 		WithCLI("test-zip-integration-tool-not-installed").
 		WithBinaryURL(binaryServer.URL + "/testziptool_%s.zip").
@@ -67,7 +68,7 @@ func TestInstallDependenciesIntegrationWithZip(t *testing.T) {
 		Build()
 
 	// Execute the install command
-	cmd := NewInstallDependenciesCommand()
+	cmd := commands.NewInstallDependenciesCommand()
 	cmd.Execute([]entities.Dependency{dependency})
 
 	// Verify the installation completed (may fail with mock zip, which is expected)
@@ -86,7 +87,7 @@ func TestInstallDependenciesIntegrationWithZip(t *testing.T) {
 
 func TestInstallDependenciesExecuteWithMixedDependencies(t *testing.T) {
 	// Use builder pattern for mixed dependencies test
-	versionServer, binaryServer := NewTestServerBuilder().
+	versionServer, binaryServer := commands.NewTestServerBuilder().
 		WithTerraformVersion("1.5.0").
 		WithTerragruntVersion("0.50.0").
 		BuildServers()
@@ -95,14 +96,14 @@ func TestInstallDependenciesExecuteWithMixedDependencies(t *testing.T) {
 
 	// Create test dependencies using builder pattern
 	dependencies := []entities.Dependency{
-		NewDependencyBuilder().
+		commands.NewDependencyBuilder().
 			WithName("TestTerraform").
 			WithCLI("test-terraform-unique-name").
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
 			WithVersionURL(versionServer.URL + "/terraform").
 			WithTerraformPattern().
 			Build(),
-		NewDependencyBuilder().
+		commands.NewDependencyBuilder().
 			WithName("TestTerragrunt").
 			WithCLI("test-terragrunt-unique-name").
 			WithBinaryURL(binaryServer.URL + "/terragrunt_%s").
@@ -112,7 +113,7 @@ func TestInstallDependenciesExecuteWithMixedDependencies(t *testing.T) {
 	}
 
 	// Execute the install command
-	cmd := NewInstallDependenciesCommand()
+	cmd := commands.NewInstallDependenciesCommand()
 	cmd.Execute(dependencies)
 
 	// Verify both dependencies were processed
@@ -139,14 +140,14 @@ func TestInstallDependenciesDownloadFailure(t *testing.T) {
 	t.Skip("Skipping test: cannot reliably test logger.Fatalf behavior that calls os.Exit()")
 
 	// Use builder pattern to create servers that simulate download failure
-	versionServer, binaryServer := NewTestServerBuilder().
+	versionServer, binaryServer := commands.NewTestServerBuilder().
 		WithTerraformVersion("1.13.3").
 		WithDownloadFailure(). // This will make binary server return 500 error
 		BuildServers()
 	defer versionServer.Close()
 	defer binaryServer.Close()
 
-	dependency := NewDependencyBuilder().
+	dependency := commands.NewDependencyBuilder().
 		WithName("TestDownloadFailure").
 		WithCLI("test-download-failure-tool").
 		WithBinaryURL(binaryServer.URL + "/terraform_%s").
@@ -158,7 +159,7 @@ func TestInstallDependenciesDownloadFailure(t *testing.T) {
 	// Note: The actual implementation calls logger.Fatalf on download failure,
 	// so in a real scenario this would exit the process. In production code,
 	// we might want to refactor this to return errors instead.
-	cmd := NewInstallDependenciesCommand()
+	cmd := commands.NewInstallDependenciesCommand()
 
 	// This test verifies that download failures are properly detected
 	// In the real scenario, the curl command will fail and the error will be logged
@@ -188,7 +189,7 @@ func TestInstallDependenciesNetworkTimeout(t *testing.T) {
 
 	// Create a dependency with an unreachable URL to simulate network issues
 	// Note: This uses a reserved IP address that should not be reachable
-	dependency := NewDependencyBuilder().
+	dependency := commands.NewDependencyBuilder().
 		WithName("TestNetworkFailure").
 		WithCLI("test-network-failure-tool").
 		WithBinaryURL("http://192.0.2.1/terraform_%s"). // RFC3330 reserved address
@@ -196,7 +197,7 @@ func TestInstallDependenciesNetworkTimeout(t *testing.T) {
 		WithTerraformPattern().
 		Build()
 
-	cmd := NewInstallDependenciesCommand()
+	cmd := commands.NewInstallDependenciesCommand()
 
 	// This test verifies that network failures are properly detected
 	defer func() {
