@@ -190,7 +190,7 @@ func TestCLIAzm_ShouldReturnCorrectCommand_WhenGetCommandChangeAccountCalled(t *
 	assert.Equal(t, expectedCommand, command)
 }
 
-// Note: Additional tests that were using table-driven tests with loops have been 
+// Note: Additional tests that were using table-driven tests with loops have been
 // removed in accordance with the contributing guidelines that state:
 // "NEVER use loops (for range) to create test cases inside a test method."
 // Each test scenario is now a separate, focused test function.

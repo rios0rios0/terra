@@ -19,7 +19,7 @@ func TestGetPlatformInfo_ShouldReturnValidPlatformInfo_WhenCalled(t *testing.T) 
 	// THEN: Should return valid OS and Arch values matching runtime
 	require.NotEmpty(t, platform.OS, "OS should not be empty")
 	require.NotEmpty(t, platform.Arch, "Arch should not be empty")
-	
+
 	assert.Equal(t, runtime.GOOS, platform.OS,
 		"OS should match runtime.GOOS")
 	assert.Equal(t, runtime.GOARCH, platform.Arch,
