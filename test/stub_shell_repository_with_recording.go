@@ -7,13 +7,13 @@ type CallRecord struct {
 	Directory string
 }
 
-// MockShellRepositoryWithRecording for testing with call recording
-type MockShellRepositoryWithRecording struct {
+// StubShellRepositoryWithRecording for testing with call recording
+type StubShellRepositoryWithRecording struct {
 	CallRecords       []CallRecord
 	ShouldReturnError bool
 }
 
-func (m *MockShellRepositoryWithRecording) ExecuteCommand(
+func (m *StubShellRepositoryWithRecording) ExecuteCommand(
 	command string,
 	arguments []string,
 	directory string,
@@ -25,7 +25,7 @@ func (m *MockShellRepositoryWithRecording) ExecuteCommand(
 	})
 
 	if m.ShouldReturnError {
-		return &MockError{message: "mock execution error"}
+		return &StubError{message: "stub execution error"}
 	}
 	return nil
 }

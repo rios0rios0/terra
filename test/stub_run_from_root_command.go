@@ -4,15 +4,15 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
-// MockRunFromRootCommand is a mock implementation of the RunFromRoot interface
-type MockRunFromRootCommand struct {
+// StubRunFromRootCommand is a stub implementation of the RunFromRoot interface
+type StubRunFromRootCommand struct {
 	ExecuteCallCount int
 	LastTargetPath   string
 	LastArguments    []string
 	LastDependencies []entities.Dependency
 }
 
-func (m *MockRunFromRootCommand) Execute(
+func (m *StubRunFromRootCommand) Execute(
 	targetPath string,
 	arguments []string,
 	dependencies []entities.Dependency,

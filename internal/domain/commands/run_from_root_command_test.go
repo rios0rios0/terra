@@ -16,10 +16,10 @@ func TestNewRunFromRootCommand(t *testing.T) {
 	
 	t.Run("should create instance when valid dependencies provided", func(t *testing.T) {
 		// GIVEN: Valid dependencies for creating the command
-		installCommand := &test.MockInstallDependencies{}
-		formatCommand := &test.MockFormatFiles{}
-		additionalBefore := &test.MockRunAdditionalBefore{}
-		repository := &test.MockShellRepositoryForRoot{}
+		installCommand := &test.StubInstallDependencies{}
+		formatCommand := &test.StubFormatFiles{}
+		additionalBefore := &test.StubRunAdditionalBefore{}
+		repository := &test.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 
 		// WHEN: Creating a new RunFromRootCommand
@@ -41,10 +41,10 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 	
 	t.Run("should execute all steps when normal execution", func(t *testing.T) {
 		// GIVEN: A command with all dependencies and normal arguments
-		installCommand := &test.MockInstallDependencies{}
-		formatCommand := &test.MockFormatFiles{}
-		additionalBefore := &test.MockRunAdditionalBefore{}
-		repository := &test.MockShellRepositoryForRoot{}
+		installCommand := &test.StubInstallDependencies{}
+		formatCommand := &test.StubFormatFiles{}
+		additionalBefore := &test.StubRunAdditionalBefore{}
+		repository := &test.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			installCommand,
@@ -90,10 +90,10 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 	
 	t.Run("should handle empty arguments when no arguments provided", func(t *testing.T) {
 		// GIVEN: A command with empty arguments
-		installCommand := &test.MockInstallDependencies{}
-		formatCommand := &test.MockFormatFiles{}
-		additionalBefore := &test.MockRunAdditionalBefore{}
-		repository := &test.MockShellRepositoryForRoot{}
+		installCommand := &test.StubInstallDependencies{}
+		formatCommand := &test.StubFormatFiles{}
+		additionalBefore := &test.StubRunAdditionalBefore{}
+		repository := &test.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			installCommand,
@@ -120,10 +120,10 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 	
 	t.Run("should handle empty dependencies when no dependencies provided", func(t *testing.T) {
 		// GIVEN: A command with empty dependencies
-		installCommand := &test.MockInstallDependencies{}
-		formatCommand := &test.MockFormatFiles{}
-		additionalBefore := &test.MockRunAdditionalBefore{}
-		repository := &test.MockShellRepositoryForRoot{}
+		installCommand := &test.StubInstallDependencies{}
+		formatCommand := &test.StubFormatFiles{}
+		additionalBefore := &test.StubRunAdditionalBefore{}
+		repository := &test.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			installCommand,
@@ -152,10 +152,10 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 	
 	t.Run("should pass correct target path when different paths used", func(t *testing.T) {
 		// GIVEN: A command with specific target path
-		installCommand := &test.MockInstallDependencies{}
-		formatCommand := &test.MockFormatFiles{}
-		additionalBefore := &test.MockRunAdditionalBefore{}
-		repository := &test.MockShellRepositoryForRoot{}
+		installCommand := &test.StubInstallDependencies{}
+		formatCommand := &test.StubFormatFiles{}
+		additionalBefore := &test.StubRunAdditionalBefore{}
+		repository := &test.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			installCommand,
@@ -179,10 +179,10 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 	
 	t.Run("should not use interactive mode when no auto answer flag", func(t *testing.T) {
 		// GIVEN: A command without auto-answer flag in arguments
-		installCommand := &test.MockInstallDependencies{}
-		formatCommand := &test.MockFormatFiles{}
-		additionalBefore := &test.MockRunAdditionalBefore{}
-		repository := &test.MockShellRepositoryForRoot{}
+		installCommand := &test.StubInstallDependencies{}
+		formatCommand := &test.StubFormatFiles{}
+		additionalBefore := &test.StubRunAdditionalBefore{}
+		repository := &test.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			installCommand,
