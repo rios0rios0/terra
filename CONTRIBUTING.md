@@ -57,6 +57,51 @@ Use:
 - `require.*` for critical assertions that should stop test execution
 - `mock.*` for creating test doubles and mocks
 
+### Build Tag Requirements
+
+**All test files MUST include appropriate build tags for categorization:**
+
+#### Unit Tests
+Unit tests (files in `internal/` directories) must use the `unit` build tag:
+
+```go
+//go:build unit
+
+package package_name_test
+```
+
+#### Integration Tests  
+Integration tests (files with `*_integration_test.go` pattern or BDD examples) must use the `integration` build tag:
+
+```go
+//go:build integration
+
+package package_name_test
+```
+
+#### Test Utilities
+All test helper files in the `/test` folder must use the inclusive build tag to ensure availability during both unit and integration testing:
+
+```go
+//go:build integration || unit || test
+
+package package_name
+```
+
+#### Running Tests by Category
+Use build tags to run specific test categories:
+
+```bash
+# Run only unit tests
+go test -tags unit ./...
+
+# Run only integration tests  
+go test -tags integration ./...
+
+# Run all tests (default behavior)
+go test ./...
+```
+
 ### Test Helper Organization
 
 **Test helpers and utilities MUST be located in the `/test` folder at the root of the project:**
