@@ -1,4 +1,4 @@
-package entities_builder
+package entity_builders
 
 import (
 	"github.com/rios0rios0/terra/internal/domain/entities"

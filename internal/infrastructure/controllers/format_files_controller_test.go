@@ -5,7 +5,7 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
-	"github.com/rios0rios0/terra/test/domain/commands_doubles"
+	"github.com/rios0rios0/terra/test/domain/command_doubles"
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

@@ -1,7 +1,7 @@
-package repositories_doubles
+package repository_doubles
 
-// StubShellRepositoryForRoot is a stub implementation of repositories.ShellRepository
-type StubShellRepositoryForRoot struct {
+// StubShellRepositoryForAdditional is a stub implementation of repositories.ShellRepository.
+type StubShellRepositoryForAdditional struct {
 	ExecuteCallCount int
 	LastCommand      string
 	LastArguments    []string
@@ -14,7 +14,7 @@ type StubShellRepositoryForRoot struct {
 	}
 }
 
-func (m *StubShellRepositoryForRoot) ExecuteCommand(
+func (m *StubShellRepositoryForAdditional) ExecuteCommand(
 	command string,
 	arguments []string,
 	directory string,

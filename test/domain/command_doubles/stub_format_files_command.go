@@ -1,4 +1,4 @@
-package commands_doubles
+package command_doubles
 
 import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
