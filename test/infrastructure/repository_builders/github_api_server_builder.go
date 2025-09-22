@@ -1,3 +1,5 @@
+//go:build integration || unit || test
+
 package repository_builders
 
 import (

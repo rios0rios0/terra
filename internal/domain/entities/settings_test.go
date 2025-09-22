@@ -1,3 +1,5 @@
+//go:build unit
+
 package entities_test
 
 import (
