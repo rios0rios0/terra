@@ -1,6 +1,6 @@
 module github.com/rios0rios0/terra
 
-go 1.24.7
+go 1.25.1
 
 require (
 	github.com/go-playground/validator/v10 v10.27.0
@@ -8,7 +8,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.10.1
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.11.1
 	go.uber.org/dig v1.19.0
 )
 
