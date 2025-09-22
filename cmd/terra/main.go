@@ -43,6 +43,13 @@ func addSubcommands(rootCmd *cobra.Command, appContext entities.AppContext) {
 				controller.Execute(command, arguments)
 			},
 		}
+
+		// Add flags for self-update command
+		if bind.Use == "self-update" {
+			subCmd.Flags().Bool("dry-run", false, "Show what would be updated without performing it")
+			subCmd.Flags().Bool("force", false, "Skip confirmation prompts")
+		}
+
 		rootCmd.AddCommand(subCmd)
 	}
 }
