@@ -1,4 +1,4 @@
-package entity_builders
+package entity_builders //nolint:revive,staticcheck // Test package naming follows established project structure
 
 import (
 	"github.com/rios0rios0/terra/internal/domain/entities"

@@ -1,4 +1,4 @@
-package repository_doubles
+package repository_doubles //nolint:revive,staticcheck // Test package naming follows established project structure
 
 // StubShellRepositoryForAdditional is a stub implementation of repositories.ShellRepository.
 type StubShellRepositoryForAdditional struct {

@@ -1,4 +1,4 @@
-package repository_helpers
+package repository_helpers //nolint:revive,staticcheck // Test package naming follows established project structure
 
 import (
 	"fmt"

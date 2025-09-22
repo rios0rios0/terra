@@ -1,4 +1,4 @@
-package repository_builders
+package repository_builders //nolint:revive,staticcheck // Test package naming follows established project structure
 
 import (
 	"net/http"

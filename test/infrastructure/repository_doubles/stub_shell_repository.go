@@ -1,4 +1,4 @@
-package repository_doubles
+package repository_doubles //nolint:revive,staticcheck // Test package naming follows established project structure
 
 import "github.com/rios0rios0/terra/test/domain/entity_doubles"
 
