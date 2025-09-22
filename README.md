@@ -132,7 +132,7 @@ TERRA_CLOUD=aws
 # AWS specific (required for role switching when using AWS)
 TERRA_AWS_ROLE_ARN=arn:aws:iam::123456789012:role/terraform-role
 
-# Azure specific (required for subscription switching when using Azure)  
+# Azure specific (required for subscription switching when using Azure)
 TERRA_AZURE_SUBSCRIPTION_ID=12345678-1234-1234-1234-123456789012
 
 # Optional: Terraform workspace
