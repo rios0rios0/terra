@@ -1,4 +1,4 @@
-package entities_doubles
+package entity_doubles
 
 // StubError implements the error interface for testing
 type StubError struct {

@@ -1,6 +1,6 @@
-package repositories_doubles
+package repository_doubles
 
-import "github.com/rios0rios0/terra/test/domain/entities_doubles"
+import "github.com/rios0rios0/terra/test/domain/entity_doubles"
 
 // CallRecord represents a single repository call
 type CallRecord struct {
@@ -27,7 +27,7 @@ func (m *StubShellRepositoryWithRecording) ExecuteCommand(
 	})
 
 	if m.ShouldReturnError {
-		return entities_doubles.NewStubError("stub execution error")
+		return entity_doubles.NewStubError("stub execution error")
 	}
 	return nil
 }

@@ -9,7 +9,7 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	"github.com/rios0rios0/terra/test/domain/entities_builder"
+	"github.com/rios0rios0/terra/test/domain/entity_builders"
 	"github.com/rios0rios0/terra/test/infrastructure/repository_builders"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,7 +27,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		dependency := entities_builder.NewDependencyBuilder().
+		dependency := entity_builders.NewDependencyBuilder().
 			WithName("TestTool").
 			WithCLI("test-integration-tool-not-installed").
 			WithBinaryURL(binaryServer.URL + "/testtool_%s").
@@ -64,7 +64,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		dependency := entities_builder.NewDependencyBuilder().
+		dependency := entity_builders.NewDependencyBuilder().
 			WithName("TestZipTool").
 			WithCLI("test-zip-integration-tool-not-installed").
 			WithBinaryURL(binaryServer.URL + "/testziptool_%s.zip").
@@ -99,7 +99,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		terraformDep := entities_builder.NewDependencyBuilder().
+		terraformDep := entity_builders.NewDependencyBuilder().
 			WithName("TestTerraform").
 			WithCLI("test-terraform-unique-name").
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
@@ -107,7 +107,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 			WithTerraformPattern().
 			Build()
 
-		terragruntDep := entities_builder.NewDependencyBuilder().
+		terragruntDep := entity_builders.NewDependencyBuilder().
 			WithName("TestTerragrunt").
 			WithCLI("test-terragrunt-unique-name").
 			WithBinaryURL(binaryServer.URL + "/terragrunt_%s").

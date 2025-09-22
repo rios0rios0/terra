@@ -5,8 +5,8 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	"github.com/rios0rios0/terra/test/domain/entities_doubles"
-	"github.com/rios0rios0/terra/test/infrastructure/repositories_doubles"
+	"github.com/rios0rios0/terra/test/domain/entity_doubles"
+	"github.com/rios0rios0/terra/test/infrastructure/repository_doubles"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -20,12 +20,12 @@ func TestNewRunAdditionalBeforeCommand(t *testing.T) {
 			TerraCloud:              "aws",
 			TerraTerraformWorkspace: "dev",
 		}
-		cli := &entities_doubles.StubCLI{
+		cli := &entity_doubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
 			CommandChangeAccount:  []string{"sts", "assume-role"},
 		}
-		repository := &repositories_doubles.StubShellRepositoryForAdditional{}
+		repository := &repository_doubles.StubShellRepositoryForAdditional{}
 
 		// WHEN: Creating a new RunAdditionalBeforeCommand
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
@@ -41,12 +41,12 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		cli := &entities_doubles.StubCLI{
+		cli := &entity_doubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
 			CommandChangeAccount:  []string{"sts", "assume-role", "--role-arn", "test-role"},
 		}
-		repository := &repositories_doubles.StubShellRepositoryForAdditional{}
+		repository := &repository_doubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan"}
@@ -66,12 +66,12 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		cli := &entities_doubles.StubCLI{
+		cli := &entity_doubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: false,
 			CommandChangeAccount:  []string{},
 		}
-		repository := &repositories_doubles.StubShellRepositoryForAdditional{}
+		repository := &repository_doubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan"}
@@ -91,7 +91,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		repository := &repositories_doubles.StubShellRepositoryForAdditional{}
+		repository := &repository_doubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan"}
@@ -110,7 +110,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		repository := &repositories_doubles.StubShellRepositoryForAdditional{}
+		repository := &repository_doubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan", "--detailed-exitcode"}
@@ -135,7 +135,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		repository := &repositories_doubles.StubShellRepositoryForAdditional{}
+		repository := &repository_doubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"init"}
@@ -156,7 +156,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
-		repository := &repositories_doubles.StubShellRepositoryForAdditional{}
+		repository := &repository_doubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"run-all", "plan"}
@@ -178,7 +178,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			TerraCloud:              "aws",
 			TerraTerraformWorkspace: "production",
 		}
-		repository := &repositories_doubles.StubShellRepositoryForAdditional{}
+		repository := &repository_doubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan"}
@@ -206,7 +206,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			TerraCloud:              "aws",
 			TerraTerraformWorkspace: "",
 		}
-		repository := &repositories_doubles.StubShellRepositoryForAdditional{}
+		repository := &repository_doubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
 		arguments := []string{"plan"}
@@ -228,12 +228,12 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			TerraCloud:              "aws",
 			TerraTerraformWorkspace: "staging",
 		}
-		cli := &entities_doubles.StubCLI{
+		cli := &entity_doubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
 			CommandChangeAccount:  []string{"sts", "assume-role"},
 		}
-		repository := &repositories_doubles.StubShellRepositoryForAdditional{}
+		repository := &repository_doubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
 		targetPath := "/test/path"
 		arguments := []string{"apply", "-auto-approve"}

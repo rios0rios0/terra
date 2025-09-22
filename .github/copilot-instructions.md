@@ -185,10 +185,10 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 **CRITICAL Test Helper Rules:**
 - **Test helpers MUST be placed in domain-specific subfolders within `/test` folder** - NEVER in production folders (internal/, cmd/, pkg/)
 - **Organization by domain**: 
-  - `/test/domain/entities_doubles/` - Stubs implementing entity interfaces (CLI, OS, etc.)
-  - `/test/domain/entities_builder/` - Builders that create domain entities
-  - `/test/domain/commands_doubles/` - Stubs implementing command interfaces
-  - `/test/infrastructure/repositories_doubles/` - Stubs implementing repository interfaces (infrastructure layer)
+  - `/test/domain/entity_doubles/` - Stubs implementing entity interfaces (CLI, OS, etc.)
+  - `/test/domain/entity_builders/` - Builders that create domain entities
+  - `/test/domain/command_doubles/` - Stubs implementing command interfaces
+  - `/test/infrastructure/repository_doubles/` - Stubs implementing repository interfaces (infrastructure layer)
   - `/test/infrastructure/repository_builders/` - Builders for infrastructure testing (HTTP servers, etc.)
   - `/test/infrastructure/repository_helpers/` - Helpers for testing repository/OS functionality
   - `/test/infrastructure/controllers_doubles/` - Stubs implementing controller interfaces
@@ -202,9 +202,9 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
 - **Domain-specific organization** - All test utilities must be organized by their corresponding production packages
 - **Package naming** - Use descriptive package names that reflect the organization:
-  - `entities_doubles`, `entities_builder`
-  - `commands_doubles`
-  - `repositories_doubles`, `repository_builders`, `repository_helpers`
+  - `entity_doubles`, `entity_builders`
+  - `command_doubles`
+  - `repository_doubles`, `repository_builders`, `repository_helpers`
   - `controllers_doubles`, `controller_helpers`
 - **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
   - Builders: `dependency_builder.go`, `test_server_builder.go`
@@ -248,8 +248,8 @@ func HelperDownloadSuccess(t *testing.T, osImpl entities.OS, testPrefix string) 
 
 **Example Builder Structure:**
 ```go
-// File: /test/domain/entities_builder/dependency_builder.go (Domain entity builders)
-package entities_builder
+// File: /test/domain/entity_builders/dependency_builder.go (Domain entity builders)
+package entity_builders
 
 import "github.com/rios0rios0/terra/internal/domain/entities"
 
@@ -278,8 +278,8 @@ func (b *TestServerBuilder) BuildServers() (*httptest.Server, *httptest.Server) 
 
 **Example Stub Structure:**
 ```go
-// File: /test/infrastructure/repositories_doubles/stub_shell_repository.go (Stubs in separate files)
-package repositories_doubles
+// File: /test/infrastructure/repository_doubles/stub_shell_repository.go (Stubs in separate files)
+package repository_doubles
 
 // StubShellRepository for testing shell-related commands
 type StubShellRepository struct { /* ... */ }
