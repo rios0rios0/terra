@@ -108,12 +108,4 @@ func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 		// THEN: Should skip non-binary files and find the correct binary
 		// This tests findBinaryInArchive file type filtering logic
 	})
-
-	t.Run("should handle binary not found in zip", func(t *testing.T) {
-		// Skip this test as it involves fatal logging when binary is not found
-		// The findBinaryInArchive method returns an error which causes install() to call logger.Fatalf
-		// This functionality is verified through the log output in other tests
-		// Testing this error path would require more complex setup to capture fatal logs
-		t.Skip("Skipping binary not found test - install method uses fatal logging on findBinaryInArchive error")
-	})
 }
