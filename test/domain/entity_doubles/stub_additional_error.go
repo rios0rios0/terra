@@ -1,3 +1,5 @@
+//go:build integration || unit || test
+
 package entity_doubles //nolint:staticcheck // Test package naming follows established project structure
 
 // StubAdditionalError implements the error interface.

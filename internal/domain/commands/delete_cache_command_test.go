@@ -1,3 +1,5 @@
+//go:build unit
+
 package commands_test
 
 import (
