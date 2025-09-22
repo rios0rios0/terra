@@ -16,6 +16,8 @@ var Container = wire.NewSet(
 	wire.Bind(new(RunAdditionalBefore), new(*RunAdditionalBeforeCommand)),
 	NewRunFromRootCommand,
 	wire.Bind(new(RunFromRoot), new(*RunFromRootCommand)),
+	NewSelfUpdateCommand,
+	wire.Bind(new(SelfUpdate), new(*SelfUpdateCommand)),
 	NewVersionCommand,
 	wire.Bind(new(Version), new(*VersionCommand)),
 )
