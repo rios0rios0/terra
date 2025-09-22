@@ -615,6 +615,11 @@ make horusec
 make all
 ```
 
+**File Standards:**
+- Ensure all files use LF (Unix) line endings, not CRLF (Windows)
+- The `.editorconfig` file enforces this standard for most editors
+- Update CHANGELOG.md for new features and bug fixes (not required for documentation-only changes)
+
 ### Pull Request Guidelines
 
 1. **Create focused PRs** - One feature or bug fix per pull request
@@ -622,6 +627,8 @@ make all
 3. **Include tests** - Follow all testing guidelines above
 4. **Update documentation** - Update relevant docs if your changes require it
 5. **Keep changes minimal** - Make the smallest possible changes to achieve your goal
+6. **Use LF line endings** - All new and edited files must use LF (Unix) line endings, not CRLF (Windows)
+7. **Update CHANGELOG.md** - Add entries to the `[Unreleased]` section for new features and bug fixes (not required for documentation-only changes)
 
 ### Environment Configuration
 
