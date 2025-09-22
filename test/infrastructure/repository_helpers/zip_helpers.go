@@ -83,28 +83,33 @@ func HelperCreateMixedContentZip(t *testing.T, binaryName string) []byte {
 	// Add README.md file
 	readmeFile, err := zipWriter.Create("README.md")
 	require.NoError(t, err)
-	readmeFile.Write([]byte("# Test Tool\nThis is a test tool."))
+	_, err = readmeFile.Write([]byte("# Test Tool\nThis is a test tool."))
+	require.NoError(t, err)
 	
 	// Add config.json file
 	configFile, err := zipWriter.Create("config.json")
 	require.NoError(t, err)
-	configFile.Write([]byte(`{"version": "1.0.0"}`))
+	_, err = configFile.Write([]byte(`{"version": "1.0.0"}`))
+	require.NoError(t, err)
 	
 	// Add LICENSE.txt file
 	licenseFile, err := zipWriter.Create("LICENSE.txt")
 	require.NoError(t, err)
-	licenseFile.Write([]byte("MIT License..."))
+	_, err = licenseFile.Write([]byte("MIT License..."))
+	require.NoError(t, err)
 	
 	// Add changelog.yml file
 	changelogFile, err := zipWriter.Create("CHANGELOG.yml")
 	require.NoError(t, err)
-	changelogFile.Write([]byte("v1.0.0:\n  - Initial release"))
+	_, err = changelogFile.Write([]byte("v1.0.0:\n  - Initial release"))
+	require.NoError(t, err)
 	
 	// Add the actual binary (no extension)
 	binaryFile, err := zipWriter.Create(binaryName)
 	require.NoError(t, err)
 	binaryContent := []byte("#!/bin/bash\necho 'actual binary'\n")
-	binaryFile.Write(binaryContent)
+	_, err = binaryFile.Write(binaryContent)
+	require.NoError(t, err)
 	
 	zipWriter.Close()
 	
