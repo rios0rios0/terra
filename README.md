@@ -149,7 +149,6 @@ If you have some input variables, you can use environment variables (`.env`) wit
 ```bash
 # .env example for Terraform variables
 TF_VAR_foo=bar
-
 # command (that depends on the environment variable called "foo")
 terra run-all apply /path/to/module
 ```
