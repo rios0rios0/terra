@@ -15,7 +15,6 @@ func TestNewFormatFilesCommand(t *testing.T) {
 
 	t.Run("should create instance when repository provided", func(t *testing.T) {
 		t.Parallel()
-		t.Parallel()
 		// GIVEN: A mock shell repository
 		mockRepo := &repository_doubles.StubShellRepository{}
 
@@ -31,7 +30,6 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should execute format commands when dependencies provided", func(t *testing.T) {
-		t.Parallel()
 		t.Parallel()
 		// GIVEN: A mock repository and dependencies with formatting commands
 		mockRepo := &repository_doubles.StubShellRepository{}

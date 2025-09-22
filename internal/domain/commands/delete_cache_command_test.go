@@ -15,7 +15,6 @@ func TestNewDeleteCacheCommand(t *testing.T) {
 
 	t.Run("should create instance when called", func(t *testing.T) {
 		t.Parallel()
-		t.Parallel()
 		// GIVEN: The NewDeleteCacheCommand constructor is available
 
 		// WHEN: Creating a new delete cache command
