@@ -77,9 +77,9 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		// WHEN: Executing the command
 		cmd.Execute(targetPath, arguments, dependencies)
 
-		// THEN: Should execute all preparation steps
-		assert.True(t, installCommand.ExecuteCalled, "Should execute install command")
-		assert.Equal(t, dependencies, installCommand.LastDependencies)
+		// THEN: Should execute preparation steps but not install
+		assert.False(t, installCommand.ExecuteCalled, "Should not execute install command automatically")
+		assert.Nil(t, installCommand.LastDependencies)
 
 		assert.True(t, formatCommand.ExecuteCalled, "Should execute format command")
 		assert.Equal(t, dependencies, formatCommand.LastDependencies)
@@ -119,7 +119,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		cmd.Execute(targetPath, arguments, dependencies)
 
 		// THEN: Should handle empty arguments gracefully
-		assert.True(t, installCommand.ExecuteCalled, "Should execute install command")
+		assert.False(t, installCommand.ExecuteCalled, "Should not execute install command automatically")
 		assert.True(t, formatCommand.ExecuteCalled, "Should execute format command")
 		assert.True(t, additionalBefore.ExecuteCalled, "Should execute additional before command")
 		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute terragrunt command")
@@ -155,8 +155,8 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		cmd.Execute(targetPath, arguments, dependencies)
 
 		// THEN: Should handle empty dependencies gracefully
-		assert.True(t, installCommand.ExecuteCalled, "Should execute install command")
-		assert.Equal(t, dependencies, installCommand.LastDependencies)
+		assert.False(t, installCommand.ExecuteCalled, "Should not execute install command automatically")
+		assert.Nil(t, installCommand.LastDependencies)
 
 		assert.True(t, formatCommand.ExecuteCalled, "Should execute format command")
 		assert.Equal(t, dependencies, formatCommand.LastDependencies)
