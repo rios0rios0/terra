@@ -40,7 +40,7 @@ go vet ./...
 
 # Full pipeline using Makefile targets (automatically clones pipelines project via HTTPS)
 make lint    # Runs golangci-lint via pipelines project
-make test    # Runs tests via pipelines project  
+make test    # Runs tests via pipelines project
 make horusec # Runs security scanning via pipelines project
 make all     # Runs lint + horusec + test
 ```
@@ -65,7 +65,7 @@ Terra requires environment variables for cloud provider configuration. Create a 
 TERRA_CLOUD=aws
 TERRA_AWS_ROLE_ARN=arn:aws:iam::123456789012:role/terraform-role
 
-# Required for Azure  
+# Required for Azure
 TERRA_CLOUD=azure
 TERRA_AZURE_SUBSCRIPTION_ID=12345678-1234-1234-1234-123456789012
 
@@ -85,7 +85,7 @@ This repository uses the [rios0rios0/pipelines](https://github.com/rios0rios0/pi
 
 - **CI Pipeline**: Uses `rios0rios0/pipelines/.github/workflows/go-binary.yaml@main`
 - **Local Development**: Use Makefile targets which automatically handle pipelines integration
-- **Linting**: Run `make lint` instead of manual script execution  
+- **Linting**: Run `make lint` instead of manual script execution
 - **Testing**: Run `make test` to execute all tests with coverage reporting
 - **Security Scanning**: Run `make horusec` for security analysis
 - **All Checks**: Run `make all` to execute lint + horusec + test
@@ -95,7 +95,7 @@ The Makefile automatically handles pipelines project setup using HTTPS (no SSH c
 ```bash
 # All these targets automatically clone/update pipelines project as needed
 make lint    # Linting via pipelines/global/scripts/golangci-lint/run.sh
-make test    # Testing via pipelines/global/scripts/golang/test/run.sh  
+make test    # Testing via pipelines/global/scripts/golang/test/run.sh
 make horusec # Security via pipelines/global/scripts/horusec/run.sh
 make all     # All quality checks
 ```
@@ -119,7 +119,7 @@ terra install
 # Apply all subdirectories in path
 terra run-all apply /path/to/infrastructure
 
-# Plan all subdirectories in path  
+# Plan all subdirectories in path
 terra run-all plan /path/to/infrastructure
 
 # Plan specific module
@@ -146,7 +146,7 @@ terra apply /path/to/infrastructure/module
 // Unit tests (files in internal/ directories)
 //go:build unit
 
-// Integration tests (*_integration_test.go, BDD examples)  
+// Integration tests (*_integration_test.go, BDD examples)
 //go:build integration
 
 // Test utilities (files in /test folder)
@@ -166,21 +166,21 @@ Each test file must organize tests by grouping them around public methods:
 ```go
 func TestStructName_MethodBeingTested(t *testing.T) {
     t.Parallel() // Use when no environment variables
-    
+
     t.Run("should return error when invalid input provided", func(t *testing.T) {
         // GIVEN: Setup test data and mocks
         invalidInput := "bad-data"
         service := NewService()
-        
+
         // WHEN: Execute the action being tested
         result, err := service.Process(invalidInput)
-        
+
         // THEN: Assert expected outcomes
         assert.Error(t, err)
         assert.Nil(t, result)
         assert.Contains(t, err.Error(), "invalid input")
     })
-    
+
     t.Run("should succeed when valid input provided", func(t *testing.T) {
         // Additional test case for same method
     })
@@ -207,15 +207,15 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 
 **CRITICAL Test Helper Rules:**
 - **Test helpers MUST be placed in domain-specific subfolders within `/test` folder** - NEVER in production folders (internal/, cmd/, pkg/)
-- **Organization by domain**: 
-  - `/test/domain/entity_doubles/` - Stubs implementing entity interfaces (CLI, OS, etc.)
-  - `/test/domain/entity_builders/` - Builders that create domain entities
-  - `/test/domain/command_doubles/` - Stubs implementing command interfaces
-  - `/test/infrastructure/repository_doubles/` - Stubs implementing repository interfaces (infrastructure layer)
-  - `/test/infrastructure/repository_builders/` - Builders for infrastructure testing (HTTP servers, etc.)
-  - `/test/infrastructure/repository_helpers/` - Helpers for testing repository/OS functionality
-  - `/test/infrastructure/controller_doubles/` - Stubs implementing controller interfaces
-  - `/test/infrastructure/controller_helpers/` - Helpers for controller testing
+- **Organization by domain**:
+  - `/test/domain/entitydoubles/` - Stubs implementing entity interfaces (CLI, OS, etc.)
+  - `/test/domain/entitybuilders/` - Builders that create domain entities
+  - `/test/domain/commanddoubles/` - Stubs implementing command interfaces
+  - `/test/infrastructure/repositorydoubles/` - Stubs implementing repository interfaces (infrastructure layer)
+  - `/test/infrastructure/repositorybuilders/` - Builders for infrastructure testing (HTTP servers, etc.)
+  - `/test/infrastructure/repositoryhelpers/` - Helpers for testing repository/OS functionality
+  - `/test/infrastructure/controllerdoubles/` - Stubs implementing controller interfaces
+  - `/test/infrastructure/controllerhelpers/` - Helpers for controller testing
 - **Test helpers in production folders affect coverage unnecessarily** and violate project standards
 - **Use `t.Helper()` in all helper functions** for better test failure reporting
 - **Name helpers with `Helper` prefix** - avoid `Test` prefix to prevent Go test runner conflicts
@@ -225,10 +225,10 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
 - **Domain-specific organization** - All test utilities must be organized by their corresponding production packages
 - **Package naming** - Use descriptive package names that reflect the organization:
-  - `entity_doubles`, `entity_builders`
-  - `command_doubles`
-  - `repository_doubles`, `repository_builders`, `repository_helpers`
-  - `controller_doubles`, `controller_helpers`
+  - `entitydoubles`, `entitybuilders`
+  - `commanddoubles`
+  - `repositorydoubles`, `repositorybuilders`, `repositoryhelpers`
+  - `controllerdoubles`, `controllerhelpers`
 - **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
   - Builders: `dependency_builder.go`, `test_server_builder.go`
   - Stubs: `stub_shell_repository.go`, `stub_install_dependencies.go`, `stub_cli.go`
@@ -241,7 +241,7 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 
 **Use Stubs when:**
 - Testing **state verification** (final output/result)
-- Controlling dependency return values for different test scenarios  
+- Controlling dependency return values for different test scenarios
 - Recording calls for later assertion (call count, parameters)
 - Testing query operations (data retrieval without side effects)
 
@@ -254,8 +254,8 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 
 **Example Test Helper Structure:**
 ```go
-// File: /test/infrastructure/repository_helpers/os_helpers.go (Helpers in separate files)
-package repository_helpers
+// File: /test/infrastructure/repositoryhelpers/os_helpers.go (Helpers in separate files)
+package repositoryhelpers
 
 import (
     "testing"
@@ -271,8 +271,8 @@ func HelperDownloadSuccess(t *testing.T, osImpl entities.OS, testPrefix string) 
 
 **Example Builder Structure:**
 ```go
-// File: /test/domain/entity_builders/dependency_builder.go (Domain entity builders)
-package entity_builders
+// File: /test/domain/entitybuilders/dependency_builder.go (Domain entity builders)
+package entitybuilders
 
 import "github.com/rios0rios0/terra/internal/domain/entities"
 
@@ -286,8 +286,8 @@ func (b *DependencyBuilder) Build() entities.Dependency { /* ... */ }
 
 **Example Infrastructure Builder Structure:**
 ```go
-// File: /test/infrastructure/repository_builders/test_server_builder.go (Infrastructure builders)
-package repository_builders
+// File: /test/infrastructure/repositorybuilders/test_server_builder.go (Infrastructure builders)
+package repositorybuilders
 
 import "net/http/httptest"
 
@@ -301,8 +301,8 @@ func (b *TestServerBuilder) BuildServers() (*httptest.Server, *httptest.Server) 
 
 **Example Stub Structure:**
 ```go
-// File: /test/infrastructure/repository_doubles/stub_shell_repository.go (Stubs in separate files)
-package repository_doubles
+// File: /test/infrastructure/repositorydoubles/stub_shell_repository.go (Stubs in separate files)
+package repositorydoubles
 
 // StubShellRepository for testing shell-related commands
 type StubShellRepository struct { /* ... */ }
@@ -359,7 +359,7 @@ Always test terra functionality after making changes:
 ### Key Directories
 ```
 cmd/terra/           # Main application entry point
-internal/domain/     # Business logic and entities  
+internal/domain/     # Business logic and entities
 internal/infrastructure/ # Controllers and repositories
 ```
 
@@ -396,7 +396,7 @@ TERRA_CLOUD=aws|azure
 # AWS specific (required if TERRA_CLOUD=aws and role switching needed)
 TERRA_AWS_ROLE_ARN=arn:aws:iam::account:role/name
 
-# Azure specific (required if TERRA_CLOUD=azure and subscription switching needed)  
+# Azure specific (required if TERRA_CLOUD=azure and subscription switching needed)
 TERRA_AZURE_SUBSCRIPTION_ID=subscription-id
 
 # Terraform workspace (optional)
