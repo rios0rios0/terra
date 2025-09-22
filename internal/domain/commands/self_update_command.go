@@ -81,7 +81,7 @@ func (it *SelfUpdateCommand) Execute(dryRun, force bool) error {
 	}
 }
 
-func (it *SelfUpdateCommand) fetchLatestRelease() (version, downloadURL string, err error) {
+func (it *SelfUpdateCommand) fetchLatestRelease() (string, string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), selfUpdateTimeout)
 	defer cancel()
 
@@ -113,7 +113,7 @@ func (it *SelfUpdateCommand) fetchLatestRelease() (version, downloadURL string, 
 	}
 
 	// Extract version from tag name (remove 'v' prefix if present)
-	version = strings.TrimPrefix(release.TagName, "v")
+	version := strings.TrimPrefix(release.TagName, "v")
 
 	// Find the appropriate binary for current platform
 	platform := entities.GetPlatformInfo()
@@ -171,7 +171,9 @@ func (it *SelfUpdateCommand) performUpdate(downloadURL string) error {
 	// Make the downloaded file executable
 	err = currentOS.MakeExecutable(tempFile)
 	if err != nil {
-		currentOS.Remove(tempFile) // Cleanup on error
+		if removeErr := currentOS.Remove(tempFile); removeErr != nil {
+			logger.Warnf("Failed to cleanup temp file: %v", removeErr)
+		}
 		return fmt.Errorf("failed to make downloaded file executable: %w", err)
 	}
 
@@ -179,7 +181,9 @@ func (it *SelfUpdateCommand) performUpdate(downloadURL string) error {
 	backupFile := currentExe + ".backup"
 	err = currentOS.Move(currentExe, backupFile)
 	if err != nil {
-		currentOS.Remove(tempFile) // Cleanup on error
+		if removeErr := currentOS.Remove(tempFile); removeErr != nil {
+			logger.Warnf("Failed to cleanup temp file: %v", removeErr)
+		}
 		return fmt.Errorf("failed to backup current binary: %w", err)
 	}
 
@@ -187,7 +191,9 @@ func (it *SelfUpdateCommand) performUpdate(downloadURL string) error {
 	err = currentOS.Move(tempFile, currentExe)
 	if err != nil {
 		// Try to restore backup on error
-		currentOS.Move(backupFile, currentExe)
+		if restoreErr := currentOS.Move(backupFile, currentExe); restoreErr != nil {
+			logger.Errorf("Failed to restore backup: %v", restoreErr)
+		}
 		return fmt.Errorf("failed to install new binary: %w", err)
 	}
 

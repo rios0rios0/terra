@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-// GitHubAPIServerBuilder helps create mock GitHub API servers for testing
+// GitHubAPIServerBuilder helps create mock GitHub API servers for testing.
 type GitHubAPIServerBuilder struct {
 	t              *testing.T
 	releaseVersion string
@@ -18,7 +18,7 @@ type GitHubAPIServerBuilder struct {
 	errorResponse  string
 }
 
-// NewGitHubAPIServerBuilder creates a new builder for GitHub API test servers
+// NewGitHubAPIServerBuilder creates a new builder for GitHub API test servers.
 func NewGitHubAPIServerBuilder(t *testing.T) *GitHubAPIServerBuilder {
 	t.Helper()
 	return &GitHubAPIServerBuilder{
@@ -27,7 +27,7 @@ func NewGitHubAPIServerBuilder(t *testing.T) *GitHubAPIServerBuilder {
 	}
 }
 
-// WithRelease sets up a mock release response
+// WithRelease sets up a mock release response.
 func (b *GitHubAPIServerBuilder) WithRelease(version, assetName, assetURL string) *GitHubAPIServerBuilder {
 	b.releaseVersion = version
 	b.assetName = assetName
@@ -35,23 +35,23 @@ func (b *GitHubAPIServerBuilder) WithRelease(version, assetName, assetURL string
 	return b
 }
 
-// WithStatusCode sets the HTTP status code to return
+// WithStatusCode sets the HTTP status code to return.
 func (b *GitHubAPIServerBuilder) WithStatusCode(code int) *GitHubAPIServerBuilder {
 	b.statusCode = code
 	return b
 }
 
-// WithErrorResponse sets an error response body
+// WithErrorResponse sets an error response body.
 func (b *GitHubAPIServerBuilder) WithErrorResponse(errorMsg string) *GitHubAPIServerBuilder {
 	b.errorResponse = errorMsg
 	return b
 }
 
-// BuildServer creates and returns a test server
+// BuildServer creates and returns a test server.
 func (b *GitHubAPIServerBuilder) BuildServer() *httptest.Server {
 	b.t.Helper()
 	
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(b.statusCode)
 		
@@ -84,11 +84,11 @@ func (b *GitHubAPIServerBuilder) BuildServer() *httptest.Server {
 	return server
 }
 
-// BuildBinaryServer creates a test server that serves binary files
+// BuildBinaryServer creates a test server that serves binary files.
 func (b *GitHubAPIServerBuilder) BuildBinaryServer() *httptest.Server {
 	b.t.Helper()
 	
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.WriteHeader(http.StatusOK)
 		// Simulate a binary file with some dummy content
