@@ -8,7 +8,6 @@ Always reference these instructions first and fallback to search or bash command
 
 ### Prerequisites and Environment Setup
 - Ensure Go 1.23+ is installed and `go` is in PATH
-- Add `~/go/bin` to PATH for wire tool: `export PATH=$PATH:~/go/bin`
 - For linting and CI tools, use the pipelines project (https://github.com/rios0rios0/pipelines)
 - NEVER CANCEL: Build takes 15-20 seconds. NEVER CANCEL. Set timeout to 60+ minutes for safety.
 
@@ -16,7 +15,6 @@ Always reference these instructions first and fallback to search or bash command
 Bootstrap and build the repository:
 ```bash
 # Build terra binary
-export PATH=$PATH:~/go/bin
 make build
 ```
 
@@ -373,24 +371,22 @@ internal/infrastructure/ # Controllers and repositories
 - `internal/domain/entities/settings.go` - Environment variable configuration
 - `internal/infrastructure/helpers/arguments_helper.go` - Command argument parsing (has known bugs)
 
-### Wire Dependency Injection
-- Uses Google Wire for dependency injection
-- `wire ./...` generates wire_gen.go files
-- Requires wire tool in PATH: `export PATH=$PATH:~/go/bin`
+### DIG Dependency Injection
+- Uses Uber's DIG for runtime dependency injection
+- Providers are registered in container.go files in each layer
+- No code generation required
 
 ## Common Tasks
 
 ### Adding New Commands
 1. Create command in `internal/domain/commands/`
 2. Create controller in `internal/infrastructure/controllers/`
-3. Register in `internal/infrastructure/controllers/container.go`
-4. Run `wire ./...` to regenerate dependencies
-5. Rebuild and test
+3. Add providers to respective container.go files
+4. Rebuild and test
 
 ### Debugging Build Issues
-- Ensure PATH includes `~/go/bin` for wire tool
 - Run `go mod tidy` after dependency changes
-- Check wire_gen.go files are properly generated
+- Check container.go files have proper DIG provider registration
 
 ### Environment Variables Reference
 ```bash
@@ -414,7 +410,7 @@ TF_VAR_*=value
 - **Build Time**: 15-20 seconds typical, NEVER CANCEL builds
 - **Linting Time**: 2-5 minutes with `make lint`, NEVER CANCEL
 - **Testing Time**: 1-2 minutes with `make test`, includes coverage reporting
-- **Dependencies**: Requires wire tool in PATH for successful builds
+- **Dependencies**: DIG-based dependency injection, no code generation needed
 - **Pipelines**: Use Makefile targets which automatically handle pipelines project via HTTPS
 - **Install Failures**: `terra install` will fail in restricted network environments - this is expected behavior
 
