@@ -191,7 +191,7 @@ When multiple test files test the same method, use descriptive suffixes to avoid
   - `/test/infrastructure/repository_doubles/` - Stubs implementing repository interfaces (infrastructure layer)
   - `/test/infrastructure/repository_builders/` - Builders for infrastructure testing (HTTP servers, etc.)
   - `/test/infrastructure/repository_helpers/` - Helpers for testing repository/OS functionality
-  - `/test/infrastructure/controllers_doubles/` - Stubs implementing controller interfaces
+  - `/test/infrastructure/controller_doubles/` - Stubs implementing controller interfaces
   - `/test/infrastructure/controller_helpers/` - Helpers for controller testing
 - **Test helpers in production folders affect coverage unnecessarily** and violate project standards
 - **Use `t.Helper()` in all helper functions** for better test failure reporting
@@ -205,7 +205,7 @@ When multiple test files test the same method, use descriptive suffixes to avoid
   - `entity_doubles`, `entity_builders`
   - `command_doubles`
   - `repository_doubles`, `repository_builders`, `repository_helpers`
-  - `controllers_doubles`, `controller_helpers`
+  - `controller_doubles`, `controller_helpers`
 - **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
   - Builders: `dependency_builder.go`, `test_server_builder.go`
   - Stubs: `stub_shell_repository.go`, `stub_install_dependencies.go`, `stub_cli.go`
