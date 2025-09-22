@@ -1,13 +1,12 @@
 package commands_test
 
 import (
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/test/domain/entity_builders"
+	"github.com/rios0rios0/terra/test/infrastructure/repository_helpers"
 )
 
 // TestInstallDependenciesCommand_Execute_InstallScenarios tests install method coverage
@@ -16,10 +15,10 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	
 	t.Run("should handle non-zip binary installation", func(t *testing.T) {
 		// GIVEN: A server that serves a non-zip binary file
-		binaryServer := createNonZipBinaryServer(t)
+		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
 		
-		versionServer := createSimpleVersionServer(t, "1.0.0")
+		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "1.0.0")
 		defer versionServer.Close()
 
 		dependency := entity_builders.NewDependencyBuilder().
@@ -40,10 +39,10 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 
 	t.Run("should handle directory creation for installation", func(t *testing.T) {
 		// GIVEN: A dependency that will require installation directory creation
-		binaryServer := createNonZipBinaryServer(t)
+		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
 		
-		versionServer := createSimpleVersionServer(t, "2.0.0")
+		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "2.0.0")
 		defer versionServer.Close()
 
 		dependency := entity_builders.NewDependencyBuilder().
@@ -64,10 +63,10 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 
 	t.Run("should handle installation path permissions", func(t *testing.T) {
 		// GIVEN: A binary that needs to be made executable
-		binaryServer := createNonZipBinaryServer(t)
+		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
 		
-		versionServer := createSimpleVersionServer(t, "3.0.0")
+		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "3.0.0")
 		defer versionServer.Close()
 
 		dependency := entity_builders.NewDependencyBuilder().
@@ -88,10 +87,10 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 
 	t.Run("should handle temp file creation and cleanup", func(t *testing.T) {
 		// GIVEN: A zip binary that will trigger temp file creation and cleanup
-		zipServer := createSimpleZipServer(t, "temp-test-binary")
+		zipServer := repository_helpers.HelperCreateSimpleZipServer(t, "temp-test-binary")
 		defer zipServer.Close()
 		
-		versionServer := createSimpleVersionServer(t, "1.5.0")
+		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "1.5.0")
 		defer versionServer.Close()
 
 		dependency := entity_builders.NewDependencyBuilder().
@@ -112,10 +111,10 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 
 	t.Run("should handle file type detection", func(t *testing.T) {
 		// GIVEN: A binary that will trigger file type detection
-		binaryServer := createNonZipBinaryServer(t)
+		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
 		
-		versionServer := createSimpleVersionServer(t, "4.0.0")
+		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "4.0.0")
 		defer versionServer.Close()
 
 		dependency := entity_builders.NewDependencyBuilder().
@@ -133,40 +132,4 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 		// THEN: Should detect file type using `file` command
 		// This tests the exec.CommandContext for file type detection in install method
 	})
-}
-
-// createNonZipBinaryServer creates a server that serves a regular binary (not zip)
-func createNonZipBinaryServer(t *testing.T) *httptest.Server {
-	t.Helper()
-	
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Serve a simple binary content
-		binaryContent := []byte("#!/bin/bash\necho 'test binary'\n")
-		w.Header().Set("Content-Type", "application/octet-stream")
-		w.Write(binaryContent)
-	}))
-}
-
-// createSimpleVersionServer creates a version server with given version
-func createSimpleVersionServer(t *testing.T, version string) *httptest.Server {
-	t.Helper()
-	
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response := `{"current_version":"` + version + `"}`
-		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(response))
-	}))
-}
-
-// createSimpleZipServer creates a server that serves a zip file
-func createSimpleZipServer(t *testing.T, binaryName string) *httptest.Server {
-	t.Helper()
-	
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Create a simple zip file in memory (reuse from existing zip test)
-		zipData := createZipWithBinary(t, binaryName)
-		
-		w.Header().Set("Content-Type", "application/zip")
-		w.Write(zipData)
-	}))
 }
