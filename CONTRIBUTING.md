@@ -631,11 +631,9 @@ func TestInstallCommand_ShouldDownloadDependency_WhenValidURLProvided(t *testing
 ### Before Starting Development
 
 1. Ensure Go 1.23+ is installed
-2. Add `~/go/bin` to your PATH for the wire tool
-3. Clone the repository and navigate to the project directory
+2. Clone the repository and navigate to the project directory
 
 ```bash
-export PATH=$PATH:~/go/bin
 make build
 ```
 
