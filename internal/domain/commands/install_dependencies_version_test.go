@@ -11,15 +11,18 @@ import (
 	"github.com/rios0rios0/terra/test/infrastructure/repository_helpers"
 )
 
-// TestInstallDependenciesCommand_Execute_VersionScenarios tests version comparison and prompt functionality
+// TestInstallDependenciesCommand_Execute_VersionScenarios tests version comparison and prompt functionality.
+//
+//nolint:tparallel // Cannot use t.Parallel() when manipulating PATH and creating temporary binaries
 func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when manipulating PATH and creating temporary binaries
-	
+
 	t.Run("should trigger version comparison with mock terraform", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock terraform binary that returns a proper version
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.0.0")
 		defer os.RemoveAll(mockBinaryDir)
-		
+
 		// Prepend mock binary directory to PATH
 		originalPath := os.Getenv("PATH")
 		newPath := mockBinaryDir + string(os.PathListSeparator) + originalPath
@@ -43,10 +46,10 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		// Mock stdin to simulate "no" response to update prompt
 		oldStdin := os.Stdin
 		r, w, _ := os.Pipe()
-		os.Stdin = r
+		os.Stdin = r //nolint:reassign // Intentional os.Stdin reassignment for testing user input
 		go func() {
 			defer w.Close()
-			w.Write([]byte("no\n"))
+			w.WriteString("no\n")
 		}()
 
 		// WHEN: Executing the command
@@ -54,7 +57,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		cmd.Execute([]entities.Dependency{dependency})
 
 		// Restore stdin
-		os.Stdin = oldStdin
+		os.Stdin = oldStdin //nolint:reassign // Intentional os.Stdin reassignment for testing user input
 		r.Close()
 
 		// THEN: Should have triggered getCurrentVersion, compareVersions, and promptForUpdate
@@ -62,10 +65,11 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	})
 
 	t.Run("should trigger version comparison with equal versions", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock terraform binary that returns same version as server
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.5.0")
 		defer os.RemoveAll(mockBinaryDir)
-		
+
 		// Prepend mock binary directory to PATH
 		originalPath := os.Getenv("PATH")
 		newPath := mockBinaryDir + string(os.PathListSeparator) + originalPath
@@ -94,10 +98,11 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	})
 
 	t.Run("should trigger version comparison with newer local version", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock terraform binary that returns newer version than server
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "2.0.0")
 		defer os.RemoveAll(mockBinaryDir)
-		
+
 		// Prepend mock binary directory to PATH
 		originalPath := os.Getenv("PATH")
 		newPath := mockBinaryDir + string(os.PathListSeparator) + originalPath
@@ -126,10 +131,11 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle user accepting update prompt", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock terraform binary with older version
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.0.0")
 		defer os.RemoveAll(mockBinaryDir)
-		
+
 		// Prepend mock binary directory to PATH
 		originalPath := os.Getenv("PATH")
 		newPath := mockBinaryDir + string(os.PathListSeparator) + originalPath
@@ -153,10 +159,10 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		// Mock stdin to simulate "yes" response to update prompt
 		oldStdin := os.Stdin
 		r, w, _ := os.Pipe()
-		os.Stdin = r
+		os.Stdin = r //nolint:reassign // Intentional os.Stdin reassignment for testing user input
 		go func() {
 			defer w.Close()
-			w.Write([]byte("yes\n"))
+			w.WriteString("yes\n")
 		}()
 
 		// WHEN: Executing the command
@@ -164,7 +170,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		cmd.Execute([]entities.Dependency{dependency})
 
 		// Restore stdin
-		os.Stdin = oldStdin
+		os.Stdin = oldStdin //nolint:reassign // Intentional os.Stdin reassignment for testing user input
 		r.Close()
 
 		// THEN: Should have triggered promptForUpdate returning true and install path

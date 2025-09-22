@@ -15,6 +15,7 @@ func TestNewInstallDependenciesController(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should create instance when command and dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock command and test dependencies
 		mockCommand := &command_doubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{
@@ -40,6 +41,7 @@ func TestInstallDependenciesController_GetBind(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should return correct bind when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: An install dependencies controller with mock command and empty dependencies
 		mockCommand := &command_doubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{}
@@ -50,8 +52,16 @@ func TestInstallDependenciesController_GetBind(t *testing.T) {
 
 		// THEN: Should return correct bind configuration
 		assert.Equal(t, "install", bind.Use)
-		assert.Equal(t, "Install or update Terraform and Terragrunt to the latest versions", bind.Short)
-		assert.Equal(t, "Install all the dependencies required to run Terra, or update them if newer versions are available. Dependencies are installed to ~/.local/bin on Linux.", bind.Long)
+		assert.Equal(
+			t,
+			"Install or update Terraform and Terragrunt to the latest versions",
+			bind.Short,
+		)
+		assert.Equal(
+			t,
+			"Install all the dependencies required to run Terra, or update them if newer versions are available. Dependencies are installed to ~/.local/bin on Linux.",
+			bind.Long,
+		)
 	})
 }
 
@@ -59,6 +69,7 @@ func TestInstallDependenciesController_Execute(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should execute command when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: An install dependencies controller with mock command and test dependencies
 		mockCommand := &command_doubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{
@@ -80,12 +91,13 @@ func TestInstallDependenciesController_Execute(t *testing.T) {
 
 		// THEN: Should execute the command with correct dependencies
 		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
-		assert.Equal(t, len(dependencies), len(mockCommand.LastDependencies))
+		assert.Len(t, mockCommand.LastDependencies, len(dependencies))
 		assert.Equal(t, dependencies[0].Name, mockCommand.LastDependencies[0].Name)
 		assert.Equal(t, dependencies[1].Name, mockCommand.LastDependencies[1].Name)
 	})
 
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: An install dependencies controller with mock command and test dependencies
 		mockCommand := &command_doubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{

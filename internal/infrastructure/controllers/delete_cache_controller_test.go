@@ -14,6 +14,7 @@ func TestNewDeleteCacheController(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should create instance when command provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock delete cache command
 		mockCommand := &command_doubles.StubDeleteCacheCommand{}
 
@@ -29,6 +30,7 @@ func TestDeleteCacheController_GetBind(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should return correct bind when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A delete cache controller
 		mockCommand := &command_doubles.StubDeleteCacheCommand{}
 		controller := controllers.NewDeleteCacheController(mockCommand)
@@ -39,7 +41,11 @@ func TestDeleteCacheController_GetBind(t *testing.T) {
 		// THEN: Should return correct bind configuration
 		assert.Equal(t, "clear", bind.Use)
 		assert.Equal(t, "Clear all cache and modules directories", bind.Short)
-		assert.Equal(t, "Clear all temporary directories and cache folders created during the Terraform and Terragrunt execution.", bind.Long)
+		assert.Equal(
+			t,
+			"Clear all temporary directories and cache folders created during the Terraform and Terragrunt execution.",
+			bind.Long,
+		)
 	})
 }
 
@@ -47,6 +53,7 @@ func TestDeleteCacheController_Execute(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should execute command when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A delete cache controller with mock command
 		mockCommand := &command_doubles.StubDeleteCacheCommand{}
 		controller := controllers.NewDeleteCacheController(mockCommand)
@@ -63,6 +70,7 @@ func TestDeleteCacheController_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A delete cache controller with mock command
 		mockCommand := &command_doubles.StubDeleteCacheCommand{}
 		controller := controllers.NewDeleteCacheController(mockCommand)

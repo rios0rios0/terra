@@ -12,8 +12,9 @@ import (
 
 func TestGetPlatformInfo(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return valid platform info when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: No preconditions needed
 
 		// WHEN: Getting platform information
@@ -32,8 +33,9 @@ func TestGetPlatformInfo(t *testing.T) {
 
 func TestPlatformInfo_GetPlatformString(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return formatted string when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with specific OS and architecture
 		platform := entities.PlatformInfo{
 			OS:   "linux",
@@ -52,8 +54,9 @@ func TestPlatformInfo_GetPlatformString(t *testing.T) {
 
 func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return amd64 when called with amd64", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with amd64 architecture
 		platform := entities.PlatformInfo{Arch: "amd64"}
 
@@ -64,8 +67,9 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 		assert.Equal(t, "amd64", result,
 			"Should return amd64 for amd64 architecture")
 	})
-	
+
 	t.Run("should return arm64 when called with arm64", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with arm64 architecture
 		platform := entities.PlatformInfo{Arch: "arm64"}
 
@@ -76,8 +80,9 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 		assert.Equal(t, "arm64", result,
 			"Should return arm64 for arm64 architecture")
 	})
-	
+
 	t.Run("should return 386 when called with 386", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with 386 architecture
 		platform := entities.PlatformInfo{Arch: "386"}
 
@@ -88,8 +93,9 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 		assert.Equal(t, "386", result,
 			"Should return 386 for 386 architecture")
 	})
-	
+
 	t.Run("should return arm64 when called with android arm64", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with android_arm64 architecture
 		platform := entities.PlatformInfo{Arch: "android_arm64"}
 
@@ -100,8 +106,9 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 		assert.Equal(t, "arm64", result,
 			"Should return arm64 for android_arm64 architecture")
 	})
-	
+
 	t.Run("should return amd64 when called with android amd64", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with android_amd64 architecture
 		platform := entities.PlatformInfo{Arch: "android_amd64"}
 
@@ -112,8 +119,9 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 		assert.Equal(t, "amd64", result,
 			"Should return amd64 for android_amd64 architecture")
 	})
-	
+
 	t.Run("should return 386 when called with android 386", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with android_386 architecture
 		platform := entities.PlatformInfo{Arch: "android_386"}
 
@@ -128,8 +136,9 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 
 func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return amd64 when called with amd64", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with amd64 architecture
 		platform := entities.PlatformInfo{Arch: "amd64"}
 
@@ -140,8 +149,9 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 		assert.Equal(t, "amd64", result,
 			"Should return amd64 for amd64 architecture")
 	})
-	
+
 	t.Run("should return arm64 when called with arm64", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with arm64 architecture
 		platform := entities.PlatformInfo{Arch: "arm64"}
 
@@ -152,8 +162,9 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 		assert.Equal(t, "arm64", result,
 			"Should return arm64 for arm64 architecture")
 	})
-	
+
 	t.Run("should return 386 when called with 386", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with 386 architecture
 		platform := entities.PlatformInfo{Arch: "386"}
 
@@ -164,8 +175,9 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 		assert.Equal(t, "386", result,
 			"Should return 386 for 386 architecture")
 	})
-	
+
 	t.Run("should return arm64 when called with android arm64", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with android_arm64 architecture
 		platform := entities.PlatformInfo{Arch: "android_arm64"}
 
@@ -176,8 +188,9 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 		assert.Equal(t, "arm64", result,
 			"Should return arm64 for android_arm64 architecture")
 	})
-	
+
 	t.Run("should return amd64 when called with android amd64", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with android_amd64 architecture
 		platform := entities.PlatformInfo{Arch: "android_amd64"}
 
@@ -188,8 +201,9 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 		assert.Equal(t, "amd64", result,
 			"Should return amd64 for android_amd64 architecture")
 	})
-	
+
 	t.Run("should return 386 when called with android 386", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with android_386 architecture
 		platform := entities.PlatformInfo{Arch: "android_386"}
 
@@ -204,8 +218,9 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 
 func TestPlatformInfo_GetOSString(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return linux when called with linux", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with linux OS
 		platform := entities.PlatformInfo{OS: "linux"}
 
@@ -216,8 +231,9 @@ func TestPlatformInfo_GetOSString(t *testing.T) {
 		assert.Equal(t, "linux", result,
 			"Should return linux for linux OS")
 	})
-	
+
 	t.Run("should return windows when called with windows", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with windows OS
 		platform := entities.PlatformInfo{OS: "windows"}
 
@@ -228,8 +244,9 @@ func TestPlatformInfo_GetOSString(t *testing.T) {
 		assert.Equal(t, "windows", result,
 			"Should return windows for windows OS")
 	})
-	
+
 	t.Run("should return darwin when called with darwin", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with darwin OS
 		platform := entities.PlatformInfo{OS: "darwin"}
 
@@ -240,8 +257,9 @@ func TestPlatformInfo_GetOSString(t *testing.T) {
 		assert.Equal(t, "darwin", result,
 			"Should return darwin for darwin OS")
 	})
-	
+
 	t.Run("should return linux when called with android", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A platform info with android OS
 		platform := entities.PlatformInfo{OS: "android"}
 

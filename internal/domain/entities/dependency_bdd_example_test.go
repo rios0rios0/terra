@@ -12,44 +12,49 @@ import (
 
 func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 	t.Parallel()
-	
-	t.Run("should generate platform specific URL when platform placeholders provided", func(t *testing.T) {
-		// GIVEN: A dependency with platform-specific URL template
-		dependency := entities.Dependency{
-			Name:      "Terraform",
-			CLI:       "terraform",
-			BinaryURL: "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
-		}
-		version := "1.5.0"
 
-		// WHEN: GetBinaryURL is called with a version
-		result := dependency.GetBinaryURL(version)
+	t.Run(
+		"should generate platform specific URL when platform placeholders provided",
+		func(t *testing.T) {
+			t.Parallel()
+			// GIVEN: A dependency with platform-specific URL template
+			dependency := entities.Dependency{
+				Name:      "Terraform",
+				CLI:       "terraform",
+				BinaryURL: "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
+			}
+			version := "1.5.0"
 
-		// THEN: URL should contain version, OS, and architecture
-		require.NotEmpty(t, result, "Binary URL should not be empty")
+			// WHEN: GetBinaryURL is called with a version
+			result := dependency.GetBinaryURL(version)
 
-		platform := entities.GetPlatformInfo()
-		expectedSubstrings := []string{
-			"https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0",
-			platform.GetOSString(),            // Use GetOSString() instead of runtime.GOOS for Android compatibility
-			platform.GetTerraformArchString(), // Use GetTerraformArchString() for consistent arch handling
-			".zip",
-		}
+			// THEN: URL should contain version, OS, and architecture
+			require.NotEmpty(t, result, "Binary URL should not be empty")
 
-		for _, substring := range expectedSubstrings {
-			assert.Contains(t, result, substring,
-				"URL should contain platform-specific information: %s", substring)
-		}
+			platform := entities.GetPlatformInfo()
+			expectedSubstrings := []string{
+				"https://releases.hashicorp.com/terraform/1.5.0/terraform_1.5.0",
+				platform.GetOSString(),            // Use GetOSString() instead of runtime.GOOS for Android compatibility
+				platform.GetTerraformArchString(), // Use GetTerraformArchString() for consistent arch handling
+				".zip",
+			}
 
-		// Verify placeholders are replaced
-		placeholders := []string{"%[1]s", "%[2]s", "%[3]s"}
-		for _, placeholder := range placeholders {
-			assert.NotContains(t, result, placeholder,
-				"URL should not contain unreplaced placeholder: %s", placeholder)
-		}
-	})
-	
+			for _, substring := range expectedSubstrings {
+				assert.Contains(t, result, substring,
+					"URL should contain platform-specific information: %s", substring)
+			}
+
+			// Verify placeholders are replaced
+			placeholders := []string{"%[1]s", "%[2]s", "%[3]s"}
+			for _, placeholder := range placeholders {
+				assert.NotContains(t, result, placeholder,
+					"URL should not contain unreplaced placeholder: %s", placeholder)
+			}
+		},
+	)
+
 	t.Run("should use fallback format when no platform placeholders found", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A dependency with simple version-only URL template (backward compatibility)
 		dependency := entities.Dependency{
 			Name:      "SimpleTool",
@@ -73,8 +78,9 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 		assert.NotContains(t, result, platform.GetTerraformArchString(),
 			"Backward compatible URLs should not include architecture information")
 	})
-	
+
 	t.Run("should handle empty version when called with empty string", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A dependency with URL template and empty version
 		dependency := entities.Dependency{
 			Name:      "TestTool",
@@ -94,52 +100,57 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 		assert.Equal(t, expectedURL, result,
 			"Should handle empty version gracefully while preserving platform information")
 	})
-	
-	t.Run("should detect platform placeholders when only partial placeholders present", func(t *testing.T) {
-		testCases := []struct {
-			name        string
-			binaryURL   string
-			description string
-		}{
-			{
-				name:        "OS placeholder only",
-				binaryURL:   "https://example.com/tool_%[1]s_%[2]s",
-				description: "should detect platform format when only OS placeholder present",
-			},
-			{
-				name:        "Architecture placeholder only",
-				binaryURL:   "https://example.com/tool_%[1]s_%[3]s",
-				description: "should detect platform format when only arch placeholder present",
-			},
-		}
 
-		version := "1.0.0"
+	t.Run(
+		"should detect platform placeholders when only partial placeholders present",
+		func(t *testing.T) {
+			t.Parallel()
+			testCases := []struct {
+				name        string
+				binaryURL   string
+				description string
+			}{
+				{
+					name:        "OS placeholder only",
+					binaryURL:   "https://example.com/tool_%[1]s_%[2]s",
+					description: "should detect platform format when only OS placeholder present",
+				},
+				{
+					name:        "Architecture placeholder only",
+					binaryURL:   "https://example.com/tool_%[1]s_%[3]s",
+					description: "should detect platform format when only arch placeholder present",
+				},
+			}
 
-		for _, tc := range testCases {
-			t.Run(tc.name, func(t *testing.T) {
-				// GIVEN: A dependency with partial platform placeholders
-				dependency := entities.Dependency{
-					Name:      "TestTool",
-					BinaryURL: tc.binaryURL,
-				}
+			version := "1.0.0"
 
-				// WHEN: GetBinaryURL is called
-				result := dependency.GetBinaryURL(version)
+			for _, tc := range testCases {
+				t.Run(tc.name, func(t *testing.T) {
+					t.Parallel()
+					// GIVEN: A dependency with partial platform placeholders
+					dependency := entities.Dependency{
+						Name:      "TestTool",
+						BinaryURL: tc.binaryURL,
+					}
 
-				// THEN: Should use platform-specific formatting
-				platform := entities.GetPlatformInfo()
-				assert.Contains(t, result, version, "Should contain version")
+					// WHEN: GetBinaryURL is called
+					result := dependency.GetBinaryURL(version)
 
-				if strings.Contains(tc.binaryURL, "%[2]s") {
-					assert.Contains(t, result, platform.GetOSString(),
-						"Should contain OS when OS placeholder present")
-				}
+					// THEN: Should use platform-specific formatting
+					platform := entities.GetPlatformInfo()
+					assert.Contains(t, result, version, "Should contain version")
 
-				if strings.Contains(tc.binaryURL, "%[3]s") {
-					assert.Contains(t, result, platform.GetTerraformArchString(),
-						"Should contain architecture when arch placeholder present")
-				}
-			})
-		}
-	})
+					if strings.Contains(tc.binaryURL, "%[2]s") {
+						assert.Contains(t, result, platform.GetOSString(),
+							"Should contain OS when OS placeholder present")
+					}
+
+					if strings.Contains(tc.binaryURL, "%[3]s") {
+						assert.Contains(t, result, platform.GetTerraformArchString(),
+							"Should contain architecture when arch placeholder present")
+					}
+				})
+			}
+		},
+	)
 }

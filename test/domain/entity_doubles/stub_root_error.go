@@ -1,4 +1,4 @@
-package entity_doubles
+package entity_doubles //nolint:revive,staticcheck // Test package naming follows established project structure
 
 // StubRootError implements the error interface.
 type StubRootError struct {

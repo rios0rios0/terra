@@ -14,7 +14,7 @@ type Dependency struct {
 	FormattingCommand []string
 }
 
-// GetBinaryURL returns the binary URL with platform information dynamically inserted
+// GetBinaryURL returns the binary URL with platform information dynamically inserted.
 func (d *Dependency) GetBinaryURL(version string) string {
 	platform := GetPlatformInfo()
 

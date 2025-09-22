@@ -1,4 +1,4 @@
-package command_doubles
+package command_doubles //nolint:staticcheck // Test package naming follows established project structure
 
 import (
 	"github.com/rios0rios0/terra/internal/domain/entities"

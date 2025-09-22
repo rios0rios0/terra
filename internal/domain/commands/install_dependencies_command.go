@@ -61,7 +61,7 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 	}
 }
 
-// fetch the latest version of software from a URL
+// fetch the latest version of software from a URL.
 func fetchLatestVersion(url, regexPattern string) string {
 	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
@@ -92,7 +92,7 @@ func fetchLatestVersion(url, regexPattern string) string {
 	return ""
 }
 
-// checking if a dependency is available
+// checking if a dependency is available.
 func isDependencyCLIAvailable(name string) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
@@ -100,7 +100,7 @@ func isDependencyCLIAvailable(name string) bool {
 	return cmd.Run() == nil
 }
 
-// get current version of installed dependency
+// get current version of installed dependency.
 func getCurrentVersion(name string) string {
 	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
@@ -133,7 +133,7 @@ func getCurrentVersion(name string) string {
 	return ""
 }
 
-// compare two semantic versions (returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2)
+// compare two semantic versions (returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2).
 func compareVersions(v1, v2 string) int {
 	// Only compare numeric parts, reject versions with non-numeric components
 	parts1 := strings.Split(v1, ".")
@@ -186,7 +186,7 @@ func compareVersions(v1, v2 string) int {
 	return 0
 }
 
-// prompt user for update confirmation
+// prompt user for update confirmation.
 func promptForUpdate(dependencyName, currentVersion, latestVersion string) bool {
 	logger.Infof("%s is installed (version %s) but a newer version is available (%s).",
 		dependencyName, currentVersion, latestVersion)
@@ -204,7 +204,7 @@ func promptForUpdate(dependencyName, currentVersion, latestVersion string) bool 
 	return response == "y" || response == "yes"
 }
 
-// findBinaryInArchive recursively searches for a binary in extracted archive
+// findBinaryInArchive recursively searches for a binary in extracted archive.
 func findBinaryInArchive(extractDir, binaryName string) (string, error) {
 	var foundPath string
 
@@ -250,7 +250,7 @@ func findBinaryInArchive(extractDir, binaryName string) (string, error) {
 	return foundPath, nil
 }
 
-// installing dependencies doesn't matter the operating system
+// installing dependencies doesn't matter the operating system.
 func install(url, name string) {
 	currentOS := entities.GetOS()
 	tempFilePath := path.Join(currentOS.GetTempDir(), name)

@@ -15,6 +15,7 @@ func TestNewRunFromRootController(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should create instance when command and dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock command and test dependencies
 		mockCommand := &command_doubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{
@@ -36,6 +37,7 @@ func TestRunFromRootController_GetBind(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should return correct bind when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A run from root controller with mock command and empty dependencies
 		mockCommand := &command_doubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{}
@@ -47,7 +49,11 @@ func TestRunFromRootController_GetBind(t *testing.T) {
 		// THEN: Should return correct bind configuration
 		assert.Equal(t, "terra [flags] [terragrunt command] [directory]", bind.Use)
 		assert.Equal(t, "Terra is a CLI wrapper for Terragrunt", bind.Short)
-		assert.Equal(t, "Terra is a CLI wrapper for Terragrunt that allows changing directory before executing commands. It also allows changing the account/subscription and workspace for AWS and Azure.", bind.Long)
+		assert.Equal(
+			t,
+			"Terra is a CLI wrapper for Terragrunt that allows changing directory before executing commands. It also allows changing the account/subscription and workspace for AWS and Azure.",
+			bind.Long,
+		)
 	})
 }
 
@@ -55,6 +61,7 @@ func TestRunFromRootController_Execute(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should execute command when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A run from root controller with mock command and test dependencies
 		mockCommand := &command_doubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{
@@ -72,12 +79,13 @@ func TestRunFromRootController_Execute(t *testing.T) {
 
 		// THEN: Should execute the command with correct dependencies and arguments
 		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
-		assert.Equal(t, len(dependencies), len(mockCommand.LastDependencies))
+		assert.Len(t, mockCommand.LastDependencies, len(dependencies))
 		assert.Equal(t, dependencies[0].Name, mockCommand.LastDependencies[0].Name)
 		assert.NotEmpty(t, mockCommand.LastArguments)
 	})
 
 	t.Run("should execute command when different arguments provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A run from root controller with mock command and empty dependencies
 		mockCommand := &command_doubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{}
@@ -94,6 +102,7 @@ func TestRunFromRootController_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A run from root controller with mock command and empty dependencies
 		mockCommand := &command_doubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{}

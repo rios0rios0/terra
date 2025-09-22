@@ -1,6 +1,6 @@
-package command_doubles
+package command_doubles //nolint:staticcheck // Test package naming follows established project structure
 
-// StubDeleteCacheCommand is a stub implementation of the DeleteCache interface
+// StubDeleteCacheCommand is a stub implementation of the DeleteCache interface.
 type StubDeleteCacheCommand struct {
 	ExecuteCallCount int
 	LastToBeDeleted  []string
