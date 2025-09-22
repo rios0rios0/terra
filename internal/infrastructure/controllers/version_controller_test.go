@@ -14,6 +14,7 @@ func TestNewVersionController(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should create instance when command provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock version command
 		mockCommand := &command_doubles.StubVersionCommand{}
 
@@ -29,6 +30,7 @@ func TestVersionController_GetBind(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should return correct bind when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A version controller with mock command
 		mockCommand := &command_doubles.StubVersionCommand{}
 		controller := controllers.NewVersionController(mockCommand)
@@ -47,6 +49,7 @@ func TestVersionController_Execute(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should execute command when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A version controller with mock command
 		mockCommand := &command_doubles.StubVersionCommand{}
 		controller := controllers.NewVersionController(mockCommand)
@@ -61,6 +64,7 @@ func TestVersionController_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A version controller with mock command
 		mockCommand := &command_doubles.StubVersionCommand{}
 		controller := controllers.NewVersionController(mockCommand)

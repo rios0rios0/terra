@@ -14,6 +14,8 @@ func TestNewFormatFilesCommand(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should create instance when repository provided", func(t *testing.T) {
+		t.Parallel()
+		t.Parallel()
 		// GIVEN: A mock shell repository
 		mockRepo := &repository_doubles.StubShellRepository{}
 
@@ -29,6 +31,8 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should execute format commands when dependencies provided", func(t *testing.T) {
+		t.Parallel()
+		t.Parallel()
 		// GIVEN: A mock repository and dependencies with formatting commands
 		mockRepo := &repository_doubles.StubShellRepository{}
 		terraformDep := entities.Dependency{
@@ -55,6 +59,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should continue execution when repository returns error", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock repository that returns errors and a single dependency
 		mockRepo := &repository_doubles.StubShellRepository{ShouldReturnError: true}
 		dependencies := []entities.Dependency{
@@ -74,6 +79,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should not execute when no dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock repository and empty dependencies list
 		mockRepo := &repository_doubles.StubShellRepository{}
 		dependencies := []entities.Dependency{}
@@ -87,6 +93,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should execute with empty arguments when dependency has no formatting command", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock repository and dependency with empty formatting command
 		mockRepo := &repository_doubles.StubShellRepository{}
 		dependencies := []entities.Dependency{
@@ -108,6 +115,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should execute all dependencies when multiple dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A recording mock repository and multiple dependencies
 		mockRepo := &repository_doubles.StubShellRepositoryWithRecording{}
 		terraformDep := entities.Dependency{

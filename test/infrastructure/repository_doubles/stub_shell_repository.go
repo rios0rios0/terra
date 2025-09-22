@@ -2,7 +2,7 @@ package repository_doubles
 
 import "github.com/rios0rios0/terra/test/domain/entity_doubles"
 
-// StubShellRepository for testing shell-related commands
+// StubShellRepository for testing shell-related commands.
 type StubShellRepository struct {
 	ExecuteCallCount  int
 	LastCommand       string

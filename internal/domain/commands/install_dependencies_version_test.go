@@ -16,6 +16,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when manipulating PATH and creating temporary binaries
 	
 	t.Run("should trigger version comparison with mock terraform", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock terraform binary that returns a proper version
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.0.0")
 		defer os.RemoveAll(mockBinaryDir)
@@ -62,6 +63,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	})
 
 	t.Run("should trigger version comparison with equal versions", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock terraform binary that returns same version as server
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.5.0")
 		defer os.RemoveAll(mockBinaryDir)
@@ -94,6 +96,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	})
 
 	t.Run("should trigger version comparison with newer local version", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock terraform binary that returns newer version than server
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "2.0.0")
 		defer os.RemoveAll(mockBinaryDir)
@@ -126,6 +129,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle user accepting update prompt", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock terraform binary with older version
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.0.0")
 		defer os.RemoveAll(mockBinaryDir)

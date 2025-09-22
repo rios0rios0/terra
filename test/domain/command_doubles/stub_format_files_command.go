@@ -4,7 +4,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
-// StubFormatFilesCommand is a stub implementation of the FormatFiles interface
+// StubFormatFilesCommand is a stub implementation of the FormatFiles interface.
 type StubFormatFilesCommand struct {
 	ExecuteCallCount int
 	LastDependencies []entities.Dependency

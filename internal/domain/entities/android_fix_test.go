@@ -14,6 +14,7 @@ func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should return linux OS when android OS provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: An Android platform
 		platform := entities.PlatformInfo{OS: "android", Arch: "arm64"}
 
@@ -25,6 +26,7 @@ func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
 	})
 	
 	t.Run("should return original OS when non-android OS provided", func(t *testing.T) {
+		t.Parallel()
 		testCases := []struct {
 			name string
 			os   string
@@ -37,6 +39,7 @@ func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
+		t.Parallel()
 				// GIVEN: A non-Android platform
 				platform := entities.PlatformInfo{OS: tc.os, Arch: "amd64"}
 
@@ -54,6 +57,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should generate linux URL when android platform used", func(t *testing.T) {
+		t.Parallel()
 		testCases := []struct {
 			name        string
 			cli         string
@@ -90,6 +94,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
+		t.Parallel()
 				// GIVEN: A dependency configured for Android platform
 				dependency := entities.Dependency{
 					CLI:       tc.cli,
@@ -125,6 +130,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 	})
 	
 	t.Run("should use correct arch method when different dependencies used", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: An Android platform with android_arm64 architecture
 		platform := entities.PlatformInfo{OS: "android", Arch: "android_arm64"}
 
@@ -156,6 +162,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
+		t.Parallel()
 				// GIVEN: A dependency with specific CLI name
 				dependency := entities.Dependency{
 					CLI:       tc.cli,

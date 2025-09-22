@@ -15,6 +15,7 @@ func TestNewRunFromRootController(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should create instance when command and dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock command and test dependencies
 		mockCommand := &command_doubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{
@@ -36,6 +37,7 @@ func TestRunFromRootController_GetBind(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should return correct bind when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A run from root controller with mock command and empty dependencies
 		mockCommand := &command_doubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{}
@@ -55,6 +57,7 @@ func TestRunFromRootController_Execute(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should execute command when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A run from root controller with mock command and test dependencies
 		mockCommand := &command_doubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{
@@ -78,6 +81,7 @@ func TestRunFromRootController_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute command when different arguments provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A run from root controller with mock command and empty dependencies
 		mockCommand := &command_doubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{}
@@ -94,6 +98,7 @@ func TestRunFromRootController_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A run from root controller with mock command and empty dependencies
 		mockCommand := &command_doubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{}

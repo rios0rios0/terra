@@ -16,6 +16,7 @@ import (
 
 func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 	t.Run("should install dependency successfully when valid dependency provided", func(t *testing.T) {
+		t.Parallel()
 		if testing.Short() {
 			t.Skip("Skipping integration test in short mode")
 		}
@@ -52,6 +53,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 	})
 	
 	t.Run("should handle zip files when zip dependency provided", func(t *testing.T) {
+		t.Parallel()
 		if testing.Short() {
 			t.Skip("Skipping integration test in short mode")
 		}
@@ -91,6 +93,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 	})
 	
 	t.Run("should handle mixed dependencies when multiple dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Multiple test dependencies
 		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
 			WithTerraformVersion("1.5.0").
@@ -136,6 +139,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 	})
 	
 	t.Run("should handle download failure when HTTP error occurs", func(t *testing.T) {
+		t.Parallel()
 		if testing.Short() {
 			t.Skip("Skipping integration test in short mode")
 		}
@@ -162,6 +166,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 	})
 	
 	t.Run("should handle network timeout when unreachable URL provided", func(t *testing.T) {
+		t.Parallel()
 		if testing.Short() {
 			t.Skip("Skipping integration test in short mode")
 		}

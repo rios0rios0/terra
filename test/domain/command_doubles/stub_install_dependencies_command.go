@@ -4,7 +4,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
-// StubInstallDependenciesCommand is a stub implementation of the InstallDependencies interface
+// StubInstallDependenciesCommand is a stub implementation of the InstallDependencies interface.
 type StubInstallDependenciesCommand struct {
 	ExecuteCallCount int
 	LastDependencies []entities.Dependency

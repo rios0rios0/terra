@@ -15,6 +15,7 @@ func TestNewRunAdditionalBeforeCommand(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should create instance when valid dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Valid dependencies for creating the command
 		settings := &entities.Settings{
 			TerraCloud:              "aws",
@@ -37,6 +38,7 @@ func TestNewRunAdditionalBeforeCommand(t *testing.T) {
 
 func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	t.Run("should change account when CLI can change account", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A command with CLI that can change account
 		settings := &entities.Settings{
 			TerraCloud: "aws",
@@ -62,6 +64,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should not change account when CLI cannot change account", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A command with CLI that cannot change account
 		settings := &entities.Settings{
 			TerraCloud: "aws",
@@ -87,6 +90,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should not change account when CLI is nil", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A command with nil CLI
 		settings := &entities.Settings{
 			TerraCloud: "aws",
@@ -106,6 +110,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should init environment when arguments require init", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A command with arguments that require environment initialization
 		settings := &entities.Settings{
 			TerraCloud: "aws",
@@ -131,6 +136,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should not init environment when arguments are init", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A command with 'init' argument
 		settings := &entities.Settings{
 			TerraCloud: "aws",
@@ -152,6 +158,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should not init environment when arguments are run-all", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A command with 'run-all' argument
 		settings := &entities.Settings{
 			TerraCloud: "aws",
@@ -173,6 +180,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should change workspace when workspace is configured", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A command with configured workspace
 		settings := &entities.Settings{
 			TerraCloud:              "aws",
@@ -201,6 +209,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should not change workspace when workspace is empty", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A command with empty workspace
 		settings := &entities.Settings{
 			TerraCloud:              "aws",
@@ -223,6 +232,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should execute all steps when all conditions met", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A command with all conditions met (account change, init, workspace change)
 		settings := &entities.Settings{
 			TerraCloud:              "aws",

@@ -14,6 +14,8 @@ func TestNewDeleteCacheCommand(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should create instance when called", func(t *testing.T) {
+		t.Parallel()
+		t.Parallel()
 		// GIVEN: The NewDeleteCacheCommand constructor is available
 
 		// WHEN: Creating a new delete cache command
@@ -26,6 +28,7 @@ func TestNewDeleteCacheCommand(t *testing.T) {
 
 func TestDeleteCacheCommand_Execute(t *testing.T) {
 	t.Run("should delete target directories when called with valid paths", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A delete cache command and test directory structure with cache directories
 		cmd := commands.NewDeleteCacheCommand()
 		tempDir := t.TempDir()
@@ -69,6 +72,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should complete without error when empty list provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A delete cache command and temporary directory with test directories
 		cmd := commands.NewDeleteCacheCommand()
 		tempDir := t.TempDir()
@@ -86,6 +90,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should complete without error when non-existent directories provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A delete cache command and temporary directory
 		cmd := commands.NewDeleteCacheCommand()
 		tempDir := t.TempDir()
@@ -97,6 +102,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 	})
 	
 	t.Run("should delete only specified directories when selective execution requested", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A delete cache command and temporary directory with multiple cache types
 		cmd := commands.NewDeleteCacheCommand()
 		tempDir := t.TempDir()

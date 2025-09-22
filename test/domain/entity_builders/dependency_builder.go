@@ -4,7 +4,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 )
 
-// DependencyBuilder helps create test dependencies with a fluent interface
+// DependencyBuilder helps create test dependencies with a fluent interface.
 type DependencyBuilder struct {
 	name              string
 	cli               string
@@ -14,7 +14,7 @@ type DependencyBuilder struct {
 	formattingCommand []string
 }
 
-// NewDependencyBuilder creates a new dependency builder
+// NewDependencyBuilder creates a new dependency builder.
 func NewDependencyBuilder() *DependencyBuilder {
 	return &DependencyBuilder{
 		name:              "TestDependency",
@@ -24,47 +24,47 @@ func NewDependencyBuilder() *DependencyBuilder {
 	}
 }
 
-// WithName sets the dependency name
+// WithName sets the dependency name.
 func (b *DependencyBuilder) WithName(name string) *DependencyBuilder {
 	b.name = name
 	return b
 }
 
-// WithCLI sets the CLI name
+// WithCLI sets the CLI name.
 func (b *DependencyBuilder) WithCLI(cli string) *DependencyBuilder {
 	b.cli = cli
 	return b
 }
 
-// WithBinaryURL sets the binary URL
+// WithBinaryURL sets the binary URL.
 func (b *DependencyBuilder) WithBinaryURL(url string) *DependencyBuilder {
 	b.binaryURL = url
 	return b
 }
 
-// WithVersionURL sets the version URL
+// WithVersionURL sets the version URL.
 func (b *DependencyBuilder) WithVersionURL(url string) *DependencyBuilder {
 	b.versionURL = url
 	return b
 }
 
-// WithRegexVersion sets the regex version pattern
+// WithRegexVersion sets the regex version pattern.
 func (b *DependencyBuilder) WithRegexVersion(regex string) *DependencyBuilder {
 	b.regexVersion = regex
 	return b
 }
 
-// WithTerraformPattern sets up Terraform-like patterns
+// WithTerraformPattern sets up Terraform-like patterns.
 func (b *DependencyBuilder) WithTerraformPattern() *DependencyBuilder {
 	return b.WithRegexVersion(`"current_version":"([^"]+)"`)
 }
 
-// WithTerragruntPattern sets up Terragrunt-like patterns
+// WithTerragruntPattern sets up Terragrunt-like patterns.
 func (b *DependencyBuilder) WithTerragruntPattern() *DependencyBuilder {
 	return b.WithRegexVersion(`"tag_name":"v([^"]+)"`)
 }
 
-// Build creates the dependency
+// Build creates the dependency.
 func (b *DependencyBuilder) Build() entities.Dependency {
 	return entities.Dependency{
 		Name:              b.name,
