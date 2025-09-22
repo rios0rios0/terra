@@ -1,11 +1,11 @@
 package repository_doubles
 
 import (
-	"fmt"
+	"errors"
 	"strings"
 )
 
-// StubOSRepository provides a stub implementation of OS interface for testing
+// StubOSRepository provides a stub implementation of OS interface for testing.
 type StubOSRepository struct {
 	DownloadError      error
 	DownloadCallCount  int
@@ -49,8 +49,8 @@ func (s *StubOSRepository) Download(url, tempFilePath string) error {
 	return s.DownloadError
 }
 
-func (s *StubOSRepository) Extract(tempFilePath, destPath string) error {
-	return fmt.Errorf("extract not implemented in stub")
+func (s *StubOSRepository) Extract(_, _ string) error {
+	return errors.New("extract not implemented in stub")
 }
 
 func (s *StubOSRepository) Move(tempFilePath, destPath string) error {
@@ -80,7 +80,7 @@ func (s *StubOSRepository) GetInstallationPath() string {
 	return s.InstallationPath
 }
 
-// GetLastDownloadURL returns the last URL used for download
+// GetLastDownloadURL returns the last URL used for download.
 func (s *StubOSRepository) GetLastDownloadURL() string {
 	if len(s.DownloadURLs) == 0 {
 		return ""
@@ -88,7 +88,7 @@ func (s *StubOSRepository) GetLastDownloadURL() string {
 	return s.DownloadURLs[len(s.DownloadURLs)-1]
 }
 
-// GetLastDownloadPath returns the last path used for download
+// GetLastDownloadPath returns the last path used for download.
 func (s *StubOSRepository) GetLastDownloadPath() string {
 	if len(s.DownloadPaths) == 0 {
 		return ""
@@ -96,7 +96,7 @@ func (s *StubOSRepository) GetLastDownloadPath() string {
 	return s.DownloadPaths[len(s.DownloadPaths)-1]
 }
 
-// WasMethodCalled checks if any of the specified methods was called
+// WasMethodCalled checks if any of the specified methods was called.
 func (s *StubOSRepository) WasMethodCalled(method string) bool {
 	switch strings.ToLower(method) {
 	case "download":

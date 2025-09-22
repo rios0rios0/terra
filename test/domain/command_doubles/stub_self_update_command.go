@@ -1,6 +1,6 @@
 package command_doubles
 
-// StubSelfUpdateCommand provides a stub implementation for SelfUpdate interface for testing
+// StubSelfUpdateCommand provides a stub implementation for SelfUpdate interface for testing.
 type StubSelfUpdateCommand struct {
 	ExecuteError   error
 	ExecuteCalled  bool
@@ -9,12 +9,12 @@ type StubSelfUpdateCommand struct {
 	CallCount      int
 }
 
-// NewStubSelfUpdateCommand creates a new stub self-update command
+// NewStubSelfUpdateCommand creates a new stub self-update command.
 func NewStubSelfUpdateCommand() *StubSelfUpdateCommand {
 	return &StubSelfUpdateCommand{}
 }
 
-// Execute implements the SelfUpdate interface
+// Execute implements the SelfUpdate interface.
 func (s *StubSelfUpdateCommand) Execute(dryRun, force bool) error {
 	s.ExecuteCalled = true
 	s.CallCount++
@@ -23,12 +23,12 @@ func (s *StubSelfUpdateCommand) Execute(dryRun, force bool) error {
 	return s.ExecuteError
 }
 
-// WasCalled returns true if Execute was called
+// WasCalled returns true if Execute was called.
 func (s *StubSelfUpdateCommand) WasCalled() bool {
 	return s.ExecuteCalled
 }
 
-// Reset resets the stub to initial state
+// Reset resets the stub to initial state.
 func (s *StubSelfUpdateCommand) Reset() {
 	s.ExecuteCalled = false
 	s.DryRunFlag = false

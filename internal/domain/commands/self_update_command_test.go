@@ -32,7 +32,7 @@ func TestSelfUpdateCommand_Execute(t *testing.T) {
 		err := cmd.Execute(true, false)
 
 		// THEN: Should return an error due to API limitations in test environment
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to fetch latest release")
 	})
 
@@ -44,7 +44,7 @@ func TestSelfUpdateCommand_Execute(t *testing.T) {
 		err := cmd.Execute(false, true)
 
 		// THEN: Should return an error due to API limitations in test environment
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to fetch latest release")
 	})
 }
