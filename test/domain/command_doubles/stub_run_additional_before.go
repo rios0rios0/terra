@@ -1,4 +1,4 @@
-//nolint:revive,staticcheck // Test package naming follows established project structure
+//nolint:staticcheck // Test package naming follows established project structure
 package command_doubles
 
 // StubRunAdditionalBefore is a stub implementation for RunAdditionalBefore interface.
