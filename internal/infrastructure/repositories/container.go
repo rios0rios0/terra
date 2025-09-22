@@ -1,13 +1,23 @@
 package repositories
 
 import (
-	"github.com/google/wire"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
+	"go.uber.org/dig"
 )
 
-//nolint:gochecknoglobals // Wire dependency injection container
-var Container = wire.NewSet(
-	NewStdShellRepository,
-	NewInteractiveShellRepository,
-	wire.Bind(new(repositories.ShellRepository), new(*StdShellRepository)),
-)
+// RegisterProviders registers all repository providers with the DIG container.
+func RegisterProviders(container *dig.Container) error {
+	if err := container.Provide(NewStdShellRepository); err != nil {
+		return err
+	}
+	if err := container.Provide(NewInteractiveShellRepository); err != nil {
+		return err
+	}
+	// Bind interface to implementation
+	if err := container.Provide(func(impl *StdShellRepository) repositories.ShellRepository {
+		return impl
+	}); err != nil {
+		return err
+	}
+	return nil
+}

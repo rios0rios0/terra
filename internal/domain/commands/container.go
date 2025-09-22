@@ -1,23 +1,70 @@
 package commands
 
 import (
-	"github.com/google/wire"
+	"go.uber.org/dig"
 )
 
-//nolint:gochecknoglobals // Wire dependency injection container
-var Container = wire.NewSet(
-	NewDeleteCacheCommand,
-	wire.Bind(new(DeleteCache), new(*DeleteCacheCommand)),
-	NewFormatFilesCommand,
-	wire.Bind(new(FormatFiles), new(*FormatFilesCommand)),
-	NewInstallDependenciesCommand,
-	wire.Bind(new(InstallDependencies), new(*InstallDependenciesCommand)),
-	NewRunAdditionalBeforeCommand,
-	wire.Bind(new(RunAdditionalBefore), new(*RunAdditionalBeforeCommand)),
-	NewRunFromRootCommand,
-	wire.Bind(new(RunFromRoot), new(*RunFromRootCommand)),
-	NewSelfUpdateCommand,
-	wire.Bind(new(SelfUpdate), new(*SelfUpdateCommand)),
-	NewVersionCommand,
-	wire.Bind(new(Version), new(*VersionCommand)),
-)
+// RegisterProviders registers all command providers with the DIG container.
+func RegisterProviders(container *dig.Container) error {
+	// Register command constructors
+	if err := container.Provide(NewDeleteCacheCommand); err != nil {
+		return err
+	}
+	if err := container.Provide(NewFormatFilesCommand); err != nil {
+		return err
+	}
+	if err := container.Provide(NewInstallDependenciesCommand); err != nil {
+		return err
+	}
+	if err := container.Provide(NewRunAdditionalBeforeCommand); err != nil {
+		return err
+	}
+	if err := container.Provide(NewRunFromRootCommand); err != nil {
+		return err
+	}
+	if err := container.Provide(NewSelfUpdateCommand); err != nil {
+		return err
+	}
+	if err := container.Provide(NewVersionCommand); err != nil {
+		return err
+	}
+
+	// Bind interfaces to implementations
+	if err := container.Provide(func(impl *DeleteCacheCommand) DeleteCache {
+		return impl
+	}); err != nil {
+		return err
+	}
+	if err := container.Provide(func(impl *FormatFilesCommand) FormatFiles {
+		return impl
+	}); err != nil {
+		return err
+	}
+	if err := container.Provide(func(impl *InstallDependenciesCommand) InstallDependencies {
+		return impl
+	}); err != nil {
+		return err
+	}
+	if err := container.Provide(func(impl *RunAdditionalBeforeCommand) RunAdditionalBefore {
+		return impl
+	}); err != nil {
+		return err
+	}
+	if err := container.Provide(func(impl *RunFromRootCommand) RunFromRoot {
+		return impl
+	}); err != nil {
+		return err
+	}
+	if err := container.Provide(func(impl *SelfUpdateCommand) SelfUpdate {
+		return impl
+	}); err != nil {
+		return err
+	}
+	if err := container.Provide(func(impl *VersionCommand) Version {
+		return impl
+	}); err != nil {
+		return err
+	}
+
+	return nil
+}
