@@ -47,6 +47,11 @@ make horusec # Runs security scanning via pipelines project
 make all     # Runs lint + horusec + test
 ```
 
+**File Standards:**
+- **Use LF line endings** - All new and edited files must use LF (Unix) line endings, not CRLF (Windows)
+- **Update CHANGELOG.md** - Add entries to the `[Unreleased]` section for new features and bug fixes (not required for documentation-only changes)
+- The `.editorconfig` file enforces line ending standards for most editors
+
 - **Tests exist** in this repository with good coverage across domain and infrastructure layers
 - **All new tests must use testify framework** and follow BDD structure (Given/When/Then)
 - **Bug fixes require unit tests** that reproduce the issue before fixing it
