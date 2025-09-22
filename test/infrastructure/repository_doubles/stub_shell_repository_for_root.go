@@ -1,3 +1,4 @@
+//nolint:revive,staticcheck // Test package naming follows established project structure
 package repository_doubles
 
 // StubShellRepositoryForRoot is a stub implementation of repositories.ShellRepository.

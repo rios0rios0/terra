@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:tparallel // Integration test with environment modifications
 func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 	t.Run(
 		"should install dependency successfully when valid dependency provided",

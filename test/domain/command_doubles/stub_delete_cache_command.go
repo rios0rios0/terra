@@ -1,3 +1,4 @@
+//nolint:revive,staticcheck // Test package naming follows established project structure
 package command_doubles
 
 // StubDeleteCacheCommand is a stub implementation of the DeleteCache interface.

@@ -36,7 +36,9 @@ func TestNewRunAdditionalBeforeCommand(t *testing.T) {
 	})
 }
 
-func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
+func TestRunAdditionalBeforeCommand_Execute_AccountChange(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should change account when CLI can change account", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with CLI that can change account
@@ -112,6 +114,11 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			assert.NotEqual(t, "aws", call.Command, "Should not execute account change command")
 		}
 	})
+}
+
+//nolint:gocognit // Large test function with comprehensive coverage - complex scenarios
+func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
+	t.Parallel()
 
 	t.Run("should init environment when arguments require init", func(t *testing.T) {
 		t.Parallel()

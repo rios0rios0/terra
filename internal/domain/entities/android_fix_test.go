@@ -53,6 +53,7 @@ func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
 	})
 }
 
+//nolint:gocognit // Comprehensive test with multiple Android platform scenarios
 func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 	t.Parallel()
 
