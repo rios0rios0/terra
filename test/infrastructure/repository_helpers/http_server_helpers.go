@@ -6,19 +6,19 @@ import (
 	"testing"
 )
 
-// HelperCreateNonZipBinaryServer creates a server that serves a regular binary (not zip)
+// HelperCreateNonZipBinaryServer creates a server that serves a regular binary (not zip).
 func HelperCreateNonZipBinaryServer(t *testing.T) *httptest.Server {
 	t.Helper()
 	
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Serve a simple binary content
+		// Serve a simple binary content.
 		binaryContent := []byte("#!/bin/bash\necho 'test binary'\n")
 		w.Header().Set("Content-Type", "application/octet-stream")
 		_, _ = w.Write(binaryContent)
 	}))
 }
 
-// HelperCreateSimpleVersionServer creates a version server with given version
+// HelperCreateSimpleVersionServer creates a version server with given version.
 func HelperCreateSimpleVersionServer(t *testing.T, version string) *httptest.Server {
 	t.Helper()
 	
@@ -29,12 +29,12 @@ func HelperCreateSimpleVersionServer(t *testing.T, version string) *httptest.Ser
 	}))
 }
 
-// HelperCreateSimpleZipServer creates a server that serves a zip file
+// HelperCreateSimpleZipServer creates a server that serves a zip file.
 func HelperCreateSimpleZipServer(t *testing.T, binaryName string) *httptest.Server {
 	t.Helper()
 	
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Create a simple zip file in memory (reuse from existing zip helper)
+		// Create a simple zip file in memory (reuse from existing zip helper).
 		zipData := HelperCreateZipWithBinary(t, binaryName)
 		
 		w.Header().Set("Content-Type", "application/zip")
@@ -42,12 +42,12 @@ func HelperCreateSimpleZipServer(t *testing.T, binaryName string) *httptest.Serv
 	}))
 }
 
-// HelperCreateZipServer creates a test server that serves a zip file containing a binary
+// HelperCreateZipServer creates a test server that serves a zip file containing a binary.
 func HelperCreateZipServer(t *testing.T, binaryNameInZip, expectedBinaryName string) *httptest.Server {
 	t.Helper()
 	
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Create a zip file in memory
+		// Create a zip file in memory.
 		zipData := HelperCreateZipWithBinary(t, binaryNameInZip)
 		
 		w.Header().Set("Content-Type", "application/zip")
@@ -55,7 +55,7 @@ func HelperCreateZipServer(t *testing.T, binaryNameInZip, expectedBinaryName str
 	}))
 }
 
-// HelperCreateVersionServer creates a test server that serves version information
+// HelperCreateVersionServer creates a test server that serves version information.
 func HelperCreateVersionServer(t *testing.T, version string) *httptest.Server {
 	t.Helper()
 	
@@ -66,12 +66,12 @@ func HelperCreateVersionServer(t *testing.T, version string) *httptest.Server {
 	}))
 }
 
-// HelperCreateNestedZipServer creates a zip with binary in nested directory structure
+// HelperCreateNestedZipServer creates a zip with binary in nested directory structure.
 func HelperCreateNestedZipServer(t *testing.T, nestedPath, binaryName string) *httptest.Server {
 	t.Helper()
 	
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Create a zip file with nested directory structure
+		// Create a zip file with nested directory structure.
 		zipData := HelperCreateNestedZipWithBinary(t, nestedPath, binaryName)
 		
 		w.Header().Set("Content-Type", "application/zip")
@@ -79,12 +79,12 @@ func HelperCreateNestedZipServer(t *testing.T, nestedPath, binaryName string) *h
 	}))
 }
 
-// HelperCreateMixedContentZipServer creates a zip with various file types
+// HelperCreateMixedContentZipServer creates a zip with various file types.
 func HelperCreateMixedContentZipServer(t *testing.T, binaryName string) *httptest.Server {
 	t.Helper()
 	
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Create a zip file with mixed content
+		// Create a zip file with mixed content.
 		zipData := HelperCreateMixedContentZip(t, binaryName)
 		
 		w.Header().Set("Content-Type", "application/zip")

@@ -14,6 +14,7 @@ func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when creating temporary files and directories
 	
 	t.Run("should handle zip extraction with exact binary match", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A real zip file containing a binary with exact name match
 		zipServer := repository_helpers.HelperCreateZipServer(t, "unique-zip-binary-12345", "unique-zip-binary-12345")
 		defer zipServer.Close()
@@ -38,6 +39,7 @@ func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle zip extraction with pattern match", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A zip file containing a binary with pattern-based name (no dots per findBinaryInArchive logic)
 		zipServer := repository_helpers.HelperCreateZipServer(t, "unique-pattern-app-linux-amd64", "unique-pattern-app")
 		defer zipServer.Close()
@@ -62,6 +64,7 @@ func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle zip with nested directories", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A zip file with binary in nested directory
 		zipServer := repository_helpers.HelperCreateNestedZipServer(t, "bin/tools/terraform", "terraform")
 		defer zipServer.Close()
@@ -86,6 +89,7 @@ func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 	})
 
 	t.Run("should skip non-binary files in zip", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A zip file with various file types but only one valid binary
 		zipServer := repository_helpers.HelperCreateMixedContentZipServer(t, "terraform")
 		defer zipServer.Close()

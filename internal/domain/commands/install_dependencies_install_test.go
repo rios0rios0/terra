@@ -14,6 +14,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when creating temporary files
 	
 	t.Run("should handle non-zip binary installation", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A server that serves a non-zip binary file
 		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
@@ -38,6 +39,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle directory creation for installation", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A dependency that will require installation directory creation
 		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
@@ -62,6 +64,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle installation path permissions", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A binary that needs to be made executable
 		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
@@ -86,6 +89,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle temp file creation and cleanup", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A zip binary that will trigger temp file creation and cleanup
 		zipServer := repository_helpers.HelperCreateSimpleZipServer(t, "temp-test-binary")
 		defer zipServer.Close()
@@ -110,6 +114,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle file type detection", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A binary that will trigger file type detection
 		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()

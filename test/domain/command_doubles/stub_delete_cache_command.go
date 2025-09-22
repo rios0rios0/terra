@@ -1,6 +1,6 @@
 package command_doubles
 
-// StubDeleteCacheCommand is a stub implementation of the DeleteCache interface
+// StubDeleteCacheCommand is a stub implementation of the DeleteCache interface.
 type StubDeleteCacheCommand struct {
 	ExecuteCallCount int
 	LastToBeDeleted  []string

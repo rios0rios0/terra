@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// HelperCreateMockTerraformBinary creates a temporary binary that mimics terraform --version output
+// HelperCreateMockTerraformBinary creates a temporary binary that mimics terraform --version output.
 func HelperCreateMockTerraformBinary(t *testing.T, version string) string {
 	t.Helper()
 	
@@ -17,7 +17,7 @@ func HelperCreateMockTerraformBinary(t *testing.T, version string) string {
 	
 	binaryPath := filepath.Join(tempDir, "terraform")
 	
-	// Create a shell script that outputs proper terraform version format
+	// Create a shell script that outputs proper terraform version format.
 	scriptContent := fmt.Sprintf(`#!/bin/bash
 if [ "$1" = "--version" ]; then
     echo "Terraform v%s"

@@ -13,6 +13,7 @@ func TestNewStdShellRepository(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should create instance when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: No preconditions needed
 
 		// WHEN: Creating a new std shell repository
@@ -27,6 +28,7 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should execute successfully when valid command provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A repository instance and valid command parameters
 		repo := repositories.NewStdShellRepository()
 		command := "echo"
@@ -41,6 +43,7 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 	})
 	
 	t.Run("should return error when invalid command provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A repository instance and invalid command
 		repo := repositories.NewStdShellRepository()
 		invalidCommand := "nonexistentcommand12345"
@@ -57,6 +60,7 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 	})
 	
 	t.Run("should return error when invalid directory provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A repository instance and invalid working directory
 		repo := repositories.NewStdShellRepository()
 		command := "echo"
@@ -73,6 +77,7 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 	})
 	
 	t.Run("should execute successfully when empty arguments provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A repository instance and command with empty arguments
 		repo := repositories.NewStdShellRepository()
 		command := "echo"
@@ -87,6 +92,7 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 	})
 	
 	t.Run("should execute successfully when multiple arguments provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A repository instance and command with multiple arguments
 		repo := repositories.NewStdShellRepository()
 		command := "echo"

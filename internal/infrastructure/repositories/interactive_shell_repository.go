@@ -20,7 +20,7 @@ const (
 	shellTimeout        = 30 * time.Minute // Allow long-running terraform/terragrunt commands
 )
 
-// InteractiveShellRepository handles interactive commands with auto-answering capabilities
+// InteractiveShellRepository handles interactive commands with auto-answering capabilities.
 type InteractiveShellRepository struct{}
 
 func NewInteractiveShellRepository() *InteractiveShellRepository {

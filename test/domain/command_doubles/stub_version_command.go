@@ -1,6 +1,6 @@
 package command_doubles
 
-// StubVersionCommand is a stub implementation of the Version interface
+// StubVersionCommand is a stub implementation of the Version interface.
 type StubVersionCommand struct {
 	ExecuteCallCount int
 }

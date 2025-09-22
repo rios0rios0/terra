@@ -12,7 +12,7 @@ import (
 
 // Allow long-running terraform/terragrunt commands
 
-// StdShellRepository is not totally necessary, but it is rather a good example for other applications
+// StdShellRepository is not totally necessary, but it is rather a good example for other applications.
 type StdShellRepository struct{}
 
 func NewStdShellRepository() *StdShellRepository {

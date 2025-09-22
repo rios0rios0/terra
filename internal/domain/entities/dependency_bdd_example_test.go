@@ -14,6 +14,7 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should generate platform specific URL when platform placeholders provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A dependency with platform-specific URL template
 		dependency := entities.Dependency{
 			Name:      "Terraform",
@@ -50,6 +51,7 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 	})
 	
 	t.Run("should use fallback format when no platform placeholders found", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A dependency with simple version-only URL template (backward compatibility)
 		dependency := entities.Dependency{
 			Name:      "SimpleTool",
@@ -75,6 +77,7 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 	})
 	
 	t.Run("should handle empty version when called with empty string", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A dependency with URL template and empty version
 		dependency := entities.Dependency{
 			Name:      "TestTool",
@@ -96,6 +99,7 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 	})
 	
 	t.Run("should detect platform placeholders when only partial placeholders present", func(t *testing.T) {
+		t.Parallel()
 		testCases := []struct {
 			name        string
 			binaryURL   string
@@ -117,6 +121,7 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
+		t.Parallel()
 				// GIVEN: A dependency with partial platform placeholders
 				dependency := entities.Dependency{
 					Name:      "TestTool",

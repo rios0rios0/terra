@@ -14,6 +14,7 @@ func TestNewInstallDependenciesCommand(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should create instance when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: The NewInstallDependenciesCommand constructor is available
 
 		// WHEN: Creating a new install dependencies command
@@ -28,6 +29,7 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should complete without error when empty dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: An install dependencies command and empty dependencies list
 		cmd := commands.NewInstallDependenciesCommand()
 		dependencies := []entities.Dependency{}
@@ -40,6 +42,7 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should install dependency when dependency not available", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock server and dependency for non-existent CLI
 		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
 			WithTerraformVersion("1.0.0").
@@ -64,6 +67,7 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should skip update check when current version cannot be determined", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock server and dependency for terraform (which should be available)
 		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
 			WithTerraformVersion("1.0.0").
@@ -88,6 +92,7 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should handle version comparison scenarios", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Multiple dependencies to test different version scenarios
 		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
 			WithTerraformVersion("1.0.0").

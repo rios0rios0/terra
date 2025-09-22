@@ -11,6 +11,7 @@ func TestOSWindows_Download(t *testing.T) {
 	t.Parallel()
 	
 	t.Run("should download successfully when valid URL provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A Windows OS implementation
 		osImpl := &entities.OSWindows{}
 
@@ -20,6 +21,7 @@ func TestOSWindows_Download(t *testing.T) {
 	})
 	
 	t.Run("should return error when HTTP error occurs", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A Windows OS implementation
 		osImpl := &entities.OSWindows{}
 
