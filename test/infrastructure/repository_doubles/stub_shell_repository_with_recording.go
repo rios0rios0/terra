@@ -1,15 +1,15 @@
-package repository_doubles
+package repository_doubles //nolint:revive,staticcheck // Test package naming follows established project structure
 
 import "github.com/rios0rios0/terra/test/domain/entity_doubles"
 
-// CallRecord represents a single repository call
+// CallRecord represents a single repository call.
 type CallRecord struct {
 	Command   string
 	Arguments []string
 	Directory string
 }
 
-// StubShellRepositoryWithRecording for testing with call recording
+// StubShellRepositoryWithRecording for testing with call recording.
 type StubShellRepositoryWithRecording struct {
 	CallRecords       []CallRecord
 	ShouldReturnError bool
@@ -22,7 +22,7 @@ func (m *StubShellRepositoryWithRecording) ExecuteCommand(
 ) error {
 	m.CallRecords = append(m.CallRecords, CallRecord{
 		Command:   command,
-		Arguments: append([]string{}, arguments...), // Copy slice
+		Arguments: append([]string{}, arguments...), // Copy slice.
 		Directory: directory,
 	})
 

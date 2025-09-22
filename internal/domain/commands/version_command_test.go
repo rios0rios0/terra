@@ -10,8 +10,9 @@ import (
 
 func TestNewVersionCommand(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should create instance when dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Dependencies for version checking
 		dependencies := []entities.Dependency{
 			{
@@ -31,8 +32,9 @@ func TestNewVersionCommand(t *testing.T) {
 
 func TestVersionCommand_Execute(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should complete without panic when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A version command with dependencies
 		dependencies := []entities.Dependency{
 			{
@@ -52,8 +54,9 @@ func TestVersionCommand_Execute(t *testing.T) {
 		// THEN: Should complete without panicking (verified by not crashing)
 		cmd.Execute()
 	})
-	
+
 	t.Run("should complete without panic when empty dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A version command with empty dependencies
 		cmd := commands.NewVersionCommand([]entities.Dependency{})
 

@@ -12,8 +12,9 @@ import (
 
 func TestNewFormatFilesCommand(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should create instance when repository provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock shell repository
 		mockRepo := &repository_doubles.StubShellRepository{}
 
@@ -27,8 +28,9 @@ func TestNewFormatFilesCommand(t *testing.T) {
 
 func TestFormatFilesCommand_Execute(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should execute format commands when dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock repository and dependencies with formatting commands
 		mockRepo := &repository_doubles.StubShellRepository{}
 		terraformDep := entities.Dependency{
@@ -53,8 +55,9 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 		assert.Equal(t, terragruntDep.FormattingCommand, mockRepo.LastArguments)
 		assert.Equal(t, ".", mockRepo.LastDirectory)
 	})
-	
+
 	t.Run("should continue execution when repository returns error", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock repository that returns errors and a single dependency
 		mockRepo := &repository_doubles.StubShellRepository{ShouldReturnError: true}
 		dependencies := []entities.Dependency{
@@ -72,8 +75,9 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 		// THEN: Should execute command despite the error (command handles errors gracefully)
 		assert.Equal(t, 1, mockRepo.ExecuteCallCount)
 	})
-	
+
 	t.Run("should not execute when no dependencies provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: A mock repository and empty dependencies list
 		mockRepo := &repository_doubles.StubShellRepository{}
 		dependencies := []entities.Dependency{}
@@ -85,71 +89,79 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 		// THEN: Should not execute any commands
 		assert.Equal(t, 0, mockRepo.ExecuteCallCount)
 	})
-	
-	t.Run("should execute with empty arguments when dependency has no formatting command", func(t *testing.T) {
-		// GIVEN: A mock repository and dependency with empty formatting command
-		mockRepo := &repository_doubles.StubShellRepository{}
-		dependencies := []entities.Dependency{
-			{
-				Name:              "SomeTool",
-				CLI:               "sometool",
-				FormattingCommand: []string{}, // Empty formatting command
-			},
-		}
-		cmd := commands.NewFormatFilesCommand(mockRepo)
 
-		// WHEN: Executing the format command
-		cmd.Execute(dependencies)
+	t.Run(
+		"should execute with empty arguments when dependency has no formatting command",
+		func(t *testing.T) {
+			t.Parallel()
+			// GIVEN: A mock repository and dependency with empty formatting command
+			mockRepo := &repository_doubles.StubShellRepository{}
+			dependencies := []entities.Dependency{
+				{
+					Name:              "SomeTool",
+					CLI:               "sometool",
+					FormattingCommand: []string{}, // Empty formatting command
+				},
+			}
+			cmd := commands.NewFormatFilesCommand(mockRepo)
 
-		// THEN: Should execute command with empty arguments
-		assert.Equal(t, 1, mockRepo.ExecuteCallCount)
-		assert.Equal(t, "sometool", mockRepo.LastCommand)
-		assert.Empty(t, mockRepo.LastArguments)
-	})
-	
-	t.Run("should execute all dependencies when multiple dependencies provided", func(t *testing.T) {
-		// GIVEN: A recording mock repository and multiple dependencies
-		mockRepo := &repository_doubles.StubShellRepositoryWithRecording{}
-		terraformDep := entities.Dependency{
-			Name:              "Terraform",
-			CLI:               "terraform",
-			FormattingCommand: []string{"fmt", "-recursive"},
-		}
-		terragruntDep := entities.Dependency{
-			Name:              "Terragrunt",
-			CLI:               "terragrunt",
-			FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
-		}
-		customDep := entities.Dependency{
-			Name:              "CustomTool",
-			CLI:               "customtool",
-			FormattingCommand: []string{"format", "--all"},
-		}
-		dependencies := []entities.Dependency{terraformDep, terragruntDep, customDep}
-		cmd := commands.NewFormatFilesCommand(mockRepo)
+			// WHEN: Executing the format command
+			cmd.Execute(dependencies)
 
-		// WHEN: Executing the format command
-		cmd.Execute(dependencies)
+			// THEN: Should execute command with empty arguments
+			assert.Equal(t, 1, mockRepo.ExecuteCallCount)
+			assert.Equal(t, "sometool", mockRepo.LastCommand)
+			assert.Empty(t, mockRepo.LastArguments)
+		},
+	)
 
-		// THEN: Should execute all dependencies in order
-		require.Equal(t, len(dependencies), len(mockRepo.CallRecords))
+	t.Run(
+		"should execute all dependencies when multiple dependencies provided",
+		func(t *testing.T) {
+			t.Parallel()
+			// GIVEN: A recording mock repository and multiple dependencies
+			mockRepo := &repository_doubles.StubShellRepositoryWithRecording{}
+			terraformDep := entities.Dependency{
+				Name:              "Terraform",
+				CLI:               "terraform",
+				FormattingCommand: []string{"fmt", "-recursive"},
+			}
+			terragruntDep := entities.Dependency{
+				Name:              "Terragrunt",
+				CLI:               "terragrunt",
+				FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
+			}
+			customDep := entities.Dependency{
+				Name:              "CustomTool",
+				CLI:               "customtool",
+				FormattingCommand: []string{"format", "--all"},
+			}
+			dependencies := []entities.Dependency{terraformDep, terragruntDep, customDep}
+			cmd := commands.NewFormatFilesCommand(mockRepo)
 
-		// Verify first call (Terraform)
-		firstRecord := mockRepo.CallRecords[0]
-		assert.Equal(t, terraformDep.CLI, firstRecord.Command)
-		assert.Equal(t, terraformDep.FormattingCommand, firstRecord.Arguments)
-		assert.Equal(t, ".", firstRecord.Directory)
+			// WHEN: Executing the format command
+			cmd.Execute(dependencies)
 
-		// Verify second call (Terragrunt)
-		secondRecord := mockRepo.CallRecords[1]
-		assert.Equal(t, terragruntDep.CLI, secondRecord.Command)
-		assert.Equal(t, terragruntDep.FormattingCommand, secondRecord.Arguments)
-		assert.Equal(t, ".", secondRecord.Directory)
+			// THEN: Should execute all dependencies in order
+			require.Len(t, mockRepo.CallRecords, len(dependencies))
 
-		// Verify third call (CustomTool)
-		thirdRecord := mockRepo.CallRecords[2]
-		assert.Equal(t, customDep.CLI, thirdRecord.Command)
-		assert.Equal(t, customDep.FormattingCommand, thirdRecord.Arguments)
-		assert.Equal(t, ".", thirdRecord.Directory)
-	})
+			// Verify first call (Terraform)
+			firstRecord := mockRepo.CallRecords[0]
+			assert.Equal(t, terraformDep.CLI, firstRecord.Command)
+			assert.Equal(t, terraformDep.FormattingCommand, firstRecord.Arguments)
+			assert.Equal(t, ".", firstRecord.Directory)
+
+			// Verify second call (Terragrunt)
+			secondRecord := mockRepo.CallRecords[1]
+			assert.Equal(t, terragruntDep.CLI, secondRecord.Command)
+			assert.Equal(t, terragruntDep.FormattingCommand, secondRecord.Arguments)
+			assert.Equal(t, ".", secondRecord.Directory)
+
+			// Verify third call (CustomTool)
+			thirdRecord := mockRepo.CallRecords[2]
+			assert.Equal(t, customDep.CLI, thirdRecord.Command)
+			assert.Equal(t, customDep.FormattingCommand, thirdRecord.Arguments)
+			assert.Equal(t, ".", thirdRecord.Directory)
+		},
+	)
 }

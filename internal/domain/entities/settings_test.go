@@ -9,7 +9,10 @@ import (
 )
 
 func TestNewSettings(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should create valid instance when empty terra cloud provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Empty TERRA_CLOUD environment variable
 		// Note: No environment variable set means empty string
 
@@ -20,8 +23,9 @@ func TestNewSettings(t *testing.T) {
 		require.NotNil(t, settings)
 		assert.Empty(t, settings.TerraCloud)
 	})
-	
+
 	t.Run("should create valid instance when valid aws cloud provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Valid AWS cloud environment variable
 		t.Setenv("TERRA_CLOUD", "aws")
 
@@ -32,8 +36,9 @@ func TestNewSettings(t *testing.T) {
 		require.NotNil(t, settings)
 		assert.Equal(t, "aws", settings.TerraCloud)
 	})
-	
+
 	t.Run("should create valid instance when valid azure cloud provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Valid Azure cloud environment variable
 		t.Setenv("TERRA_CLOUD", "azure")
 
@@ -47,7 +52,10 @@ func TestNewSettings(t *testing.T) {
 }
 
 func TestNewCLI(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should return nil when empty cloud provider provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Settings with empty cloud provider
 		settings := entities.NewSettings()
 
@@ -57,8 +65,9 @@ func TestNewCLI(t *testing.T) {
 		// THEN: Should return nil for empty cloud provider
 		assert.Nil(t, cli)
 	})
-	
+
 	t.Run("should return aws CLI when aws cloud provider provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Settings with AWS cloud provider
 		t.Setenv("TERRA_CLOUD", "aws")
 		settings := entities.NewSettings()
@@ -70,8 +79,9 @@ func TestNewCLI(t *testing.T) {
 		require.NotNil(t, cli)
 		assert.Equal(t, "aws", cli.GetName())
 	})
-	
+
 	t.Run("should return azure CLI when azure cloud provider provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Settings with Azure cloud provider
 		t.Setenv("TERRA_CLOUD", "azure")
 		settings := entities.NewSettings()
@@ -87,8 +97,9 @@ func TestNewCLI(t *testing.T) {
 
 func TestNewCLIAws(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return valid instance when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Settings instance
 		settings := entities.NewSettings()
 
@@ -103,8 +114,9 @@ func TestNewCLIAws(t *testing.T) {
 
 func TestCLIAws_GetName(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return aws when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: AWS CLI instance
 		settings := entities.NewSettings()
 		cli := entities.NewCLIAws(settings)
@@ -118,7 +130,10 @@ func TestCLIAws_GetName(t *testing.T) {
 }
 
 func TestCLIAws_CanChangeAccount(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should not allow account change when no role arn provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: AWS CLI with settings without role ARN
 		settings := entities.NewSettings()
 		cli := entities.NewCLIAws(settings)
@@ -129,8 +144,9 @@ func TestCLIAws_CanChangeAccount(t *testing.T) {
 		// THEN: Should not allow account change
 		assert.False(t, canChange)
 	})
-	
+
 	t.Run("should allow account change when valid role arn provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: AWS CLI with settings containing valid role ARN
 		t.Setenv("TERRA_AWS_ROLE_ARN", "arn:aws:iam::123456789012:role/terraform-role")
 		settings := entities.NewSettings()
@@ -145,7 +161,10 @@ func TestCLIAws_CanChangeAccount(t *testing.T) {
 }
 
 func TestCLIAws_GetCommandChangeAccount(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should return correct command when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: AWS CLI with valid role ARN
 		roleArn := "arn:aws:iam::123456789012:role/terraform-role"
 		t.Setenv("TERRA_AWS_ROLE_ARN", roleArn)
@@ -168,8 +187,9 @@ func TestCLIAws_GetCommandChangeAccount(t *testing.T) {
 
 func TestNewCLIAzm(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return valid instance when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Settings instance
 		settings := entities.NewSettings()
 
@@ -184,8 +204,9 @@ func TestNewCLIAzm(t *testing.T) {
 
 func TestCLIAzm_GetName(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return az when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Azure CLI instance
 		settings := entities.NewSettings()
 		cli := entities.NewCLIAzm(settings)
@@ -199,7 +220,10 @@ func TestCLIAzm_GetName(t *testing.T) {
 }
 
 func TestCLIAzm_CanChangeAccount(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should not allow account change when no subscription id provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Azure CLI with settings without subscription ID
 		settings := entities.NewSettings()
 		cli := entities.NewCLIAzm(settings)
@@ -210,8 +234,9 @@ func TestCLIAzm_CanChangeAccount(t *testing.T) {
 		// THEN: Should not allow account change
 		assert.False(t, canChange)
 	})
-	
+
 	t.Run("should allow account change when valid subscription id provided", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Azure CLI with settings containing valid subscription ID
 		t.Setenv("TERRA_AZURE_SUBSCRIPTION_ID", "12345678-1234-1234-1234-123456789012")
 		settings := entities.NewSettings()
@@ -226,7 +251,10 @@ func TestCLIAzm_CanChangeAccount(t *testing.T) {
 }
 
 func TestCLIAzm_GetCommandChangeAccount(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should return correct command when called", func(t *testing.T) {
+		t.Parallel()
 		// GIVEN: Azure CLI with valid subscription ID
 		subscriptionID := "12345678-1234-1234-1234-123456789012"
 		t.Setenv("TERRA_AZURE_SUBSCRIPTION_ID", subscriptionID)

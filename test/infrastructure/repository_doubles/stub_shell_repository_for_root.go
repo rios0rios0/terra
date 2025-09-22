@@ -1,6 +1,6 @@
-package repository_doubles
+package repository_doubles //nolint:revive,staticcheck // Test package naming follows established project structure
 
-// StubShellRepositoryForRoot is a stub implementation of repositories.ShellRepository
+// StubShellRepositoryForRoot is a stub implementation of repositories.ShellRepository.
 type StubShellRepositoryForRoot struct {
 	ExecuteCallCount int
 	LastCommand      string
