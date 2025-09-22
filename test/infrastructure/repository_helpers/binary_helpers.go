@@ -28,7 +28,12 @@ else
 fi
 `, version, version)
 
-	err := os.WriteFile(binaryPath, []byte(scriptContent), 0755) //nolint:gosec // Test helper needs executable permissions
+	//nolint:gosec // Test helper needs executable permissions
+	err := os.WriteFile(
+		binaryPath,
+		[]byte(scriptContent),
+		0755,
+	)
 	require.NoError(t, err)
 
 	return tempDir

@@ -7,37 +7,37 @@ import (
 
 // StubOSRepository provides a stub implementation of OS interface for testing.
 type StubOSRepository struct {
-	DownloadError      error
-	DownloadCallCount  int
-	DownloadURLs       []string
-	DownloadPaths      []string
-	
-	MoveError         error
-	MoveCallCount     int
-	MoveSources       []string
-	MoveDestinations  []string
-	
-	RemoveError      error
-	RemoveCallCount  int
-	RemovePaths      []string
-	
+	DownloadError     error
+	DownloadCallCount int
+	DownloadURLs      []string
+	DownloadPaths     []string
+
+	MoveError        error
+	MoveCallCount    int
+	MoveSources      []string
+	MoveDestinations []string
+
+	RemoveError     error
+	RemoveCallCount int
+	RemovePaths     []string
+
 	MakeExecutableError     error
 	MakeExecutableCallCount int
 	MakeExecutablePaths     []string
-	
-	TempDir         string
+
+	TempDir          string
 	InstallationPath string
 }
 
 func NewStubOSRepository() *StubOSRepository {
 	return &StubOSRepository{
-		TempDir:          "/tmp",
-		InstallationPath: "/usr/local/bin",
-		DownloadURLs:     make([]string, 0),
-		DownloadPaths:    make([]string, 0),
-		MoveSources:      make([]string, 0),
-		MoveDestinations: make([]string, 0),
-		RemovePaths:      make([]string, 0),
+		TempDir:             "/tmp",
+		InstallationPath:    "/usr/local/bin",
+		DownloadURLs:        make([]string, 0),
+		DownloadPaths:       make([]string, 0),
+		MoveSources:         make([]string, 0),
+		MoveDestinations:    make([]string, 0),
+		RemovePaths:         make([]string, 0),
 		MakeExecutablePaths: make([]string, 0),
 	}
 }

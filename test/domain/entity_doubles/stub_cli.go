@@ -1,4 +1,4 @@
-package entity_doubles //nolint:revive,staticcheck // Test package naming follows established project structure
+package entity_doubles //nolint:staticcheck // Test package naming follows established project structure
 
 // StubCLI is a stub implementation of entities.CLI.
 type StubCLI struct {

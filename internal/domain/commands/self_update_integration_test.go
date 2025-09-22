@@ -11,7 +11,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-//nolint:tparallel // Integration test with environment modifications
 func TestSelfUpdateCommand_Execute_Integration(t *testing.T) {
 	t.Run("should perform dry run successfully when valid release available", func(t *testing.T) {
 		if testing.Short() {
@@ -94,12 +93,13 @@ func TestSelfUpdateCommand_Execute_Integration(t *testing.T) {
 	})
 }
 
-// createMockGitHubServer creates a test server that mimics GitHub API responses
+// createMockGitHubServer creates a test server that mimics GitHub API responses.
 func createMockGitHubServer(t *testing.T, version, assetName string) *httptest.Server {
 	t.Helper()
-	
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.Path == "/repos/rios0rios0/terra/releases/latest" {
+		switch r.URL.Path {
+		case "/repos/rios0rios0/terra/releases/latest":
 			response := map[string]interface{}{
 				"tag_name": "v" + version,
 				"assets": []map[string]interface{}{
@@ -109,28 +109,28 @@ func createMockGitHubServer(t *testing.T, version, assetName string) *httptest.S
 					},
 				},
 			}
-			
+
 			w.Header().Set("Content-Type", "application/json")
 			err := json.NewEncoder(w).Encode(response)
 			if err != nil {
 				t.Fatalf("Failed to encode JSON response: %v", err)
 			}
-		} else if r.URL.Path == "/download/"+assetName {
+		case "/download/" + assetName:
 			// Mock binary download
 			w.Header().Set("Content-Type", "application/octet-stream")
 			_, err := w.Write([]byte("fake terra binary content"))
 			if err != nil {
 				t.Fatalf("Failed to write binary response: %v", err)
 			}
-		} else {
+		default:
 			w.WriteHeader(http.StatusNotFound)
 		}
 	}))
-	
+
 	return server
 }
 
-// TestSelfUpdateCommand_RealGitHubAPI tests against the actual GitHub API
+// TestSelfUpdateCommand_RealGitHubAPI tests against the actual GitHub API.
 func TestSelfUpdateCommand_RealGitHubAPI(t *testing.T) {
 	if testing.Short() {
 		t.Skip("Skipping real API test in short mode")
@@ -145,10 +145,10 @@ func TestSelfUpdateCommand_RealGitHubAPI(t *testing.T) {
 
 		// THEN: Should successfully connect to GitHub API
 		require.Error(t, err) // Expected because no assets exist
-		
+
 		// Verify we're getting the right error (no binary found, not API access denied)
 		assert.Contains(t, err.Error(), "no binary found for platform linux_amd64")
-		
+
 		// Verify we're NOT getting network/firewall errors
 		assert.NotContains(t, err.Error(), "403")
 		assert.NotContains(t, err.Error(), "Forbidden")

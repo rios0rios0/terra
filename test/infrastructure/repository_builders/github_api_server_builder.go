@@ -50,21 +50,21 @@ func (b *GitHubAPIServerBuilder) WithErrorResponse(errorMsg string) *GitHubAPISe
 // BuildServer creates and returns a test server.
 func (b *GitHubAPIServerBuilder) BuildServer() *httptest.Server {
 	b.t.Helper()
-	
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(b.statusCode)
-		
+
 		if b.errorResponse != "" {
 			fmt.Fprint(w, b.errorResponse)
 			return
 		}
-		
+
 		if b.statusCode != http.StatusOK {
 			fmt.Fprint(w, `{"message": "API Error"}`)
 			return
 		}
-		
+
 		response := map[string]interface{}{
 			"tag_name": b.releaseVersion,
 			"assets": []map[string]interface{}{
@@ -74,26 +74,26 @@ func (b *GitHubAPIServerBuilder) BuildServer() *httptest.Server {
 				},
 			},
 		}
-		
+
 		err := json.NewEncoder(w).Encode(response)
 		if err != nil {
 			b.t.Fatalf("Failed to encode JSON response: %v", err)
 		}
 	}))
-	
+
 	return server
 }
 
 // BuildBinaryServer creates a test server that serves binary files.
 func (b *GitHubAPIServerBuilder) BuildBinaryServer() *httptest.Server {
 	b.t.Helper()
-	
+
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/octet-stream")
 		w.WriteHeader(http.StatusOK)
 		// Simulate a binary file with some dummy content
 		fmt.Fprint(w, "fake binary content for testing")
 	}))
-	
+
 	return server
 }
