@@ -41,6 +41,9 @@ func RegisterProviders(container *dig.Container) error {
 	if err := container.Provide(NewInstallDependenciesController); err != nil {
 		return err
 	}
+	if err := container.Provide(NewUpdateDependenciesController); err != nil {
+		return err
+	}
 	if err := container.Provide(NewSelfUpdateController); err != nil {
 		return err
 	}
@@ -62,6 +65,7 @@ func NewControllers(
 	deleteCacheController *DeleteCacheController,
 	formatFilesController *FormatFilesController,
 	installDependenciesController *InstallDependenciesController,
+	updateDependenciesController *UpdateDependenciesController,
 	selfUpdateController *SelfUpdateController,
 	versionController *VersionController,
 ) *[]entities.Controller {
@@ -69,6 +73,7 @@ func NewControllers(
 		deleteCacheController,
 		formatFilesController,
 		installDependenciesController,
+		updateDependenciesController,
 		selfUpdateController,
 		versionController,
 	}

@@ -36,8 +36,6 @@ func (it *RunFromRootCommand) Execute(
 	arguments []string,
 	dependencies []entities.Dependency,
 ) {
-	// ensure that all dependencies are installed
-	it.installCommand.Execute(dependencies)
 	it.formatCommand.Execute(dependencies)
 	it.additionalBefore.Execute(targetPath, arguments)
 
