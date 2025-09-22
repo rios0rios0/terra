@@ -25,7 +25,7 @@ func HelperCreateSimpleVersionServer(t *testing.T, version string) *httptest.Ser
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := `{"current_version":"` + version + `"}`
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(response))
+		_, _ = w.Write([]byte(response))
 	}))
 }
 

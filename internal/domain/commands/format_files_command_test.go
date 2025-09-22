@@ -145,7 +145,7 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 			cmd.Execute(dependencies)
 
 			// THEN: Should execute all dependencies in order
-			require.Equal(t, len(dependencies), len(mockRepo.CallRecords))
+			require.Len(t, mockRepo.CallRecords, len(dependencies))
 
 			// Verify first call (Terraform)
 			firstRecord := mockRepo.CallRecords[0]
