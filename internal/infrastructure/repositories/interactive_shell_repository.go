@@ -11,8 +11,13 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rios0rios0/terra/internal/domain/repositories"
 	logger "github.com/sirupsen/logrus"
 )
+
+// Compile-time check to ensure InteractiveShellRepository implements required interfaces
+var _ repositories.ShellRepository = (*InteractiveShellRepository)(nil)
+var _ repositories.AutoAnswerConfigurable = (*InteractiveShellRepository)(nil)
 
 const (
 	outputChannelSize   = 100
@@ -21,10 +26,19 @@ const (
 )
 
 // InteractiveShellRepository handles interactive commands with auto-answering capabilities.
-type InteractiveShellRepository struct{}
+type InteractiveShellRepository struct {
+	autoAnswerValue string // "y", "n", or "" (empty means disabled)
+}
 
 func NewInteractiveShellRepository() *InteractiveShellRepository {
-	return &InteractiveShellRepository{}
+	return &InteractiveShellRepository{
+		autoAnswerValue: "n", // Default to "n" for backward compatibility
+	}
+}
+
+// SetAutoAnswerValue sets the auto-answer preference
+func (it *InteractiveShellRepository) SetAutoAnswerValue(value string) {
+	it.autoAnswerValue = value
 }
 
 func (it *InteractiveShellRepository) ExecuteCommand(
@@ -121,13 +135,13 @@ func (it *InteractiveShellRepository) processLineAndRespond(line string, stdin i
 	// Remove ANSI escape codes for pattern matching
 	cleanLine := it.removeANSICodes(line)
 
-	// Pattern 1: External dependency prompt - answer "n"
+	// Pattern 1: External dependency prompt - use configured auto-answer value
 	externalDepPattern := regexp.MustCompile(
 		`(?i)should terragrunt apply the external dependency.*\?`,
 	)
 	if externalDepPattern.MatchString(cleanLine) {
-		logger.Debug("Detected external dependency prompt, responding with 'n'")
-		fmt.Fprintln(stdin, "n")
+		logger.Debugf("Detected external dependency prompt, responding with '%s'", it.autoAnswerValue)
+		fmt.Fprintln(stdin, it.autoAnswerValue)
 		return
 	}
 
@@ -141,11 +155,11 @@ func (it *InteractiveShellRepository) processLineAndRespond(line string, stdin i
 		return
 	}
 
-	// Pattern 3: Any other "yes/no" prompts - answer "n" by default
+	// Pattern 3: Any other "yes/no" prompts - use configured auto-answer value
 	yesNoPattern := regexp.MustCompile(`(?i).*\?.*\[y/n\]`)
 	if yesNoPattern.MatchString(cleanLine) {
-		logger.Debug("Detected yes/no prompt, responding with 'n'")
-		fmt.Fprintln(stdin, "n")
+		logger.Debugf("Detected yes/no prompt, responding with '%s'", it.autoAnswerValue)
+		fmt.Fprintln(stdin, it.autoAnswerValue)
 		return
 	}
 }

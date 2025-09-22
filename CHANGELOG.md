@@ -17,6 +17,19 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ## [Unreleased]
 
 ### Added
+- Enhanced auto-answer feature to support configurable "y" or "n" responses
+- New flag syntax: `--auto-answer=y`, `--auto-answer=n`, `--auto-answer=yes`, `--auto-answer=no`
+- Comprehensive unit and integration tests for auto-answer functionality
+- AutoAnswerConfigurable interface for testable auto-answer configuration
+
+### Changed
+- Improved auto-answer flag parsing to support value-based configuration
+- Enhanced InteractiveShellRepository to use configurable auto-answer values
+- Updated documentation to reflect new auto-answer capabilities
+
+### Backward Compatibility
+- Legacy `--auto-answer` and `-a` flags still work and default to "n" response
+- All existing auto-answer behavior is preserved
 
 - Added "update" command as an alias for "install" command
 

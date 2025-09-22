@@ -52,21 +52,37 @@ install     Install Terraform and Terragrunt (they are pre-requisites)
 
 ### Auto-Answer Feature
 
-The `--auto-answer` (or `-a`) flag enables automatic responses to Terragrunt prompts, eliminating the need for manual intervention during long-running operations. This is particularly useful in CI/CD pipelines or when running multiple Terragrunt commands.
+The `--auto-answer` flag enables automatic responses to Terragrunt prompts, eliminating the need for manual intervention during long-running operations. This is particularly useful in CI/CD pipelines or when running multiple Terragrunt commands.
+
+**Enhanced Configuration Options:**
+- `--auto-answer` or `-a` - Defaults to "n" for backward compatibility
+- `--auto-answer=y` or `--auto-answer=yes` - Automatically answers "y" to prompts
+- `--auto-answer=n` or `--auto-answer=no` - Automatically answers "n" to prompts
 
 **What it does:**
-- Automatically answers "n" to external dependency prompts
-- Automatically answers "n" to general yes/no prompts
+- Automatically responds to external dependency prompts with configured value
+- Automatically responds to general yes/no prompts with configured value
 - Switches to manual mode for confirmation prompts (like "Are you sure you want to run...")
 - Filters out the auto-answer flag before passing arguments to Terragrunt
 
-**Example:**
+**Examples:**
 ```bash
 # Without auto-answer - requires manual input for each prompt
 terra run-all apply /path
 
-# With auto-answer - automatically handles most prompts
+# With auto-answer (legacy) - automatically answers "n" to prompts
 terra --auto-answer run-all apply /path
+terra -a run-all apply /path
+
+# With auto-answer=y - automatically answers "y" to prompts
+terra --auto-answer=y run-all apply /path
+
+# With auto-answer=n - explicitly answers "n" to prompts  
+terra --auto-answer=n run-all plan /path
+
+# Using long form values
+terra --auto-answer=yes run-all apply /path
+terra --auto-answer=no run-all plan /path
 ```
 
 If you have some input variables, you can use environment variables (`.env`) with the prefix `TF_VAR_`:

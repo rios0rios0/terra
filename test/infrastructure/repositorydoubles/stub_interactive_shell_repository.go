@@ -14,6 +14,7 @@ type StubInteractiveShellRepository struct {
 		Arguments []string
 		Directory string
 	}
+	autoAnswerValue string
 }
 
 func (m *StubInteractiveShellRepository) ExecuteCommand(
@@ -42,4 +43,14 @@ func (m *StubInteractiveShellRepository) ExecuteCommand(
 		return err
 	}
 	return nil
+}
+
+// SetAutoAnswerValue sets the auto-answer preference (for testing compatibility)
+func (m *StubInteractiveShellRepository) SetAutoAnswerValue(value string) {
+	m.autoAnswerValue = value
+}
+
+// GetAutoAnswerValue returns the configured auto-answer value (for testing)
+func (m *StubInteractiveShellRepository) GetAutoAnswerValue() string {
+	return m.autoAnswerValue
 }
