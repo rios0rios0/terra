@@ -120,20 +120,4 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 		// THEN: Should handle version comparison logic
 		// This tests compareVersions method indirectly through version checking logic
 	})
-
-	t.Run("should handle network errors gracefully", func(t *testing.T) {
-		// Skip this test as it involves network error handling that causes fatal log
-		// The fetchLatestVersion method calls logger.Fatalf on network errors
-		// Testing this path would require more complex setup to capture fatal logs
-		// This functionality is better covered in integration tests
-		t.Skip("Skipping network error test - fetchLatestVersion uses fatal logging")
-	})
-
-	t.Run("should handle invalid regex pattern", func(t *testing.T) {
-		// Skip this test as it involves regex pattern failure that causes fatal log
-		// The fetchLatestVersion method calls logger.Fatalf when regex doesn't match
-		// Testing this path would require more complex setup to capture fatal logs
-		// This functionality is better covered in integration tests
-		t.Skip("Skipping regex pattern test - fetchLatestVersion uses fatal logging on no match")
-	})
 }
