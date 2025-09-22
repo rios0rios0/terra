@@ -8,21 +8,18 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	"github.com/rios0rios0/terra/test/domain/entity_builders"
-	"github.com/rios0rios0/terra/test/infrastructure/repository_builders"
-	"github.com/rios0rios0/terra/test/infrastructure/repository_helpers"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
+	"github.com/rios0rios0/terra/test/infrastructure/repositorybuilders"
+	"github.com/rios0rios0/terra/test/infrastructure/repositoryhelpers"
 )
 
 // TestInstallDependenciesCommand_Execute_VersionScenarios tests version comparison and prompt functionality.
-//
-//nolint:tparallel // Cannot use t.Parallel() when manipulating PATH and creating temporary binaries
 func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when manipulating PATH and creating temporary binaries
 
 	t.Run("should trigger version comparison with mock terraform", func(t *testing.T) {
-		t.Parallel()
 		// GIVEN: A mock terraform binary that returns a proper version
-		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.0.0")
+		mockBinaryDir := repositoryhelpers.HelperCreateMockTerraformBinary(t, "1.0.0")
 		defer os.RemoveAll(mockBinaryDir)
 
 		// Prepend mock binary directory to PATH
@@ -31,13 +28,13 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		t.Setenv("PATH", newPath)
 
 		// Set up mock server with newer version
-		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
+		versionServer, binaryServer := repositorybuilders.NewTestServerBuilder().
 			WithTerraformVersion("2.0.0"). // Newer version to trigger update
 			BuildServers()
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("Terraform").
 			WithCLI("terraform").
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
@@ -67,9 +64,8 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	})
 
 	t.Run("should trigger version comparison with equal versions", func(t *testing.T) {
-		t.Parallel()
 		// GIVEN: A mock terraform binary that returns same version as server
-		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.5.0")
+		mockBinaryDir := repositoryhelpers.HelperCreateMockTerraformBinary(t, "1.5.0")
 		defer os.RemoveAll(mockBinaryDir)
 
 		// Prepend mock binary directory to PATH
@@ -78,13 +74,13 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		t.Setenv("PATH", newPath)
 
 		// Set up mock server with same version
-		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
+		versionServer, binaryServer := repositorybuilders.NewTestServerBuilder().
 			WithTerraformVersion("1.5.0"). // Same version
 			BuildServers()
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("Terraform").
 			WithCLI("terraform").
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
@@ -100,9 +96,8 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	})
 
 	t.Run("should trigger version comparison with newer local version", func(t *testing.T) {
-		t.Parallel()
 		// GIVEN: A mock terraform binary that returns newer version than server
-		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "2.0.0")
+		mockBinaryDir := repositoryhelpers.HelperCreateMockTerraformBinary(t, "2.0.0")
 		defer os.RemoveAll(mockBinaryDir)
 
 		// Prepend mock binary directory to PATH
@@ -111,13 +106,13 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		t.Setenv("PATH", newPath)
 
 		// Set up mock server with older version
-		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
+		versionServer, binaryServer := repositorybuilders.NewTestServerBuilder().
 			WithTerraformVersion("1.0.0"). // Older version
 			BuildServers()
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("Terraform").
 			WithCLI("terraform").
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
@@ -133,9 +128,8 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle user accepting update prompt", func(t *testing.T) {
-		t.Parallel()
 		// GIVEN: A mock terraform binary with older version
-		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.0.0")
+		mockBinaryDir := repositoryhelpers.HelperCreateMockTerraformBinary(t, "1.0.0")
 		defer os.RemoveAll(mockBinaryDir)
 
 		// Prepend mock binary directory to PATH
@@ -144,13 +138,13 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		t.Setenv("PATH", newPath)
 
 		// Set up mock server with newer version
-		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
+		versionServer, binaryServer := repositorybuilders.NewTestServerBuilder().
 			WithTerraformVersion("2.0.0").
 			BuildServers()
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("Terraform").
 			WithCLI("terraform").
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").

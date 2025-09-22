@@ -1,6 +1,6 @@
 //go:build integration || unit || test
 
-package repository_helpers //nolint:staticcheck // Test package naming follows established project structure
+package repositoryhelpers //nolint:staticcheck // Test package naming follows established project structure
 
 import (
 	"net/http"

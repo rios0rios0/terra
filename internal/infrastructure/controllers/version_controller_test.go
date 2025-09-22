@@ -6,7 +6,8 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
-	"github.com/rios0rios0/terra/test/domain/command_doubles"
+	"github.com/rios0rios0/terra/test/domain/commanddoubles"
+
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -18,7 +19,7 @@ func TestNewVersionController(t *testing.T) {
 	t.Run("should create instance when command provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A mock version command
-		mockCommand := &command_doubles.StubVersionCommand{}
+		mockCommand := &commanddoubles.StubVersionCommand{}
 
 		// WHEN: Creating a new version controller
 		controller := controllers.NewVersionController(mockCommand)
@@ -34,7 +35,7 @@ func TestVersionController_GetBind(t *testing.T) {
 	t.Run("should return correct bind when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A version controller with mock command
-		mockCommand := &command_doubles.StubVersionCommand{}
+		mockCommand := &commanddoubles.StubVersionCommand{}
 		controller := controllers.NewVersionController(mockCommand)
 
 		// WHEN: Getting the controller bind
@@ -57,7 +58,7 @@ func TestVersionController_Execute(t *testing.T) {
 	t.Run("should execute command when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A version controller with mock command
-		mockCommand := &command_doubles.StubVersionCommand{}
+		mockCommand := &commanddoubles.StubVersionCommand{}
 		controller := controllers.NewVersionController(mockCommand)
 		cmd := &cobra.Command{}
 		args := []string{}
@@ -72,7 +73,7 @@ func TestVersionController_Execute(t *testing.T) {
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A version controller with mock command
-		mockCommand := &command_doubles.StubVersionCommand{}
+		mockCommand := &commanddoubles.StubVersionCommand{}
 		controller := controllers.NewVersionController(mockCommand)
 		cmd := &cobra.Command{}
 		args := []string{}

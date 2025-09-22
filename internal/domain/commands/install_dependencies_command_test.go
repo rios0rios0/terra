@@ -7,8 +7,8 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	"github.com/rios0rios0/terra/test/domain/entity_builders"
-	"github.com/rios0rios0/terra/test/infrastructure/repository_builders"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
+	"github.com/rios0rios0/terra/test/infrastructure/repositorybuilders"
 	"github.com/stretchr/testify/require"
 )
 
@@ -46,13 +46,13 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 	t.Run("should install dependency when dependency not available", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A mock server and dependency for non-existent CLI
-		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
+		versionServer, binaryServer := repositorybuilders.NewTestServerBuilder().
 			WithTerraformVersion("1.0.0").
 			BuildServers()
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("TestTool").
 			WithCLI("non-existent-cli-tool-12345").
 			WithBinaryURL(binaryServer.URL + "/testtool_%s").
@@ -71,13 +71,13 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 	t.Run("should skip update check when current version cannot be determined", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A mock server and dependency for terraform (which should be available)
-		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
+		versionServer, binaryServer := repositorybuilders.NewTestServerBuilder().
 			WithTerraformVersion("1.0.0").
 			BuildServers()
 		defer versionServer.Close()
 		defer binaryServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("Terraform").
 			WithCLI("terraform").
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
@@ -96,7 +96,7 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 	t.Run("should handle version comparison scenarios", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Multiple dependencies to test different version scenarios
-		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
+		versionServer, binaryServer := repositorybuilders.NewTestServerBuilder().
 			WithTerraformVersion("1.0.0").
 			WithTerragruntVersion("0.50.0").
 			BuildServers()
@@ -104,14 +104,14 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 		defer binaryServer.Close()
 
 		dependencies := []entities.Dependency{
-			entity_builders.NewDependencyBuilder().
+			entitybuilders.NewDependencyBuilder().
 				WithName("Terraform").
 				WithCLI("terraform").
 				WithBinaryURL(binaryServer.URL + "/terraform_%s").
 				WithVersionURL(versionServer.URL + "/terraform").
 				WithTerraformPattern().
 				Build(),
-			entity_builders.NewDependencyBuilder().
+			entitybuilders.NewDependencyBuilder().
 				WithName("Terragrunt").
 				WithCLI("terragrunt").
 				WithBinaryURL(binaryServer.URL + "/terragrunt_%s").

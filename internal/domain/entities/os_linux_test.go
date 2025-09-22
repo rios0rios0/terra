@@ -27,10 +27,7 @@ func TestGetOS(t *testing.T) {
 }
 
 func TestOSLinux_GetTempDir(t *testing.T) {
-	t.Parallel()
-
 	t.Run("should return valid temp dir when called", func(t *testing.T) {
-		t.Parallel()
 		// GIVEN: An OS instance
 		osInstance := entities.GetOS()
 

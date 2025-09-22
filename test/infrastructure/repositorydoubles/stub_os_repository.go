@@ -1,6 +1,6 @@
 //go:build integration || unit || test
 
-package repository_doubles
+package repositorydoubles
 
 import (
 	"errors"
