@@ -70,7 +70,7 @@ Unit tests (files in `internal/` directories) must use the `unit` build tag:
 package package_name_test
 ```
 
-#### Integration Tests  
+#### Integration Tests
 Integration tests (files with `*_integration_test.go` pattern or BDD examples) must use the `integration` build tag:
 
 ```go
@@ -95,7 +95,7 @@ Use build tags to run specific test categories:
 # Run only unit tests
 go test -tags unit ./...
 
-# Run only integration tests  
+# Run only integration tests
 go test -tags integration ./...
 
 # Run all tests (default behavior)
@@ -142,10 +142,10 @@ import (
 func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
     // GIVEN: Setup using test helper
     component := entities.NewComponent()
-    
+
     // WHEN: Using test helper for consistent testing
     test.HelperFunctionName(t, component)
-    
+
     // THEN: Assertions...
 }
 ```
@@ -166,14 +166,14 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
 
 1. **One utility per file** - Never combine multiple builders, stubs, mocks, or helpers in a single file
 2. **Domain-specific organization** - All test utilities must be organized by their corresponding production packages:
-   - **`test/domain/entity_doubles/`** - Stubs implementing domain entity interfaces (CLI, OS, etc.)
-   - **`test/domain/entity_builders/`** - Builders that create domain entities for testing
-   - **`test/domain/command_doubles/`** - Stubs implementing domain command interfaces
-   - **`test/infrastructure/repository_doubles/`** - Stubs implementing repository interfaces (infrastructure layer)
-   - **`test/infrastructure/repository_builders/`** - Builders for infrastructure testing (HTTP servers, etc.)
-   - **`test/infrastructure/repository_helpers/`** - Helpers for testing repository/OS functionality
-   - **`test/infrastructure/controller_doubles/`** - Stubs implementing infrastructure controller interfaces
-   - **`test/infrastructure/controller_helpers/`** - Helpers for testing controller functionality
+   - **`test/domain/entitydoubles/`** - Stubs implementing domain entity interfaces (CLI, OS, etc.)
+   - **`test/domain/entitybuilders/`** - Builders that create domain entities for testing
+   - **`test/domain/commanddoubles/`** - Stubs implementing domain command interfaces
+   - **`test/infrastructure/repositorydoubles/`** - Stubs implementing repository interfaces (infrastructure layer)
+   - **`test/infrastructure/repositorybuilders/`** - Builders for infrastructure testing (HTTP servers, etc.)
+   - **`test/infrastructure/repositoryhelpers/`** - Helpers for testing repository/OS functionality
+   - **`test/infrastructure/controllerdoubles/`** - Stubs implementing infrastructure controller interfaces
+   - **`test/infrastructure/controllerhelpers/`** - Helpers for testing controller functionality
 
 3. **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
    - Builders: `dependency_builder.go`, `test_server_builder.go`
@@ -184,10 +184,10 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
    - Helpers: `os_helpers.go`, `network_helpers.go`
 
 4. **Package naming** - Use descriptive package names that reflect the organization:
-   - `entity_doubles`, `entity_builders`
-   - `command_doubles`
-   - `repository_doubles`, `repository_builders`, `repository_helpers`
-   - `controller_doubles`, `controller_helpers`
+   - `entitydoubles`, `entitybuilders`
+   - `commanddoubles`
+   - `repositorydoubles`, `repositorybuilders`, `repositoryhelpers`
+   - `controllerdoubles`, `controllerhelpers`
 
 #### Test Double Definitions
 
@@ -219,10 +219,10 @@ func TestCalculateTotal_ShouldReturnCorrectSum_WhenValidItemsProvided(t *testing
     // GIVEN: Stub returns fixed tax rate
     taxStub := &test.StubTaxService{TaxRate: 0.1}
     calculator := NewCalculator(taxStub)
-    
+
     // WHEN: Calculate total
     total := calculator.CalculateTotal(items)
-    
+
     // THEN: Verify final state/result
     assert.Equal(t, 110.0, total)
     assert.Equal(t, 1, taxStub.CallCount) // State verification
@@ -234,10 +234,10 @@ func TestSendNotification_ShouldCallEmailService_WhenNotificationSent(t *testing
     emailMock := &mocks.EmailService{}
     emailMock.On("SendEmail", "user@example.com", "Hello").Return(nil)
     notifier := NewNotifier(emailMock)
-    
+
     // WHEN: Send notification
     err := notifier.Send("user@example.com", "Hello")
-    
+
     // THEN: Verify behavior occurred as expected
     require.NoError(t, err)
     emailMock.AssertExpectations(t) // Behavior verification
@@ -318,10 +318,10 @@ func TestCommandService_ShouldReturnError_WhenInvalidPathProvided(t *testing.T) 
     mockOS := &MockOSInterface{}
     mockOS.On("FileExists", invalidPath).Return(false)
     service := NewCommandService(mockOS)
-    
+
     // WHEN: Execute the action being tested
     result, err := service.ValidatePath(invalidPath)
-    
+
     // THEN: Assert expected outcomes
     assert.Error(t, err)
     assert.Nil(t, result)
@@ -332,7 +332,7 @@ func TestCommandService_ShouldReturnError_WhenInvalidPathProvided(t *testing.T) 
 
 **Section Guidelines:**
 - **GIVEN**: Set up test data, mocks, and preconditions
-- **WHEN**: Execute the specific action/method being tested  
+- **WHEN**: Execute the specific action/method being tested
 - **THEN**: Verify all expected outcomes using testify assertions
 
 #### Use Comments to Separate Sections
@@ -343,10 +343,10 @@ Always use comments to clearly separate the three sections:
 func TestExample(t *testing.T) {
     // GIVEN: description of setup
     // ... setup code ...
-    
+
     // WHEN: description of action
     // ... action code ...
-    
+
     // THEN: description of expectations
     // ... assertions ...
 }
@@ -371,7 +371,7 @@ func TestValidateInput(t *testing.T) {
         {"valid input", "test", true},
         {"invalid input", "", false},
     }
-    
+
     for _, tt := range tests {
         t.Run(tt.name, func(t *testing.T) {
             // test logic
@@ -388,7 +388,7 @@ func TestValidateInput_ShouldReturnTrue_WhenValidInputProvided(t *testing.T) {
 
 func TestValidateInput_ShouldReturnFalse_WhenEmptyInputProvided(t *testing.T) {
     // GIVEN: Empty input
-    // WHEN: Validation is called  
+    // WHEN: Validation is called
     // THEN: Should return false
 }
 ```
@@ -405,18 +405,18 @@ Each test file should have **one test function per public method** being tested,
 // For a struct with public methods GetName() and Execute()
 func TestMyStruct_GetName(t *testing.T) {
     t.Parallel() // Use when no environment variables
-    
+
     t.Run("should return correct name when called", func(t *testing.T) {
         // GIVEN: A struct instance
         instance := NewMyStruct()
-        
+
         // WHEN: Getting the name
         result := instance.GetName()
-        
+
         // THEN: Should return expected name
         assert.Equal(t, "expected-name", result)
     })
-    
+
     t.Run("should handle empty configuration when no config provided", func(t *testing.T) {
         // Another test case for the same method
     })
@@ -424,19 +424,19 @@ func TestMyStruct_GetName(t *testing.T) {
 
 func TestMyStruct_Execute(t *testing.T) {
     t.Parallel() // Use when no environment variables
-    
+
     t.Run("should complete successfully when valid input provided", func(t *testing.T) {
         // GIVEN: Valid input and struct instance
         instance := NewMyStruct()
         validInput := "test-input"
-        
+
         // WHEN: Executing the method
         err := instance.Execute(validInput)
-        
+
         // THEN: Should complete without error
         assert.NoError(t, err)
     })
-    
+
     t.Run("should return error when invalid input provided", func(t *testing.T) {
         // Another test case for the same method
     })
@@ -447,7 +447,7 @@ func TestMyStruct_Execute(t *testing.T) {
 
 Use this pattern for test method names:
 - **Pattern**: `Test[StructName]_[MethodName]`
-- **Examples**: 
+- **Examples**:
   - `TestFormatFilesCommand_Execute`
   - `TestVersionController_GetBind`
   - `TestDependency_GetBinaryURL`
@@ -462,7 +462,7 @@ When multiple test files test the same method, use descriptive suffixes to maint
 // File: dependency_test.go
 func TestDependency_GetBinaryURL(t *testing.T) { ... }
 
-// File: android_fix_test.go  
+// File: android_fix_test.go
 func TestDependency_GetBinaryURL(t *testing.T) { ... } // Duplicate name!
 ```
 
@@ -510,7 +510,7 @@ Use descriptive names that follow BDD pattern:
 // ❌ DON'T: This will cause runtime panic
 func TestSomething(t *testing.T) {
     t.Parallel() // This line will cause panic
-    
+
     t.Run("test case", func(t *testing.T) {
         tempDir := t.TempDir()
         t.Chdir(tempDir) // Incompatible with t.Parallel()
@@ -535,15 +535,15 @@ For constructors (like `NewMyStruct()`), create a dedicated test function:
 ```go
 func TestNewMyStruct(t *testing.T) {
     t.Parallel()
-    
+
     t.Run("should create instance when valid parameters provided", func(t *testing.T) {
         // GIVEN: Valid constructor parameters
         param1 := "test"
         param2 := 42
-        
+
         // WHEN: Creating instance
         instance := NewMyStruct(param1, param2)
-        
+
         // THEN: Should return valid instance
         require.NotNil(t, instance)
         // Additional assertions about the instance state
@@ -556,7 +556,7 @@ func TestNewMyStruct(t *testing.T) {
 **NEVER test private methods directly.** Instead:
 
 1. **Test through public interfaces** - Create comprehensive test scenarios for public methods
-2. **Use sufficient test coverage** - Write enough test cases to exercise private methods indirectly  
+2. **Use sufficient test coverage** - Write enough test cases to exercise private methods indirectly
 3. **Test edge cases** - Include boundary conditions and error scenarios
 4. **Verify behavior, not implementation** - Focus on what the public interface should do
 
@@ -573,10 +573,10 @@ func TestPublicMethod_ShouldHandleInvalidInput_WhenCalledWithBadData(t *testing.
     // GIVEN: Invalid input that will exercise private validation method
     service := NewService()
     invalidInput := "invalid-data"
-    
+
     // WHEN: Call public method that uses private method internally
     result, err := service.ProcessData(invalidInput)
-    
+
     // THEN: Verify behavior demonstrates private method worked correctly
     assert.Error(t, err)
     assert.Nil(t, result)
@@ -601,24 +601,24 @@ func TestInstallCommand_ShouldDownloadDependency_WhenValidURLProvided(t *testing
         BinaryURL:  "https://example.com/terraform.zip",
         VersionURL: "https://example.com/version.json",
     }
-    
+
     mockDownloader := &mocks.MockDownloader{}
     mockDownloader.On("Download", dependency.BinaryURL).Return([]byte("binary-content"), nil)
-    
+
     mockOS := &mocks.MockOSInterface{}
     mockOS.On("WriteFile", mock.AnythingOfType("string"), mock.AnythingOfType("[]uint8")).Return(nil)
     mockOS.On("MakeExecutable", mock.AnythingOfType("string")).Return(nil)
-    
+
     command := NewInstallCommand(mockDownloader, mockOS)
-    
+
     // WHEN: Execute install command with valid dependency
     err := command.InstallDependency(dependency)
-    
+
     // THEN: Verify successful installation
     assert.NoError(t, err)
     mockDownloader.AssertExpectations(t)
     mockOS.AssertExpectations(t)
-    
+
     // Verify specific calls were made with expected parameters
     mockDownloader.AssertCalled(t, "Download", dependency.BinaryURL)
     mockOS.AssertCalled(t, "WriteFile", mock.AnythingOfType("string"), []byte("binary-content"))
@@ -684,7 +684,7 @@ TERRA_CLOUD=aws
 # AWS specific (if using AWS)
 TERRA_AWS_ROLE_ARN=arn:aws:iam::123456789012:role/terraform-role
 
-# Azure specific (if using Azure)  
+# Azure specific (if using Azure)
 TERRA_AZURE_SUBSCRIPTION_ID=12345678-1234-1234-1234-123456789012
 
 # Optional
