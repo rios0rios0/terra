@@ -9,7 +9,7 @@ When a new release is proposed:
 1. Create a new branch `bump/x.x.x` (this isn't a long-lived branch!!!);
 2. The Unreleased section on `CHANGELOG.md` gets a version number and date;
 3. Open a Pull Request with the bump version changes targeting the `main` branch;
-4. When the Pull Request is merged, a new `git` tag must be created using [GitHub environment](https://github.com/rios0rios0/terra/tags).
+4. When the Pull Request is merged, a new Git tag must be created using [GitHub environment](https://github.com/rios0rios0/terra/tags).
 
 Releases to productive environments should run from a tagged version.
 Exceptions are acceptable depending on the circumstances (critical bug fixes that can be cherry-picked, etc.).
@@ -18,6 +18,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
+- added self update feature to update the CLI without any additional step
 - added dependency injection with Wire and inverted all dependencies
 - created validation on the `settings` entity
 - added `--auto-answer` flag to automatically handle Terragrunt prompts
