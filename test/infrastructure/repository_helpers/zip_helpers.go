@@ -1,4 +1,3 @@
-//nolint:staticcheck // Test package naming follows established project structure
 package repository_helpers
 
 import (
@@ -112,7 +111,7 @@ func HelperCreateMixedContentZip(t *testing.T, binaryName string) []byte {
 	_, err = binaryFile.Write(binaryContent)
 	require.NoError(t, err)
 
-	_ = zipWriter.Close() //nolint:gosec // Test helper - error handling not critical for tests
+	_ = zipWriter.Close()
 
 	zipData, err := os.ReadFile(tmpfile.Name())
 	require.NoError(t, err)

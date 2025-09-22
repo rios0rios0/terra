@@ -1,4 +1,3 @@
-//nolint:staticcheck // Test package naming follows established project structure
 package repository_doubles
 
 import "github.com/rios0rios0/terra/test/domain/entity_doubles"
