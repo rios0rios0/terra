@@ -9,7 +9,7 @@ import (
 	"github.com/rios0rios0/terra/test/infrastructure/repository_helpers"
 )
 
-// TestInstallDependenciesCommand_Execute_ZipScenarios tests findBinaryInArchive method indirectly
+// TestInstallDependenciesCommand_Execute_ZipScenarios tests findBinaryInArchive method indirectly.
 func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when creating temporary files and directories
 	

@@ -14,7 +14,7 @@ func HelperCreateNonZipBinaryServer(t *testing.T) *httptest.Server {
 		// Serve a simple binary content
 		binaryContent := []byte("#!/bin/bash\necho 'test binary'\n")
 		w.Header().Set("Content-Type", "application/octet-stream")
-		w.Write(binaryContent)
+		_, _ = w.Write(binaryContent)
 	}))
 }
 
@@ -38,7 +38,7 @@ func HelperCreateSimpleZipServer(t *testing.T, binaryName string) *httptest.Serv
 		zipData := HelperCreateZipWithBinary(t, binaryName)
 		
 		w.Header().Set("Content-Type", "application/zip")
-		w.Write(zipData)
+		_, _ = w.Write(zipData)
 	}))
 }
 
@@ -51,7 +51,7 @@ func HelperCreateZipServer(t *testing.T, binaryNameInZip, expectedBinaryName str
 		zipData := HelperCreateZipWithBinary(t, binaryNameInZip)
 		
 		w.Header().Set("Content-Type", "application/zip")
-		w.Write(zipData)
+		_, _ = w.Write(zipData)
 	}))
 }
 
@@ -62,7 +62,7 @@ func HelperCreateVersionServer(t *testing.T, version string) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		response := `{"current_version":"` + version + `"}`
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(response))
+		_, _ = w.Write([]byte(response))
 	}))
 }
 
@@ -75,7 +75,7 @@ func HelperCreateNestedZipServer(t *testing.T, nestedPath, binaryName string) *h
 		zipData := HelperCreateNestedZipWithBinary(t, nestedPath, binaryName)
 		
 		w.Header().Set("Content-Type", "application/zip")
-		w.Write(zipData)
+		_, _ = w.Write(zipData)
 	}))
 }
 
@@ -88,6 +88,6 @@ func HelperCreateMixedContentZipServer(t *testing.T, binaryName string) *httptes
 		zipData := HelperCreateMixedContentZip(t, binaryName)
 		
 		w.Header().Set("Content-Type", "application/zip")
-		w.Write(zipData)
+		_, _ = w.Write(zipData)
 	}))
 }

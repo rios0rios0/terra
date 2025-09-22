@@ -23,7 +23,7 @@ type OS interface {
 	GetInstallationPath() string
 }
 
-// downloadFile provides a common implementation for downloading files via HTTP
+// downloadFile provides a common implementation for downloading files via HTTP.
 func downloadFile(url, tempFilePath string) error {
 	// Create context with timeout for the download
 	ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)

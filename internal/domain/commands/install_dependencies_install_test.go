@@ -9,7 +9,7 @@ import (
 	"github.com/rios0rios0/terra/test/infrastructure/repository_helpers"
 )
 
-// TestInstallDependenciesCommand_Execute_InstallScenarios tests install method coverage
+// TestInstallDependenciesCommand_Execute_InstallScenarios tests install method coverage.
 func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when creating temporary files
 	

@@ -13,8 +13,7 @@ import (
 func HelperCreateMockTerraformBinary(t *testing.T, version string) string {
 	t.Helper()
 	
-	tempDir, err := os.MkdirTemp("", "mock-terraform-*")
-	require.NoError(t, err)
+	tempDir := t.TempDir()
 	
 	binaryPath := filepath.Join(tempDir, "terraform")
 	
@@ -29,7 +28,7 @@ else
 fi
 `, version, version)
 	
-	err = os.WriteFile(binaryPath, []byte(scriptContent), 0755)
+	err := os.WriteFile(binaryPath, []byte(scriptContent), 0755)
 	require.NoError(t, err)
 	
 	return tempDir
