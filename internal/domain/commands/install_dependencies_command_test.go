@@ -12,7 +12,7 @@ import (
 
 func TestNewInstallDependenciesCommand(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should create instance when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: The NewInstallDependenciesCommand constructor is available
@@ -27,7 +27,7 @@ func TestNewInstallDependenciesCommand(t *testing.T) {
 
 func TestInstallDependenciesCommand_Execute(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should complete without error when empty dependencies provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An install dependencies command and empty dependencies list

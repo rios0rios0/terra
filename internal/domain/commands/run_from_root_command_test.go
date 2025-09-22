@@ -14,7 +14,7 @@ import (
 
 func TestNewRunFromRootCommand(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should create instance when valid dependencies provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Valid dependencies for creating the command
@@ -40,7 +40,7 @@ func TestNewRunFromRootCommand(t *testing.T) {
 
 func TestRunFromRootCommand_Execute(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should execute all steps when normal execution", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with all dependencies and normal arguments
@@ -90,7 +90,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		assert.Equal(t, arguments, repository.LastArguments)
 		assert.Equal(t, targetPath, repository.LastDirectory)
 	})
-	
+
 	t.Run("should handle empty arguments when no arguments provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with empty arguments
@@ -119,9 +119,14 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		assert.True(t, formatCommand.ExecuteCalled, "Should execute format command")
 		assert.True(t, additionalBefore.ExecuteCalled, "Should execute additional before command")
 		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute terragrunt command")
-		assert.Len(t, repository.LastArguments, len(arguments), "Should pass arguments with same length")
+		assert.Len(
+			t,
+			repository.LastArguments,
+			len(arguments),
+			"Should pass arguments with same length",
+		)
 	})
-	
+
 	t.Run("should handle empty dependencies when no dependencies provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with empty dependencies
@@ -148,13 +153,13 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		// THEN: Should handle empty dependencies gracefully
 		assert.True(t, installCommand.ExecuteCalled, "Should execute install command")
 		assert.Equal(t, dependencies, installCommand.LastDependencies)
-		
+
 		assert.True(t, formatCommand.ExecuteCalled, "Should execute format command")
 		assert.Equal(t, dependencies, formatCommand.LastDependencies)
 
 		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute terragrunt command")
 	})
-	
+
 	t.Run("should pass correct target path when different paths used", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with specific target path
@@ -182,7 +187,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		assert.Equal(t, targetPath, additionalBefore.LastTargetPath)
 		assert.Equal(t, targetPath, repository.LastDirectory)
 	})
-	
+
 	t.Run("should not use interactive mode when no auto answer flag", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command without auto-answer flag in arguments

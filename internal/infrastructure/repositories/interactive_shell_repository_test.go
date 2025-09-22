@@ -11,7 +11,7 @@ import (
 
 func TestNewInteractiveShellRepository(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should create instance when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: No preconditions needed
@@ -26,7 +26,7 @@ func TestNewInteractiveShellRepository(t *testing.T) {
 
 func TestInteractiveShellRepository_ExecuteCommand(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should execute successfully when valid command provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An interactive shell repository instance and valid command parameters
@@ -41,7 +41,7 @@ func TestInteractiveShellRepository_ExecuteCommand(t *testing.T) {
 		// THEN: Should execute without error
 		assert.NoError(t, err, "Expected no error for valid command execution")
 	})
-	
+
 	t.Run("should return error when invalid command provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An interactive shell repository instance and invalid command
@@ -56,7 +56,7 @@ func TestInteractiveShellRepository_ExecuteCommand(t *testing.T) {
 		// THEN: Should return an error
 		require.Error(t, err, "Expected error for invalid command")
 	})
-	
+
 	t.Run("should return error when invalid directory provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An interactive shell repository instance and invalid working directory

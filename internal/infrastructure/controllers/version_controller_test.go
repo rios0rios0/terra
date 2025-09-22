@@ -41,7 +41,11 @@ func TestVersionController_GetBind(t *testing.T) {
 		// THEN: Should return correct bind configuration
 		assert.Equal(t, "version", bind.Use)
 		assert.Equal(t, "Show Terra, Terraform, and Terragrunt versions", bind.Short)
-		assert.Equal(t, "Display the version information for Terra and its dependencies (Terraform and Terragrunt).", bind.Long)
+		assert.Equal(
+			t,
+			"Display the version information for Terra and its dependencies (Terraform and Terragrunt).",
+			bind.Long,
+		)
 	})
 }
 

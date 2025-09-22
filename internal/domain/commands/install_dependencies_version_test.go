@@ -14,13 +14,13 @@ import (
 // TestInstallDependenciesCommand_Execute_VersionScenarios tests version comparison and prompt functionality.
 func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when manipulating PATH and creating temporary binaries
-	
+
 	t.Run("should trigger version comparison with mock terraform", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A mock terraform binary that returns a proper version
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.0.0")
 		defer os.RemoveAll(mockBinaryDir)
-		
+
 		// Prepend mock binary directory to PATH
 		originalPath := os.Getenv("PATH")
 		newPath := mockBinaryDir + string(os.PathListSeparator) + originalPath
@@ -47,7 +47,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		os.Stdin = r
 		go func() {
 			defer w.Close()
-			w.Write([]byte("no\n"))
+			w.WriteString("no\n")
 		}()
 
 		// WHEN: Executing the command
@@ -67,7 +67,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		// GIVEN: A mock terraform binary that returns same version as server
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.5.0")
 		defer os.RemoveAll(mockBinaryDir)
-		
+
 		// Prepend mock binary directory to PATH
 		originalPath := os.Getenv("PATH")
 		newPath := mockBinaryDir + string(os.PathListSeparator) + originalPath
@@ -100,7 +100,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		// GIVEN: A mock terraform binary that returns newer version than server
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "2.0.0")
 		defer os.RemoveAll(mockBinaryDir)
-		
+
 		// Prepend mock binary directory to PATH
 		originalPath := os.Getenv("PATH")
 		newPath := mockBinaryDir + string(os.PathListSeparator) + originalPath
@@ -133,7 +133,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		// GIVEN: A mock terraform binary with older version
 		mockBinaryDir := repository_helpers.HelperCreateMockTerraformBinary(t, "1.0.0")
 		defer os.RemoveAll(mockBinaryDir)
-		
+
 		// Prepend mock binary directory to PATH
 		originalPath := os.Getenv("PATH")
 		newPath := mockBinaryDir + string(os.PathListSeparator) + originalPath
@@ -160,7 +160,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		os.Stdin = r
 		go func() {
 			defer w.Close()
-			w.Write([]byte("yes\n"))
+			w.WriteString("yes\n")
 		}()
 
 		// WHEN: Executing the command

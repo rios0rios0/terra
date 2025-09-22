@@ -50,7 +50,11 @@ func TestFormatFilesController_GetBind(t *testing.T) {
 		// THEN: Should return correct bind configuration
 		assert.Equal(t, "format", bind.Use)
 		assert.Equal(t, "Format all files in the current directory", bind.Short)
-		assert.Equal(t, "Format all the Terraform and Terragrunt files in the current directory.", bind.Long)
+		assert.Equal(
+			t,
+			"Format all the Terraform and Terragrunt files in the current directory.",
+			bind.Long,
+		)
 	})
 }
 

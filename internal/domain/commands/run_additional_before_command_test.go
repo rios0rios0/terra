@@ -13,7 +13,7 @@ import (
 
 func TestNewRunAdditionalBeforeCommand(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should create instance when valid dependencies provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Valid dependencies for creating the command
@@ -59,10 +59,14 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		// THEN: Should execute account change command
 		assert.GreaterOrEqual(t, repository.ExecuteCallCount, 1)
 		assert.Equal(t, "aws", repository.CallHistory[0].Command)
-		assert.Equal(t, []string{"sts", "assume-role", "--role-arn", "test-role"}, repository.CallHistory[0].Arguments)
+		assert.Equal(
+			t,
+			[]string{"sts", "assume-role", "--role-arn", "test-role"},
+			repository.CallHistory[0].Arguments,
+		)
 		assert.Equal(t, targetPath, repository.CallHistory[0].Directory)
 	})
-	
+
 	t.Run("should not change account when CLI cannot change account", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with CLI that cannot change account
@@ -88,7 +92,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			assert.NotEqual(t, "aws", call.Command, "Should not execute account change command")
 		}
 	})
-	
+
 	t.Run("should not change account when CLI is nil", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with nil CLI
@@ -108,7 +112,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			assert.NotEqual(t, "aws", call.Command, "Should not execute account change command")
 		}
 	})
-	
+
 	t.Run("should init environment when arguments require init", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with arguments that require environment initialization
@@ -126,7 +130,8 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		// THEN: Should execute terragrunt init command (indirectly tests shouldInitEnvironment)
 		initCommandExecuted := false
 		for _, call := range repository.CallHistory {
-			if call.Command == "terragrunt" && len(call.Arguments) > 0 && call.Arguments[0] == "init" {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
 				initCommandExecuted = true
 				assert.Equal(t, targetPath, call.Directory)
 				break
@@ -134,7 +139,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		}
 		assert.True(t, initCommandExecuted, "Should execute terragrunt init command")
 	})
-	
+
 	t.Run("should not init environment when arguments are init", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with 'init' argument
@@ -151,12 +156,13 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 
 		// THEN: Should not execute terragrunt init command (indirectly tests shouldInitEnvironment)
 		for _, call := range repository.CallHistory {
-			if call.Command == "terragrunt" && len(call.Arguments) > 0 && call.Arguments[0] == "init" {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
 				assert.Fail(t, "Should not execute terragrunt init when argument is already init")
 			}
 		}
 	})
-	
+
 	t.Run("should not init environment when arguments are run-all", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with 'run-all' argument
@@ -173,12 +179,13 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 
 		// THEN: Should not execute terragrunt init command (indirectly tests shouldInitEnvironment)
 		for _, call := range repository.CallHistory {
-			if call.Command == "terragrunt" && len(call.Arguments) > 0 && call.Arguments[0] == "init" {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
 				assert.Fail(t, "Should not execute terragrunt init when argument is run-all")
 			}
 		}
 	})
-	
+
 	t.Run("should change workspace when workspace is configured", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with configured workspace
@@ -207,7 +214,7 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		}
 		assert.True(t, workspaceCommandExecuted, "Should execute workspace change command")
 	})
-	
+
 	t.Run("should not change workspace when workspace is empty", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with empty workspace
@@ -225,12 +232,13 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 
 		// THEN: Should not execute workspace change command (indirectly tests shouldChangeWorkspace)
 		for _, call := range repository.CallHistory {
-			if call.Command == "terragrunt" && len(call.Arguments) >= 1 && call.Arguments[0] == "workspace" {
+			if call.Command == "terragrunt" && len(call.Arguments) >= 1 &&
+				call.Arguments[0] == "workspace" {
 				assert.Fail(t, "Should not execute workspace command when workspace is empty")
 			}
 		}
 	})
-	
+
 	t.Run("should execute all steps when all conditions met", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with all conditions met (account change, init, workspace change)
@@ -252,7 +260,12 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 		cmd.Execute(targetPath, arguments)
 
 		// THEN: Should execute all three types of commands
-		assert.GreaterOrEqual(t, repository.ExecuteCallCount, 3, "Should execute at least 3 commands")
+		assert.GreaterOrEqual(
+			t,
+			repository.ExecuteCallCount,
+			3,
+			"Should execute at least 3 commands",
+		)
 
 		// Verify account change command
 		accountChangeFound := false
@@ -263,7 +276,8 @@ func TestRunAdditionalBeforeCommand_Execute(t *testing.T) {
 			if call.Command == "aws" {
 				accountChangeFound = true
 			}
-			if call.Command == "terragrunt" && len(call.Arguments) > 0 && call.Arguments[0] == "init" {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
 				initFound = true
 			}
 			if call.Command == "terragrunt" && len(call.Arguments) >= 4 &&

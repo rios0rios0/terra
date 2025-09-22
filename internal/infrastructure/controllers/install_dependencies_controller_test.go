@@ -52,8 +52,16 @@ func TestInstallDependenciesController_GetBind(t *testing.T) {
 
 		// THEN: Should return correct bind configuration
 		assert.Equal(t, "install", bind.Use)
-		assert.Equal(t, "Install or update Terraform and Terragrunt to the latest versions", bind.Short)
-		assert.Equal(t, "Install all the dependencies required to run Terra, or update them if newer versions are available. Dependencies are installed to ~/.local/bin on Linux.", bind.Long)
+		assert.Equal(
+			t,
+			"Install or update Terraform and Terragrunt to the latest versions",
+			bind.Short,
+		)
+		assert.Equal(
+			t,
+			"Install all the dependencies required to run Terra, or update them if newer versions are available. Dependencies are installed to ~/.local/bin on Linux.",
+			bind.Long,
+		)
 	})
 }
 

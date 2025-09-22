@@ -49,7 +49,11 @@ func TestRunFromRootController_GetBind(t *testing.T) {
 		// THEN: Should return correct bind configuration
 		assert.Equal(t, "terra [flags] [terragrunt command] [directory]", bind.Use)
 		assert.Equal(t, "Terra is a CLI wrapper for Terragrunt", bind.Short)
-		assert.Equal(t, "Terra is a CLI wrapper for Terragrunt that allows changing directory before executing commands. It also allows changing the account/subscription and workspace for AWS and Azure.", bind.Long)
+		assert.Equal(
+			t,
+			"Terra is a CLI wrapper for Terragrunt that allows changing directory before executing commands. It also allows changing the account/subscription and workspace for AWS and Azure.",
+			bind.Long,
+		)
 	})
 }
 

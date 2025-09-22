@@ -12,7 +12,7 @@ import (
 
 func TestNewDeleteCacheCommand(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should create instance when called", func(t *testing.T) {
 		t.Parallel()
 		t.Parallel()
@@ -27,6 +27,7 @@ func TestNewDeleteCacheCommand(t *testing.T) {
 }
 
 func TestDeleteCacheCommand_Execute(t *testing.T) {
+	// Note: Cannot use t.Parallel() when using t.Chdir()
 	t.Run("should delete target directories when called with valid paths", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A delete cache command and test directory structure with cache directories
@@ -39,7 +40,10 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		nestedTerraformDir := "module1/.terraform"
 		require.NoError(t, os.MkdirAll(terraformDir, 0755))
 		require.NoError(t, os.MkdirAll(nestedTerraformDir, 0755))
-		require.NoError(t, os.WriteFile(filepath.Join(terraformDir, "test.txt"), []byte("test"), 0644))
+		require.NoError(
+			t,
+			os.WriteFile(filepath.Join(terraformDir, "test.txt"), []byte("test"), 0644),
+		)
 
 		// Create terragrunt cache directories
 		terragruntDir := ".terragrunt-cache"
@@ -70,7 +74,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		_, err = os.Stat(keepDir)
 		assert.False(t, os.IsNotExist(err), "Source directory should be preserved")
 	})
-	
+
 	t.Run("should complete without error when empty list provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A delete cache command and temporary directory with test directories
@@ -86,42 +90,52 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 
 		// THEN: Should complete without error and not delete any directories
 		_, err := os.Stat(testDir)
-		assert.False(t, os.IsNotExist(err), "Directory should not be deleted when no targets specified")
+		assert.False(
+			t,
+			os.IsNotExist(err),
+			"Directory should not be deleted when no targets specified",
+		)
 	})
-	
-	t.Run("should complete without error when non-existent directories provided", func(t *testing.T) {
-		t.Parallel()
-		// GIVEN: A delete cache command and temporary directory
-		cmd := commands.NewDeleteCacheCommand()
-		tempDir := t.TempDir()
-		t.Chdir(tempDir)
 
-		// WHEN: Executing with non-existent directory names
-		// THEN: Should complete without crashing or erroring
-		cmd.Execute([]string{".nonexistent", ".alsononexistent"})
-	})
-	
-	t.Run("should delete only specified directories when selective execution requested", func(t *testing.T) {
-		t.Parallel()
-		// GIVEN: A delete cache command and temporary directory with multiple cache types
-		cmd := commands.NewDeleteCacheCommand()
-		tempDir := t.TempDir()
-		t.Chdir(tempDir)
+	t.Run(
+		"should complete without error when non-existent directories provided",
+		func(t *testing.T) {
+			t.Parallel()
+			// GIVEN: A delete cache command and temporary directory
+			cmd := commands.NewDeleteCacheCommand()
+			tempDir := t.TempDir()
+			t.Chdir(tempDir)
 
-		terraformDir := "project/.terraform"
-		terragruntDir := "project/.terragrunt-cache"
+			// WHEN: Executing with non-existent directory names
+			// THEN: Should complete without crashing or erroring
+			cmd.Execute([]string{".nonexistent", ".alsononexistent"})
+		},
+	)
 
-		require.NoError(t, os.MkdirAll(terraformDir, 0755))
-		require.NoError(t, os.MkdirAll(terragruntDir, 0755))
+	t.Run(
+		"should delete only specified directories when selective execution requested",
+		func(t *testing.T) {
+			t.Parallel()
+			// GIVEN: A delete cache command and temporary directory with multiple cache types
+			cmd := commands.NewDeleteCacheCommand()
+			tempDir := t.TempDir()
+			t.Chdir(tempDir)
 
-		// WHEN: Executing command to delete only terraform directories
-		cmd.Execute([]string{".terraform"})
+			terraformDir := "project/.terraform"
+			terragruntDir := "project/.terragrunt-cache"
 
-		// THEN: Should delete only terraform directories and preserve terragrunt
-		_, err := os.Stat(terraformDir)
-		assert.True(t, os.IsNotExist(err), "Terraform directory should be deleted")
+			require.NoError(t, os.MkdirAll(terraformDir, 0755))
+			require.NoError(t, os.MkdirAll(terragruntDir, 0755))
 
-		_, err = os.Stat(terragruntDir)
-		assert.False(t, os.IsNotExist(err), "Terragrunt directory should be preserved")
-	})
+			// WHEN: Executing command to delete only terraform directories
+			cmd.Execute([]string{".terraform"})
+
+			// THEN: Should delete only terraform directories and preserve terragrunt
+			_, err := os.Stat(terraformDir)
+			assert.True(t, os.IsNotExist(err), "Terraform directory should be deleted")
+
+			_, err = os.Stat(terragruntDir)
+			assert.False(t, os.IsNotExist(err), "Terragrunt directory should be preserved")
+		},
+	)
 }
