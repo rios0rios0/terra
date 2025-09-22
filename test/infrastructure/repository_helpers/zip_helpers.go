@@ -13,7 +13,7 @@ func HelperCreateZipWithBinary(t *testing.T, binaryName string) []byte {
 	t.Helper()
 	
 	// Create temporary file to write zip data
-	tmpfile, err := os.CreateTemp("", "test-*.zip")
+	tmpfile, err := os.CreateTemp(t.TempDir(), "test-*.zip")
 	require.NoError(t, err)
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
@@ -44,7 +44,7 @@ func HelperCreateZipWithBinary(t *testing.T, binaryName string) []byte {
 func HelperCreateNestedZipWithBinary(t *testing.T, nestedPath, binaryName string) []byte {
 	t.Helper()
 	
-	tmpfile, err := os.CreateTemp("", "test-nested-*.zip")
+	tmpfile, err := os.CreateTemp(t.TempDir(), "test-nested-*.zip")
 	require.NoError(t, err)
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
@@ -72,7 +72,7 @@ func HelperCreateNestedZipWithBinary(t *testing.T, nestedPath, binaryName string
 func HelperCreateMixedContentZip(t *testing.T, binaryName string) []byte {
 	t.Helper()
 	
-	tmpfile, err := os.CreateTemp("", "test-mixed-*.zip")
+	tmpfile, err := os.CreateTemp(t.TempDir(), "test-mixed-*.zip")
 	require.NoError(t, err)
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()

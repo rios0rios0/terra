@@ -9,7 +9,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// buildRootCommand creates and configures the root cobra command
+// buildRootCommand creates and configures the root cobra command.
 func buildRootCommand(rootController entities.Controller, enableFlagParsing bool) *cobra.Command {
 	bind := rootController.GetBind()
 	//nolint:exhaustruct // Minimal Command initialization with required fields only
@@ -30,7 +30,7 @@ func buildRootCommand(rootController entities.Controller, enableFlagParsing bool
 	return cmd
 }
 
-// addSubcommands adds all available subcommands to the provided root command
+// addSubcommands adds all available subcommands to the provided root command.
 func addSubcommands(rootCmd *cobra.Command, appContext entities.AppContext) {
 	for _, controller := range appContext.GetControllers() {
 		bind := controller.GetBind()

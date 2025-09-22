@@ -11,7 +11,7 @@ import (
 	"github.com/rios0rios0/terra/test/infrastructure/repository_helpers"
 )
 
-// TestInstallDependenciesCommand_Execute_VersionScenarios tests version comparison and prompt functionality
+// TestInstallDependenciesCommand_Execute_VersionScenarios tests version comparison and prompt functionality.
 func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when manipulating PATH and creating temporary binaries
 	
