@@ -26,6 +26,9 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Changed
 
+- Updated Copilot instructions and contributing guide to enforce LF (Unix) line endings for all new and edited files
+- Updated documentation to require CHANGELOG.md updates for new features and bug fixes (not required for documentation-only changes)
+- Updated .editorconfig to enforce LF line endings across all file types instead of just Go files
 - Updated Copilot instructions to use rios0rios0/pipelines project for linting and CI tools instead of direct tool installation
 - changed the documentation with pipelines and minor change to template files
 - corrected controllers responsibilities mapping the external to internal entities
