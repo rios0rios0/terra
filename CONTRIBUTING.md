@@ -127,7 +127,7 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
    - **`test/infrastructure/repository_doubles/`** - Stubs implementing repository interfaces (infrastructure layer)
    - **`test/infrastructure/repository_builders/`** - Builders for infrastructure testing (HTTP servers, etc.)
    - **`test/infrastructure/repository_helpers/`** - Helpers for testing repository/OS functionality
-   - **`test/infrastructure/controllers_doubles/`** - Stubs implementing infrastructure controller interfaces
+   - **`test/infrastructure/controller_doubles/`** - Stubs implementing infrastructure controller interfaces
    - **`test/infrastructure/controller_helpers/`** - Helpers for testing controller functionality
 
 3. **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
@@ -142,7 +142,7 @@ func TestComponent_ShouldWork_WhenValidInput(t *testing.T) {
    - `entity_doubles`, `entity_builders`
    - `command_doubles`
    - `repository_doubles`, `repository_builders`, `repository_helpers`
-   - `controllers_doubles`, `controller_helpers`
+   - `controller_doubles`, `controller_helpers`
 
 #### Test Double Definitions
 
