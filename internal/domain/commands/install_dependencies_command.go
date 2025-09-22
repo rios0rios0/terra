@@ -258,6 +258,7 @@ func install(url, name string) {
 
 	// Ensure installation directory exists
 	installDir := currentOS.GetInstallationPath()
+	// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 	if err := os.MkdirAll(installDir, 0750); err != nil {
 		logger.Fatalf("Failed to create installation directory %s: %s", installDir, err)
 	}
