@@ -41,7 +41,11 @@ func TestDeleteCacheController_GetBind(t *testing.T) {
 		// THEN: Should return correct bind configuration
 		assert.Equal(t, "clear", bind.Use)
 		assert.Equal(t, "Clear all cache and modules directories", bind.Short)
-		assert.Equal(t, "Clear all temporary directories and cache folders created during the Terraform and Terragrunt execution.", bind.Long)
+		assert.Equal(
+			t,
+			"Clear all temporary directories and cache folders created during the Terraform and Terragrunt execution.",
+			bind.Long,
+		)
 	})
 }
 

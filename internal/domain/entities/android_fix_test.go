@@ -12,7 +12,7 @@ import (
 
 func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return linux OS when android OS provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An Android platform
@@ -24,7 +24,7 @@ func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
 		// THEN: Should return linux instead of android
 		assert.Equal(t, "linux", result, "Android OS should map to linux for dependency downloads")
 	})
-	
+
 	t.Run("should return original OS when non-android OS provided", func(t *testing.T) {
 		t.Parallel()
 		testCases := []struct {
@@ -39,7 +39,7 @@ func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-		t.Parallel()
+				t.Parallel()
 				// GIVEN: A non-Android platform
 				platform := entities.PlatformInfo{OS: tc.os, Arch: "amd64"}
 
@@ -55,7 +55,7 @@ func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
 
 func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should generate linux URL when android platform used", func(t *testing.T) {
 		t.Parallel()
 		testCases := []struct {
@@ -94,7 +94,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-		t.Parallel()
+				t.Parallel()
 				// GIVEN: A dependency configured for Android platform
 				dependency := entities.Dependency{
 					CLI:       tc.cli,
@@ -103,14 +103,20 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 
 				// Create test implementation that simulates GetBinaryURL with our platform
 				testGetBinaryURL := func(version string) string {
-					if strings.Contains(dependency.BinaryURL, "%[2]s") || strings.Contains(dependency.BinaryURL, "%[3]s") {
+					if strings.Contains(dependency.BinaryURL, "%[2]s") ||
+						strings.Contains(dependency.BinaryURL, "%[3]s") {
 						var archString string
 						if dependency.CLI == "terragrunt" {
 							archString = tc.platform.GetTerragruntArchString()
 						} else {
 							archString = tc.platform.GetTerraformArchString()
 						}
-						return fmt.Sprintf(dependency.BinaryURL, version, tc.platform.GetOSString(), archString)
+						return fmt.Sprintf(
+							dependency.BinaryURL,
+							version,
+							tc.platform.GetOSString(),
+							archString,
+						)
 					}
 					return fmt.Sprintf(dependency.BinaryURL, version)
 				}
@@ -119,7 +125,12 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 				result := testGetBinaryURL(tc.version)
 
 				// THEN: Should generate URL with linux OS and correct architecture
-				assert.Equal(t, tc.expectedURL, result, "Should generate correct URL for Android platform")
+				assert.Equal(
+					t,
+					tc.expectedURL,
+					result,
+					"Should generate correct URL for Android platform",
+				)
 
 				// Verify no android_ prefix in URL
 				assert.NotContains(t, result, "android_", "URL should not contain android_ prefix")
@@ -128,7 +139,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 			})
 		}
 	})
-	
+
 	t.Run("should use correct arch method when different dependencies used", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An Android platform with android_arm64 architecture
@@ -162,7 +173,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-		t.Parallel()
+				t.Parallel()
 				// GIVEN: A dependency with specific CLI name
 				dependency := entities.Dependency{
 					CLI:       tc.cli,
@@ -171,14 +182,20 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 
 				// Create test implementation that simulates GetBinaryURL logic
 				testGetBinaryURL := func(version string) string {
-					if strings.Contains(dependency.BinaryURL, "%[2]s") || strings.Contains(dependency.BinaryURL, "%[3]s") {
+					if strings.Contains(dependency.BinaryURL, "%[2]s") ||
+						strings.Contains(dependency.BinaryURL, "%[3]s") {
 						var archString string
 						if dependency.CLI == "terragrunt" {
 							archString = platform.GetTerragruntArchString()
 						} else {
 							archString = platform.GetTerraformArchString()
 						}
-						return fmt.Sprintf(dependency.BinaryURL, version, platform.GetOSString(), archString)
+						return fmt.Sprintf(
+							dependency.BinaryURL,
+							version,
+							platform.GetOSString(),
+							archString,
+						)
 					}
 					return fmt.Sprintf(dependency.BinaryURL, version)
 				}
@@ -188,9 +205,20 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 
 				// THEN: Should use correct architecture method and map OS correctly
 				expectedURL := "https://example.com/tool_1.0.0_linux_arm64"
-				assert.Equal(t, expectedURL, result, "Should use correct arch method for %s", tc.archMethodName)
+				assert.Equal(
+					t,
+					expectedURL,
+					result,
+					"Should use correct arch method for %s",
+					tc.archMethodName,
+				)
 				assert.Contains(t, result, "linux", "Should map android OS to linux")
-				assert.Contains(t, result, "arm64", "Should strip android_ prefix from architecture")
+				assert.Contains(
+					t,
+					result,
+					"arm64",
+					"Should strip android_ prefix from architecture",
+				)
 			})
 		}
 	})

@@ -9,6 +9,8 @@ import (
 )
 
 func TestNewSettings(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should create valid instance when empty terra cloud provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Empty TERRA_CLOUD environment variable
@@ -21,7 +23,7 @@ func TestNewSettings(t *testing.T) {
 		require.NotNil(t, settings)
 		assert.Empty(t, settings.TerraCloud)
 	})
-	
+
 	t.Run("should create valid instance when valid aws cloud provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Valid AWS cloud environment variable
@@ -34,7 +36,7 @@ func TestNewSettings(t *testing.T) {
 		require.NotNil(t, settings)
 		assert.Equal(t, "aws", settings.TerraCloud)
 	})
-	
+
 	t.Run("should create valid instance when valid azure cloud provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Valid Azure cloud environment variable
@@ -50,6 +52,8 @@ func TestNewSettings(t *testing.T) {
 }
 
 func TestNewCLI(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should return nil when empty cloud provider provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Settings with empty cloud provider
@@ -61,7 +65,7 @@ func TestNewCLI(t *testing.T) {
 		// THEN: Should return nil for empty cloud provider
 		assert.Nil(t, cli)
 	})
-	
+
 	t.Run("should return aws CLI when aws cloud provider provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Settings with AWS cloud provider
@@ -75,7 +79,7 @@ func TestNewCLI(t *testing.T) {
 		require.NotNil(t, cli)
 		assert.Equal(t, "aws", cli.GetName())
 	})
-	
+
 	t.Run("should return azure CLI when azure cloud provider provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Settings with Azure cloud provider
@@ -93,7 +97,7 @@ func TestNewCLI(t *testing.T) {
 
 func TestNewCLIAws(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return valid instance when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Settings instance
@@ -110,7 +114,7 @@ func TestNewCLIAws(t *testing.T) {
 
 func TestCLIAws_GetName(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return aws when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: AWS CLI instance
@@ -126,6 +130,8 @@ func TestCLIAws_GetName(t *testing.T) {
 }
 
 func TestCLIAws_CanChangeAccount(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should not allow account change when no role arn provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: AWS CLI with settings without role ARN
@@ -138,7 +144,7 @@ func TestCLIAws_CanChangeAccount(t *testing.T) {
 		// THEN: Should not allow account change
 		assert.False(t, canChange)
 	})
-	
+
 	t.Run("should allow account change when valid role arn provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: AWS CLI with settings containing valid role ARN
@@ -155,6 +161,8 @@ func TestCLIAws_CanChangeAccount(t *testing.T) {
 }
 
 func TestCLIAws_GetCommandChangeAccount(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should return correct command when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: AWS CLI with valid role ARN
@@ -179,7 +187,7 @@ func TestCLIAws_GetCommandChangeAccount(t *testing.T) {
 
 func TestNewCLIAzm(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return valid instance when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Settings instance
@@ -196,7 +204,7 @@ func TestNewCLIAzm(t *testing.T) {
 
 func TestCLIAzm_GetName(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return az when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Azure CLI instance
@@ -212,6 +220,8 @@ func TestCLIAzm_GetName(t *testing.T) {
 }
 
 func TestCLIAzm_CanChangeAccount(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should not allow account change when no subscription id provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Azure CLI with settings without subscription ID
@@ -224,7 +234,7 @@ func TestCLIAzm_CanChangeAccount(t *testing.T) {
 		// THEN: Should not allow account change
 		assert.False(t, canChange)
 	})
-	
+
 	t.Run("should allow account change when valid subscription id provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Azure CLI with settings containing valid subscription ID
@@ -241,6 +251,8 @@ func TestCLIAzm_CanChangeAccount(t *testing.T) {
 }
 
 func TestCLIAzm_GetCommandChangeAccount(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should return correct command when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Azure CLI with valid subscription ID

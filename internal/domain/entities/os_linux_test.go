@@ -11,7 +11,7 @@ import (
 
 func TestGetOS(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return valid instance when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: The GetOS function is available
@@ -26,7 +26,7 @@ func TestGetOS(t *testing.T) {
 
 func TestOSLinux_GetTempDir(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return valid temp dir when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An OS instance
@@ -46,7 +46,7 @@ func TestOSLinux_GetTempDir(t *testing.T) {
 
 func TestOSLinux_GetInstallationPath(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return valid installation path when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An OS instance
@@ -62,7 +62,7 @@ func TestOSLinux_GetInstallationPath(t *testing.T) {
 
 func TestOSLinux_MakeExecutable(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should make file executable when valid file provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An OS instance and a temporary file
@@ -83,7 +83,7 @@ func TestOSLinux_MakeExecutable(t *testing.T) {
 		mode := info.Mode()
 		assert.NotEqual(t, 0, mode&0111, "File should be executable after MakeExecutable")
 	})
-	
+
 	t.Run("should return error when called with non-existent file", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An OS instance and a non-existent file path
@@ -100,7 +100,7 @@ func TestOSLinux_MakeExecutable(t *testing.T) {
 
 func TestOSLinux_Remove(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should handle remove when non-existent file provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An OS instance and a non-existent file path

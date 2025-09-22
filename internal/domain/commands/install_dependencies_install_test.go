@@ -12,13 +12,13 @@ import (
 // TestInstallDependenciesCommand_Execute_InstallScenarios tests install method coverage.
 func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when creating temporary files
-	
+
 	t.Run("should handle non-zip binary installation", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A server that serves a non-zip binary file
 		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
-		
+
 		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "1.0.0")
 		defer versionServer.Close()
 
@@ -43,7 +43,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 		// GIVEN: A dependency that will require installation directory creation
 		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
-		
+
 		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "2.0.0")
 		defer versionServer.Close()
 
@@ -68,7 +68,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 		// GIVEN: A binary that needs to be made executable
 		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
-		
+
 		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "3.0.0")
 		defer versionServer.Close()
 
@@ -93,7 +93,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 		// GIVEN: A zip binary that will trigger temp file creation and cleanup
 		zipServer := repository_helpers.HelperCreateSimpleZipServer(t, "temp-test-binary")
 		defer zipServer.Close()
-		
+
 		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "1.5.0")
 		defer versionServer.Close()
 
@@ -118,7 +118,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 		// GIVEN: A binary that will trigger file type detection
 		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
-		
+
 		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "4.0.0")
 		defer versionServer.Close()
 

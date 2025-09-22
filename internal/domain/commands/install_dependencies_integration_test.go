@@ -15,43 +15,46 @@ import (
 )
 
 func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
-	t.Run("should install dependency successfully when valid dependency provided", func(t *testing.T) {
-		t.Parallel()
-		if testing.Short() {
-			t.Skip("Skipping integration test in short mode")
-		}
+	t.Run(
+		"should install dependency successfully when valid dependency provided",
+		func(t *testing.T) {
+			t.Parallel()
+			if testing.Short() {
+				t.Skip("Skipping integration test in short mode")
+			}
 
-		// GIVEN: A test server and dependency
-		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
-			WithTerraformVersion("1.0.0").
-			BuildServers()
-		defer versionServer.Close()
-		defer binaryServer.Close()
+			// GIVEN: A test server and dependency
+			versionServer, binaryServer := repository_builders.NewTestServerBuilder().
+				WithTerraformVersion("1.0.0").
+				BuildServers()
+			defer versionServer.Close()
+			defer binaryServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
-			WithName("TestTool").
-			WithCLI("test-integration-tool-not-installed").
-			WithBinaryURL(binaryServer.URL + "/testtool_%s").
-			WithVersionURL(versionServer.URL + "/terraform").
-			WithTerraformPattern().
-			Build()
+			dependency := entity_builders.NewDependencyBuilder().
+				WithName("TestTool").
+				WithCLI("test-integration-tool-not-installed").
+				WithBinaryURL(binaryServer.URL + "/testtool_%s").
+				WithVersionURL(versionServer.URL + "/terraform").
+				WithTerraformPattern().
+				Build()
 
-		// WHEN: Executing the install command
-		cmd := commands.NewInstallDependenciesCommand()
-		cmd.Execute([]entities.Dependency{dependency})
+			// WHEN: Executing the install command
+			cmd := commands.NewInstallDependenciesCommand()
+			cmd.Execute([]entities.Dependency{dependency})
 
-		// THEN: Should install the dependency
-		installPath := entities.GetOS().GetInstallationPath()
-		expectedPath := filepath.Join(installPath, "test-integration-tool-not-installed")
+			// THEN: Should install the dependency
+			installPath := entities.GetOS().GetInstallationPath()
+			expectedPath := filepath.Join(installPath, "test-integration-tool-not-installed")
 
-		if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
-			t.Errorf("Expected binary to be installed at %s", expectedPath)
-		} else {
-			// Clean up the test file
-			os.Remove(expectedPath)
-		}
-	})
-	
+			if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
+				t.Errorf("Expected binary to be installed at %s", expectedPath)
+			} else {
+				// Clean up the test file
+				os.Remove(expectedPath)
+			}
+		},
+	)
+
 	t.Run("should handle zip files when zip dependency provided", func(t *testing.T) {
 		t.Parallel()
 		if testing.Short() {
@@ -91,53 +94,56 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 			os.Remove(expectedPath)
 		}
 	})
-	
-	t.Run("should handle mixed dependencies when multiple dependencies provided", func(t *testing.T) {
-		t.Parallel()
-		// GIVEN: Multiple test dependencies
-		versionServer, binaryServer := repository_builders.NewTestServerBuilder().
-			WithTerraformVersion("1.5.0").
-			WithTerragruntVersion("0.50.0").
-			BuildServers()
-		defer versionServer.Close()
-		defer binaryServer.Close()
 
-		terraformDep := entity_builders.NewDependencyBuilder().
-			WithName("TestTerraform").
-			WithCLI("test-terraform-unique-name").
-			WithBinaryURL(binaryServer.URL + "/terraform_%s").
-			WithVersionURL(versionServer.URL + "/terraform").
-			WithTerraformPattern().
-			Build()
+	t.Run(
+		"should handle mixed dependencies when multiple dependencies provided",
+		func(t *testing.T) {
+			t.Parallel()
+			// GIVEN: Multiple test dependencies
+			versionServer, binaryServer := repository_builders.NewTestServerBuilder().
+				WithTerraformVersion("1.5.0").
+				WithTerragruntVersion("0.50.0").
+				BuildServers()
+			defer versionServer.Close()
+			defer binaryServer.Close()
 
-		terragruntDep := entity_builders.NewDependencyBuilder().
-			WithName("TestTerragrunt").
-			WithCLI("test-terragrunt-unique-name").
-			WithBinaryURL(binaryServer.URL + "/terragrunt_%s").
-			WithVersionURL(versionServer.URL + "/terragrunt").
-			WithTerragruntPattern().
-			Build()
+			terraformDep := entity_builders.NewDependencyBuilder().
+				WithName("TestTerraform").
+				WithCLI("test-terraform-unique-name").
+				WithBinaryURL(binaryServer.URL + "/terraform_%s").
+				WithVersionURL(versionServer.URL + "/terraform").
+				WithTerraformPattern().
+				Build()
 
-		// WHEN: Executing with mixed dependencies
-		cmd := commands.NewInstallDependenciesCommand()
-		cmd.Execute([]entities.Dependency{terraformDep, terragruntDep})
+			terragruntDep := entity_builders.NewDependencyBuilder().
+				WithName("TestTerragrunt").
+				WithCLI("test-terragrunt-unique-name").
+				WithBinaryURL(binaryServer.URL + "/terragrunt_%s").
+				WithVersionURL(versionServer.URL + "/terragrunt").
+				WithTerragruntPattern().
+				Build()
 
-		// THEN: Should handle both dependencies
-		installPath := entities.GetOS().GetInstallationPath()
-		
-		// Check for terraform installation
-		terraformPath := filepath.Join(installPath, "test-terraform-unique-name")
-		if _, err := os.Stat(terraformPath); err == nil {
-			os.Remove(terraformPath)
-		}
-		
-		// Check for terragrunt installation
-		terragruntPath := filepath.Join(installPath, "test-terragrunt-unique-name")
-		if _, err := os.Stat(terragruntPath); err == nil {
-			os.Remove(terragruntPath)
-		}
-	})
-	
+			// WHEN: Executing with mixed dependencies
+			cmd := commands.NewInstallDependenciesCommand()
+			cmd.Execute([]entities.Dependency{terraformDep, terragruntDep})
+
+			// THEN: Should handle both dependencies
+			installPath := entities.GetOS().GetInstallationPath()
+
+			// Check for terraform installation
+			terraformPath := filepath.Join(installPath, "test-terraform-unique-name")
+			if _, err := os.Stat(terraformPath); err == nil {
+				os.Remove(terraformPath)
+			}
+
+			// Check for terragrunt installation
+			terragruntPath := filepath.Join(installPath, "test-terragrunt-unique-name")
+			if _, err := os.Stat(terragruntPath); err == nil {
+				os.Remove(terragruntPath)
+			}
+		},
+	)
+
 	t.Run("should handle download failure when HTTP error occurs", func(t *testing.T) {
 		t.Parallel()
 		if testing.Short() {
@@ -157,14 +163,14 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 		tempFilePath := path.Join(osInstance.GetTempDir(), "test-download-failure")
 
 		// THEN: The download should fail with an HTTP error
-		err := osInstance.Download(binaryServer.URL + "/terraform_1.13.3", tempFilePath)
+		err := osInstance.Download(binaryServer.URL+"/terraform_1.13.3", tempFilePath)
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "HTTP 500")
 
 		// Clean up any temporary file that might have been created
 		os.Remove(tempFilePath)
 	})
-	
+
 	t.Run("should handle network timeout when unreachable URL provided", func(t *testing.T) {
 		t.Parallel()
 		if testing.Short() {
@@ -186,11 +192,11 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 		errMsg := strings.ToLower(err.Error())
 		assert.True(t,
 			strings.Contains(errMsg, "timeout") ||
-			strings.Contains(errMsg, "connection") ||
-			strings.Contains(errMsg, "unreachable") ||
-			strings.Contains(errMsg, "no route") ||
-			strings.Contains(errMsg, "failed to perform download") ||
-			strings.Contains(errMsg, "context deadline exceeded"),
+				strings.Contains(errMsg, "connection") ||
+				strings.Contains(errMsg, "unreachable") ||
+				strings.Contains(errMsg, "no route") ||
+				strings.Contains(errMsg, "failed to perform download") ||
+				strings.Contains(errMsg, "context deadline exceeded"),
 			"Expected network-related error, got: %v", err)
 
 		// Clean up any temporary file that might have been created

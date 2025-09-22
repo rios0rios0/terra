@@ -11,7 +11,7 @@ import (
 
 func TestNewStdShellRepository(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should create instance when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: No preconditions needed
@@ -26,7 +26,7 @@ func TestNewStdShellRepository(t *testing.T) {
 
 func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should execute successfully when valid command provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A repository instance and valid command parameters
@@ -41,7 +41,7 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 		// THEN: Should execute without error
 		assert.NoError(t, err, "Expected no error for valid command execution")
 	})
-	
+
 	t.Run("should return error when invalid command provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A repository instance and invalid command
@@ -58,7 +58,7 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 		assert.Contains(t, err.Error(), "failed to perform command execution",
 			"Error message should contain expected text")
 	})
-	
+
 	t.Run("should return error when invalid directory provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A repository instance and invalid working directory
@@ -75,7 +75,7 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 		assert.Contains(t, err.Error(), "failed to perform command execution",
 			"Error message should contain expected text")
 	})
-	
+
 	t.Run("should execute successfully when empty arguments provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A repository instance and command with empty arguments
@@ -90,7 +90,7 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 		// THEN: Should execute without error
 		assert.NoError(t, err, "Expected no error for command with empty arguments")
 	})
-	
+
 	t.Run("should execute successfully when multiple arguments provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A repository instance and command with multiple arguments
