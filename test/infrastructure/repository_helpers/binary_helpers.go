@@ -1,3 +1,4 @@
+//nolint:revive,staticcheck // Test package naming follows established project structure
 package repository_helpers
 
 import (
@@ -28,7 +29,11 @@ else
 fi
 `, version, version)
 
-	err := os.WriteFile(binaryPath, []byte(scriptContent), 0755)
+	err := os.WriteFile(
+		binaryPath,
+		[]byte(scriptContent),
+		0755,
+	) //nolint:gosec // Test helper needs executable permissions
 	require.NoError(t, err)
 
 	return tempDir

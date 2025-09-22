@@ -12,6 +12,8 @@ import (
 )
 
 // TestInstallDependenciesCommand_Execute_VersionScenarios tests version comparison and prompt functionality.
+//
+//nolint:tparallel // Cannot use t.Parallel() when manipulating PATH and creating temporary binaries
 func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when manipulating PATH and creating temporary binaries
 
@@ -44,7 +46,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		// Mock stdin to simulate "no" response to update prompt
 		oldStdin := os.Stdin
 		r, w, _ := os.Pipe()
-		os.Stdin = r
+		os.Stdin = r //nolint:reassign // Intentional os.Stdin reassignment for testing user input
 		go func() {
 			defer w.Close()
 			w.WriteString("no\n")
@@ -55,7 +57,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		cmd.Execute([]entities.Dependency{dependency})
 
 		// Restore stdin
-		os.Stdin = oldStdin
+		os.Stdin = oldStdin //nolint:reassign // Intentional os.Stdin reassignment for testing user input
 		r.Close()
 
 		// THEN: Should have triggered getCurrentVersion, compareVersions, and promptForUpdate
@@ -157,7 +159,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		// Mock stdin to simulate "yes" response to update prompt
 		oldStdin := os.Stdin
 		r, w, _ := os.Pipe()
-		os.Stdin = r
+		os.Stdin = r //nolint:reassign // Intentional os.Stdin reassignment for testing user input
 		go func() {
 			defer w.Close()
 			w.WriteString("yes\n")
@@ -168,7 +170,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		cmd.Execute([]entities.Dependency{dependency})
 
 		// Restore stdin
-		os.Stdin = oldStdin
+		os.Stdin = oldStdin //nolint:reassign // Intentional os.Stdin reassignment for testing user input
 		r.Close()
 
 		// THEN: Should have triggered promptForUpdate returning true and install path

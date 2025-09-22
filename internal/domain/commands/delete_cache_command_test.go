@@ -25,6 +25,7 @@ func TestNewDeleteCacheCommand(t *testing.T) {
 	})
 }
 
+//nolint:tparallel // Cannot use t.Parallel() when using t.Chdir()
 func TestDeleteCacheCommand_Execute(t *testing.T) {
 	// Note: Cannot use t.Parallel() when using t.Chdir()
 	t.Run("should delete target directories when called with valid paths", func(t *testing.T) {

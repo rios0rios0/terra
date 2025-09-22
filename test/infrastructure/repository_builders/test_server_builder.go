@@ -1,3 +1,4 @@
+//nolint:revive,staticcheck // Test package naming follows established project structure
 package repository_builders
 
 import (
