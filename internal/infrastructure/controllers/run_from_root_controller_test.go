@@ -79,7 +79,7 @@ func TestRunFromRootController_Execute(t *testing.T) {
 
 		// THEN: Should execute the command with correct dependencies and arguments
 		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
-		assert.Equal(t, len(dependencies), len(mockCommand.LastDependencies))
+		assert.Len(t, mockCommand.LastDependencies, len(dependencies))
 		assert.Equal(t, dependencies[0].Name, mockCommand.LastDependencies[0].Name)
 		assert.NotEmpty(t, mockCommand.LastArguments)
 	})

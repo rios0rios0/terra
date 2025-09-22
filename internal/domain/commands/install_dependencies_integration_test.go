@@ -12,6 +12,7 @@ import (
 	"github.com/rios0rios0/terra/test/domain/entity_builders"
 	"github.com/rios0rios0/terra/test/infrastructure/repository_builders"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
@@ -164,7 +165,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 
 		// THEN: The download should fail with an HTTP error
 		err := osInstance.Download(binaryServer.URL+"/terraform_1.13.3", tempFilePath)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "HTTP 500")
 
 		// Clean up any temporary file that might have been created
@@ -187,7 +188,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 
 		// THEN: The download should fail with a network error
 		err := osInstance.Download(unreachableURL, tempFilePath)
-		assert.Error(t, err)
+		require.Error(t, err)
 		// Network errors typically contain timeout or connection-related messages
 		errMsg := strings.ToLower(err.Error())
 		assert.True(t,
