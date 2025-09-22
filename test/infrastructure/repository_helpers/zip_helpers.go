@@ -1,4 +1,4 @@
-package repository_helpers //nolint:revive,staticcheck // Test package naming follows established project structure
+package repository_helpers //nolint:staticcheck // Test package naming follows established project structure
 
 import (
 	"archive/zip"

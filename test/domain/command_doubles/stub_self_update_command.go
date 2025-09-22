@@ -2,11 +2,11 @@ package command_doubles
 
 // StubSelfUpdateCommand provides a stub implementation for SelfUpdate interface for testing.
 type StubSelfUpdateCommand struct {
-	ExecuteError   error
-	ExecuteCalled  bool
-	DryRunFlag     bool
-	ForceFlag      bool
-	CallCount      int
+	ExecuteError  error
+	ExecuteCalled bool
+	DryRunFlag    bool
+	ForceFlag     bool
+	CallCount     int
 }
 
 // NewStubSelfUpdateCommand creates a new stub self-update command.
