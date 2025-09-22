@@ -3,31 +3,33 @@ package commands
 import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
-	infrastructure_repositories "github.com/rios0rios0/terra/internal/infrastructure/repositories"
 	logger "github.com/sirupsen/logrus"
 )
+
+// RunFromRootCommandDeps contains dependencies for RunFromRootCommand
+type RunFromRootCommandDeps struct {
+	InstallCommand        InstallDependencies
+	FormatCommand         FormatFiles
+	AdditionalBefore      RunAdditionalBefore
+	Repository            repositories.ShellRepository
+	InteractiveRepository repositories.ShellRepository
+}
 
 type RunFromRootCommand struct {
 	installCommand        InstallDependencies
 	formatCommand         FormatFiles
 	additionalBefore      RunAdditionalBefore
 	repository            repositories.ShellRepository
-	interactiveRepository *infrastructure_repositories.InteractiveShellRepository
+	interactiveRepository repositories.ShellRepository
 }
 
-func NewRunFromRootCommand(
-	installCommand InstallDependencies,
-	formatCommand FormatFiles,
-	additionalBefore RunAdditionalBefore,
-	repository repositories.ShellRepository,
-	interactiveRepository *infrastructure_repositories.InteractiveShellRepository,
-) *RunFromRootCommand {
+func NewRunFromRootCommand(deps RunFromRootCommandDeps) *RunFromRootCommand {
 	return &RunFromRootCommand{
-		installCommand:        installCommand,
-		formatCommand:         formatCommand,
-		additionalBefore:      additionalBefore,
-		repository:            repository,
-		interactiveRepository: interactiveRepository,
+		installCommand:        deps.InstallCommand,
+		formatCommand:         deps.FormatCommand,
+		additionalBefore:      deps.AdditionalBefore,
+		repository:            deps.Repository,
+		interactiveRepository: deps.InteractiveRepository,
 	}
 }
 

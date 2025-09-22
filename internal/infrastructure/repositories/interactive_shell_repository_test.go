@@ -73,4 +73,29 @@ func TestInteractiveShellRepository_ExecuteCommand(t *testing.T) {
 		// THEN: Should return an error
 		require.Error(t, err, "Expected error for invalid directory")
 	})
+
+	t.Run("should handle empty arguments when no arguments provided", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: An interactive shell repository instance with empty arguments
+		repo := repositories.NewInteractiveShellRepository()
+		command := "echo"
+		args := []string{}
+		workingDir := "."
+
+		// WHEN: Executing command with empty arguments
+		err := repo.ExecuteCommand(command, args, workingDir)
+
+		// THEN: Should execute without error
+		assert.NoError(t, err, "Expected no error for command with empty arguments")
+	})
 }
+
+// Note: The pattern matching logic in processLineAndRespond and removeANSICodes methods
+// are private and tested through integration tests. The core functionality includes:
+// 1. External dependency prompt pattern: "should terragrunt apply the external dependency.*?"
+// 2. Confirmation prompt pattern: "are you sure you want to run.*" (switches to manual mode)
+// 3. Yes/No prompt pattern: ".*?.*[y/n]" (responds with 'n')
+// 4. ANSI code removal for accurate pattern matching
+//
+// These patterns ensure auto-answering works correctly with various Terragrunt prompts
+// while preserving user control for critical confirmation dialogs.
