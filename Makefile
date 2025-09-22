@@ -47,3 +47,7 @@ horusec: scripts
 
 test: scripts
 	$(SCRIPTS_DIR)/global/scripts/golang/test/run.sh .
+
+clear:
+	sudo rm -rf .go
+	rm -rf bin coverage.xml unit_coverage.txt
