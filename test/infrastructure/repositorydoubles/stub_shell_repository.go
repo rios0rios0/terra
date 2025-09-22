@@ -1,8 +1,8 @@
 //go:build integration || unit || test
 
-package repository_doubles //nolint:staticcheck // Test package naming follows established project structure
+package repositorydoubles //nolint:staticcheck // Test package naming follows established project structure
 
-import "github.com/rios0rios0/terra/test/domain/entity_doubles"
+import "github.com/rios0rios0/terra/test/domain/entitydoubles"
 
 // StubShellRepository for testing shell-related commands.
 type StubShellRepository struct {
@@ -24,7 +24,7 @@ func (m *StubShellRepository) ExecuteCommand(
 	m.LastDirectory = directory
 
 	if m.ShouldReturnError {
-		return entity_doubles.NewStubError("stub execution error")
+		return entitydoubles.NewStubError("stub execution error")
 	}
 	return nil
 }

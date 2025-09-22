@@ -7,7 +7,8 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
-	"github.com/rios0rios0/terra/test/domain/command_doubles"
+	"github.com/rios0rios0/terra/test/domain/commanddoubles"
+
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -51,7 +52,7 @@ func TestSelfUpdateController_GetBind(t *testing.T) {
 func TestSelfUpdateController_Execute(t *testing.T) {
 	t.Run("should call command execute with correct flags when dry run flag provided", func(t *testing.T) {
 		// GIVEN: A mock command and controller
-		mockCommand := command_doubles.NewStubSelfUpdateCommand()
+		mockCommand := commanddoubles.NewStubSelfUpdateCommand()
 		controller := controllers.NewSelfUpdateController(mockCommand)
 
 		// Create a cobra command with flags
@@ -72,7 +73,7 @@ func TestSelfUpdateController_Execute(t *testing.T) {
 
 	t.Run("should call command execute with correct flags when force flag provided", func(t *testing.T) {
 		// GIVEN: A mock command and controller
-		mockCommand := command_doubles.NewStubSelfUpdateCommand()
+		mockCommand := commanddoubles.NewStubSelfUpdateCommand()
 		controller := controllers.NewSelfUpdateController(mockCommand)
 
 		// Create a cobra command with flags

@@ -1,6 +1,6 @@
 //go:build integration || unit || test
 
-package repository_builders
+package repositorybuilders
 
 import (
 	"encoding/json"

@@ -1,6 +1,6 @@
 //go:build integration || unit || test
 
-package command_doubles //nolint:staticcheck // Test package naming follows established project structure
+package commanddoubles //nolint:staticcheck // Test package naming follows established project structure
 
 // StubDeleteCacheCommand is a stub implementation of the DeleteCache interface.
 type StubDeleteCacheCommand struct {

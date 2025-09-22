@@ -7,8 +7,10 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
-	"github.com/rios0rios0/terra/test/domain/entity_builders"
-	"github.com/rios0rios0/terra/test/infrastructure/repository_helpers"
+
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
+	
+	"github.com/rios0rios0/terra/test/infrastructure/repositoryhelpers"
 )
 
 // TestInstallDependenciesCommand_Execute_InstallScenarios tests install method coverage.
@@ -20,13 +22,13 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	t.Run("should handle non-zip binary installation", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A server that serves a non-zip binary file
-		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
+		binaryServer := repositoryhelpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
 
-		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "1.0.0")
+		versionServer := repositoryhelpers.HelperCreateSimpleVersionServer(t, "1.0.0")
 		defer versionServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("SimpleBinary").
 			WithCLI("simple-binary-unique-12345").
 			WithBinaryURL(binaryServer.URL + "/binary_%s").
@@ -45,13 +47,13 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	t.Run("should handle directory creation for installation", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A dependency that will require installation directory creation
-		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
+		binaryServer := repositoryhelpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
 
-		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "2.0.0")
+		versionServer := repositoryhelpers.HelperCreateSimpleVersionServer(t, "2.0.0")
 		defer versionServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("DirectoryTest").
 			WithCLI("directory-test-binary-54321").
 			WithBinaryURL(binaryServer.URL + "/binary_%s").
@@ -70,13 +72,13 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	t.Run("should handle installation path permissions", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A binary that needs to be made executable
-		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
+		binaryServer := repositoryhelpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
 
-		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "3.0.0")
+		versionServer := repositoryhelpers.HelperCreateSimpleVersionServer(t, "3.0.0")
 		defer versionServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("PermissionTest").
 			WithCLI("permission-test-binary-98765").
 			WithBinaryURL(binaryServer.URL + "/binary_%s").
@@ -95,13 +97,13 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	t.Run("should handle temp file creation and cleanup", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A zip binary that will trigger temp file creation and cleanup
-		zipServer := repository_helpers.HelperCreateSimpleZipServer(t, "temp-test-binary")
+		zipServer := repositoryhelpers.HelperCreateSimpleZipServer(t, "temp-test-binary")
 		defer zipServer.Close()
 
-		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "1.5.0")
+		versionServer := repositoryhelpers.HelperCreateSimpleVersionServer(t, "1.5.0")
 		defer versionServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("TempFileTest").
 			WithCLI("temp-test-binary").
 			WithBinaryURL(zipServer.URL + "/temp_%s.zip").
@@ -120,13 +122,13 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	t.Run("should handle file type detection", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A binary that will trigger file type detection
-		binaryServer := repository_helpers.HelperCreateNonZipBinaryServer(t)
+		binaryServer := repositoryhelpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
 
-		versionServer := repository_helpers.HelperCreateSimpleVersionServer(t, "4.0.0")
+		versionServer := repositoryhelpers.HelperCreateSimpleVersionServer(t, "4.0.0")
 		defer versionServer.Close()
 
-		dependency := entity_builders.NewDependencyBuilder().
+		dependency := entitybuilders.NewDependencyBuilder().
 			WithName("FileTypeTest").
 			WithCLI("file-type-test-binary-13579").
 			WithBinaryURL(binaryServer.URL + "/binary_%s").

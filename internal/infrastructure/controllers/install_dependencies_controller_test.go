@@ -7,7 +7,8 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
-	"github.com/rios0rios0/terra/test/domain/command_doubles"
+	"github.com/rios0rios0/terra/test/domain/commanddoubles"
+
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,7 +20,7 @@ func TestNewInstallDependenciesController(t *testing.T) {
 	t.Run("should create instance when command and dependencies provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A mock command and test dependencies
-		mockCommand := &command_doubles.StubInstallDependenciesCommand{}
+		mockCommand := &commanddoubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{
 			{
 				Name:              "Test Dependency",
@@ -45,7 +46,7 @@ func TestInstallDependenciesController_GetBind(t *testing.T) {
 	t.Run("should return correct bind when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An install dependencies controller with mock command and empty dependencies
-		mockCommand := &command_doubles.StubInstallDependenciesCommand{}
+		mockCommand := &commanddoubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{}
 		controller := controllers.NewInstallDependenciesController(mockCommand, dependencies)
 
@@ -73,7 +74,7 @@ func TestInstallDependenciesController_Execute(t *testing.T) {
 	t.Run("should execute command when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An install dependencies controller with mock command and test dependencies
-		mockCommand := &command_doubles.StubInstallDependenciesCommand{}
+		mockCommand := &commanddoubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{
 			{
 				Name: "Test Dependency",
@@ -101,7 +102,7 @@ func TestInstallDependenciesController_Execute(t *testing.T) {
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An install dependencies controller with mock command and test dependencies
-		mockCommand := &command_doubles.StubInstallDependenciesCommand{}
+		mockCommand := &commanddoubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{
 			{Name: "Test", CLI: "test"},
 		}

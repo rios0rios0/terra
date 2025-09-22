@@ -1,6 +1,6 @@
 //go:build integration || unit || test
 
-package repository_doubles //nolint:staticcheck // Test package naming follows established project structure
+package repositorydoubles //nolint:staticcheck // Test package naming follows established project structure
 
 // StubShellRepositoryForAdditional is a stub implementation of repositories.ShellRepository.
 type StubShellRepositoryForAdditional struct {
