@@ -9,12 +9,12 @@ import (
 
 func injectAppContext() entities.AppContext {
 	container := dig.New()
-	
+
 	// Register all providers
 	if err := internal.RegisterProviders(container); err != nil {
 		panic(err)
 	}
-	
+
 	// Invoke to get AppInternal and convert to AppContext
 	var appInternal *internal.AppInternal
 	if err := container.Invoke(func(ai *internal.AppInternal) {
@@ -22,7 +22,7 @@ func injectAppContext() entities.AppContext {
 	}); err != nil {
 		panic(err)
 	}
-	
+
 	return newAppContext(appInternal)
 }
 
@@ -32,12 +32,12 @@ func newAppContext(appInternal *internal.AppInternal) entities.AppContext {
 
 func injectRootController() entities.Controller {
 	container := dig.New()
-	
+
 	// Register all providers
 	if err := internal.RegisterProviders(container); err != nil {
 		panic(err)
 	}
-	
+
 	// Invoke to get RunFromRootController and convert to Controller
 	var rootController *controllers.RunFromRootController
 	if err := container.Invoke(func(rc *controllers.RunFromRootController) {
@@ -45,7 +45,7 @@ func injectRootController() entities.Controller {
 	}); err != nil {
 		panic(err)
 	}
-	
+
 	return newRootController(rootController)
 }
 

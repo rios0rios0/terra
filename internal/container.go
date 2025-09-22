@@ -23,7 +23,7 @@ func RegisterProviders(container *dig.Container) error {
 	if err := controllers.RegisterProviders(container); err != nil {
 		return err
 	}
-	
+
 	// Register the main app internal
 	if err := container.Provide(NewAppInternal); err != nil {
 		return err

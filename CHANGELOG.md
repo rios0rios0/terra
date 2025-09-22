@@ -27,6 +27,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Changed
 
+- replaced Wire with DIG for dependency injection to support Go 1.25.1 and active maintenance
 - Updated Copilot instructions and contributing guide to enforce LF (Unix) line endings for all new and edited files
 - Updated documentation to require CHANGELOG.md updates for new features and bug fixes (not required for documentation-only changes)
 - Updated .editorconfig to enforce LF line endings across all file types instead of just Go files
