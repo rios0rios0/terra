@@ -123,10 +123,10 @@ terra update
 
 ## Environment Configuration
 
-Terra requires specific environment variables to be configured. Create a `.env` file in your project root:
+Terra can be configured with environment variables for cloud provider integration. Create a `.env` file in your project root:
 
 ```bash
-# Required: Cloud provider (must be "aws" or "azure")
+# Optional: Cloud provider (if specified, must be "aws" or "azure")
 TERRA_CLOUD=aws
 
 # AWS specific (required for role switching when using AWS)
@@ -143,7 +143,7 @@ TF_VAR_environment=development
 TF_VAR_region=us-west-2
 ```
 
-**Note**: `TERRA_CLOUD` must be set to either "aws" or "azure" - terra will fail validation without this setting.
+**Note**: If `TERRA_CLOUD` is specified, it must be set to either "aws" or "azure". This enables cloud-specific features like role switching for AWS or subscription switching for Azure.
 
 If you have some input variables, you can use environment variables (`.env`) with the prefix `TF_VAR_`:
 ```bash
