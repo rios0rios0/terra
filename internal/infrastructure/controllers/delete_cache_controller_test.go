@@ -12,10 +12,10 @@ import (
 
 func TestNewDeleteCacheController(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should create instance when command provided", func(t *testing.T) {
 		// GIVEN: A mock delete cache command
-		mockCommand := &commands_doubles.StubDeleteCacheCommand{}
+		mockCommand := &command_doubles.StubDeleteCacheCommand{}
 
 		// WHEN: Creating a new delete cache controller
 		controller := controllers.NewDeleteCacheController(mockCommand)
@@ -27,10 +27,10 @@ func TestNewDeleteCacheController(t *testing.T) {
 
 func TestDeleteCacheController_GetBind(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return correct bind when called", func(t *testing.T) {
 		// GIVEN: A delete cache controller
-		mockCommand := &commands_doubles.StubDeleteCacheCommand{}
+		mockCommand := &command_doubles.StubDeleteCacheCommand{}
 		controller := controllers.NewDeleteCacheController(mockCommand)
 
 		// WHEN: Getting the controller bind
@@ -45,10 +45,10 @@ func TestDeleteCacheController_GetBind(t *testing.T) {
 
 func TestDeleteCacheController_Execute(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should execute command when called", func(t *testing.T) {
 		// GIVEN: A delete cache controller with mock command
-		mockCommand := &commands_doubles.StubDeleteCacheCommand{}
+		mockCommand := &command_doubles.StubDeleteCacheCommand{}
 		controller := controllers.NewDeleteCacheController(mockCommand)
 		cmd := &cobra.Command{}
 		args := []string{}
@@ -61,10 +61,10 @@ func TestDeleteCacheController_Execute(t *testing.T) {
 		expectedDirs := []string{".terraform", ".terragrunt-cache"}
 		assert.Equal(t, expectedDirs, mockCommand.LastToBeDeleted)
 	})
-	
+
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
 		// GIVEN: A delete cache controller with mock command
-		mockCommand := &commands_doubles.StubDeleteCacheCommand{}
+		mockCommand := &command_doubles.StubDeleteCacheCommand{}
 		controller := controllers.NewDeleteCacheController(mockCommand)
 		cmd := &cobra.Command{}
 		args := []string{}
