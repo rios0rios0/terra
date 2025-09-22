@@ -29,7 +29,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
 		
-		cmd := commands.NewRunFromRootCommand(commands.RunFromRootCommandDeps{
+		cmd := commands.NewRunFromRootCommand(
 			InstallCommand:        installCommand,
 			FormatCommand:         formatCommand,
 			AdditionalBefore:      additionalBefore,
@@ -68,7 +68,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
 		
-		cmd := commands.NewRunFromRootCommand(commands.RunFromRootCommandDeps{
+		cmd := commands.NewRunFromRootCommand(
 			InstallCommand:        installCommand,
 			FormatCommand:         formatCommand,
 			AdditionalBefore:      additionalBefore,
@@ -159,7 +159,7 @@ func TestRunFromRootCommand_AutoAnswerEnhanced_Integration(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
 		
-		cmd := commands.NewRunFromRootCommand(commands.RunFromRootCommandDeps{
+		cmd := commands.NewRunFromRootCommand(
 			InstallCommand:        installCommand,
 			FormatCommand:         formatCommand,
 			AdditionalBefore:      additionalBefore,
@@ -230,7 +230,7 @@ func TestRunFromRootCommand_AutoAnswerEnhanced_Integration(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
 		
-		cmd := commands.NewRunFromRootCommand(commands.RunFromRootCommandDeps{
+		cmd := commands.NewRunFromRootCommand(
 			InstallCommand:        installCommand,
 			FormatCommand:         formatCommand,
 			AdditionalBefore:      additionalBefore,

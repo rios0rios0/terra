@@ -5,6 +5,7 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
+	infrastructure_repositories "github.com/rios0rios0/terra/internal/infrastructure/repositories"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -22,16 +23,22 @@ type RunFromRootCommand struct {
 	formatCommand         FormatFiles
 	additionalBefore      RunAdditionalBefore
 	repository            repositories.ShellRepository
-	interactiveRepository repositories.ShellRepository
+	interactiveRepository *infrastructure_repositories.InteractiveShellRepository
 }
 
-func NewRunFromRootCommand(deps RunFromRootCommandDeps) *RunFromRootCommand {
+func NewRunFromRootCommand(
+	installCommand InstallDependencies,
+	formatCommand FormatFiles,
+	additionalBefore RunAdditionalBefore,
+	repository repositories.ShellRepository,
+	interactiveRepository *infrastructure_repositories.InteractiveShellRepository,
+) *RunFromRootCommand {
 	return &RunFromRootCommand{
-		installCommand:        deps.InstallCommand,
-		formatCommand:         deps.FormatCommand,
-		additionalBefore:      deps.AdditionalBefore,
-		repository:            deps.Repository,
-		interactiveRepository: deps.InteractiveRepository,
+		installCommand:        installCommand,
+		formatCommand:         formatCommand,
+		additionalBefore:      additionalBefore,
+		repository:            repository,
+		interactiveRepository: interactiveRepository,
 	}
 }
 
@@ -52,10 +59,8 @@ func (it *RunFromRootCommand) Execute(
 	if useInteractive {
 		logger.Infof("Using interactive mode with auto-answering (response: %s)", autoAnswerValue)
 		
-		// Configure the interactive repository with the auto-answer value if it supports it
-		if configurable, ok := it.interactiveRepository.(repositories.AutoAnswerConfigurable); ok {
-			configurable.SetAutoAnswerValue(autoAnswerValue)
-		}
+		// Configure the interactive repository with the auto-answer value
+		it.interactiveRepository.SetAutoAnswerValue(autoAnswerValue)
 		
 		err = it.interactiveRepository.ExecuteCommand("terragrunt", filteredArguments, targetPath)
 	} else {
