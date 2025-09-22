@@ -18,6 +18,15 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
+- Added "update" command as an alias for "install" command
+
+### Fixed
+
+- Fixed issue where version checks for Terraform and Terragrunt were triggered on every command execution, causing unnecessary network calls and slowdowns
+- Version checks now only occur when explicitly running "install" or "update" commands
+
+### Changed
+
 - added self update feature to update the CLI without any additional step
 - added dependency injection with Wire and inverted all dependencies
 - created validation on the `settings` entity
