@@ -1,3 +1,5 @@
+//go:build integration || unit || test
+
 package repository_builders //nolint:revive,staticcheck // Test package naming follows established project structure
 
 import (
