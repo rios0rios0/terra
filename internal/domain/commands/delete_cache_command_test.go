@@ -38,7 +38,9 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		// Create terraform cache directories
 		terraformDir := ".terraform"
 		nestedTerraformDir := "module1/.terraform"
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(terraformDir, 0755))
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(nestedTerraformDir, 0755))
 		require.NoError(
 			t,
@@ -48,11 +50,14 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		// Create terragrunt cache directories
 		terragruntDir := ".terragrunt-cache"
 		nestedTerragruntDir := "module2/.terragrunt-cache"
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(terragruntDir, 0755))
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(nestedTerragruntDir, 0755))
 
 		// Create directories that should NOT be deleted
 		keepDir := "src"
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(keepDir, 0755))
 
 		// WHEN: Executing the delete command
@@ -82,6 +87,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		t.Chdir(tempDir)
 
 		testDir := ".terraform"
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(testDir, 0755))
 
 		// WHEN: Executing with empty directory list
@@ -121,7 +127,9 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 			terraformDir := "project/.terraform"
 			terragruntDir := "project/.terragrunt-cache"
 
+			// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 			require.NoError(t, os.MkdirAll(terraformDir, 0755))
+			// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 			require.NoError(t, os.MkdirAll(terragruntDir, 0755))
 
 			// WHEN: Executing command to delete only terraform directories
