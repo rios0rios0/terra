@@ -13,10 +13,10 @@ import (
 
 func TestNewFormatFilesController(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should create instance when command and dependencies provided", func(t *testing.T) {
 		// GIVEN: A mock command and test dependencies
-		mockCommand := &commands_doubles.StubFormatFilesCommand{}
+		mockCommand := &command_doubles.StubFormatFilesCommand{}
 		dependencies := []entities.Dependency{
 			{
 				Name:              "Test Tool",
@@ -35,10 +35,10 @@ func TestNewFormatFilesController(t *testing.T) {
 
 func TestFormatFilesController_GetBind(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should return correct bind when called", func(t *testing.T) {
 		// GIVEN: A format files controller with mock command and empty dependencies
-		mockCommand := &commands_doubles.StubFormatFilesCommand{}
+		mockCommand := &command_doubles.StubFormatFilesCommand{}
 		dependencies := []entities.Dependency{}
 		controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 
@@ -54,10 +54,10 @@ func TestFormatFilesController_GetBind(t *testing.T) {
 
 func TestFormatFilesController_Execute(t *testing.T) {
 	t.Parallel()
-	
+
 	t.Run("should execute command when called with dependencies", func(t *testing.T) {
 		// GIVEN: A format files controller with mock command and test dependencies
-		mockCommand := &commands_doubles.StubFormatFilesCommand{}
+		mockCommand := &command_doubles.StubFormatFilesCommand{}
 		terraformDep := entities.Dependency{
 			Name: "Terraform",
 			CLI:  "terraform",
@@ -80,10 +80,10 @@ func TestFormatFilesController_Execute(t *testing.T) {
 		assert.Equal(t, terraformDep.Name, mockCommand.LastDependencies[0].Name)
 		assert.Equal(t, terragruntDep.Name, mockCommand.LastDependencies[1].Name)
 	})
-	
+
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
 		// GIVEN: A format files controller with mock command and empty dependencies
-		mockCommand := &commands_doubles.StubFormatFilesCommand{}
+		mockCommand := &command_doubles.StubFormatFilesCommand{}
 		dependencies := []entities.Dependency{}
 		controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 		cmd := &cobra.Command{}
