@@ -116,7 +116,7 @@ func TestRunAdditionalBeforeCommand_Execute_AccountChange(t *testing.T) {
 	})
 }
 
-//nolint:gocognit // Large test function with comprehensive coverage - complex scenarios
+//nolint:gocognit,gocyclo,cyclop // Large test function with comprehensive coverage - complex scenarios
 func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 	t.Parallel()
 

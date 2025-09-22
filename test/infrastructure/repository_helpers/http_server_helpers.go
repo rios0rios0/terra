@@ -1,4 +1,4 @@
-//nolint:revive,staticcheck // Test package naming follows established project structure
+//nolint:staticcheck // Test package naming follows established project structure
 package repository_helpers
 
 import (
@@ -11,7 +11,7 @@ import (
 func HelperCreateNonZipBinaryServer(t *testing.T) *httptest.Server {
 	t.Helper()
 
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		// Serve a simple binary content.
 		binaryContent := []byte("#!/bin/bash\necho 'test binary'\n")
 		w.Header().Set("Content-Type", "application/octet-stream")
@@ -23,7 +23,7 @@ func HelperCreateNonZipBinaryServer(t *testing.T) *httptest.Server {
 func HelperCreateSimpleVersionServer(t *testing.T, version string) *httptest.Server {
 	t.Helper()
 
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		response := `{"current_version":"` + version + `"}`
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(response))
@@ -34,7 +34,7 @@ func HelperCreateSimpleVersionServer(t *testing.T, version string) *httptest.Ser
 func HelperCreateSimpleZipServer(t *testing.T, binaryName string) *httptest.Server {
 	t.Helper()
 
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		// Create a simple zip file in memory (reuse from existing zip helper).
 		zipData := HelperCreateZipWithBinary(t, binaryName)
 
@@ -46,11 +46,11 @@ func HelperCreateSimpleZipServer(t *testing.T, binaryName string) *httptest.Serv
 // HelperCreateZipServer creates a test server that serves a zip file containing a binary.
 func HelperCreateZipServer(
 	t *testing.T,
-	binaryNameInZip, expectedBinaryName string,
+	binaryNameInZip, _ string,
 ) *httptest.Server {
 	t.Helper()
 
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		// Create a zip file in memory.
 		zipData := HelperCreateZipWithBinary(t, binaryNameInZip)
 
@@ -63,7 +63,7 @@ func HelperCreateZipServer(
 func HelperCreateVersionServer(t *testing.T, version string) *httptest.Server {
 	t.Helper()
 
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		response := `{"current_version":"` + version + `"}`
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(response))
@@ -74,7 +74,7 @@ func HelperCreateVersionServer(t *testing.T, version string) *httptest.Server {
 func HelperCreateNestedZipServer(t *testing.T, nestedPath, binaryName string) *httptest.Server {
 	t.Helper()
 
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		// Create a zip file with nested directory structure.
 		zipData := HelperCreateNestedZipWithBinary(t, nestedPath, binaryName)
 
@@ -87,7 +87,7 @@ func HelperCreateNestedZipServer(t *testing.T, nestedPath, binaryName string) *h
 func HelperCreateMixedContentZipServer(t *testing.T, binaryName string) *httptest.Server {
 	t.Helper()
 
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 		// Create a zip file with mixed content.
 		zipData := HelperCreateMixedContentZip(t, binaryName)
 

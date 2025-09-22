@@ -1,4 +1,4 @@
-//nolint:revive,staticcheck // Test package naming follows established project structure
+//nolint:staticcheck // Test package naming follows established project structure
 package repository_helpers
 
 import (
@@ -42,7 +42,7 @@ func HelperCreateZipWithBinary(t *testing.T, binaryName string) []byte {
 }
 
 // HelperCreateNestedZipWithBinary creates a zip with binary in nested directory.
-func HelperCreateNestedZipWithBinary(t *testing.T, nestedPath, binaryName string) []byte {
+func HelperCreateNestedZipWithBinary(t *testing.T, nestedPath, _ string) []byte {
 	t.Helper()
 
 	tmpfile, err := os.CreateTemp(t.TempDir(), "test-nested-*.zip")
@@ -61,7 +61,7 @@ func HelperCreateNestedZipWithBinary(t *testing.T, nestedPath, binaryName string
 	_, err = binaryFile.Write(binaryContent)
 	require.NoError(t, err)
 
-	zipWriter.Close()
+	_ = zipWriter.Close()
 
 	zipData, err := os.ReadFile(tmpfile.Name())
 	require.NoError(t, err)
@@ -112,7 +112,7 @@ func HelperCreateMixedContentZip(t *testing.T, binaryName string) []byte {
 	_, err = binaryFile.Write(binaryContent)
 	require.NoError(t, err)
 
-	zipWriter.Close()
+	_ = zipWriter.Close() //nolint:gosec // Test helper - error handling not critical for tests
 
 	zipData, err := os.ReadFile(tmpfile.Name())
 	require.NoError(t, err)
