@@ -1,3 +1,5 @@
+//go:build integration || unit || test
+
 package command_doubles
 
 // StubSelfUpdateCommand provides a stub implementation for SelfUpdate interface for testing.
