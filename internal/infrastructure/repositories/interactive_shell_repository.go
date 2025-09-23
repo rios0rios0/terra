@@ -73,6 +73,11 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 			// Write to stdout for user to see
 			_, _ = os.Stdout.Write(buf[:n])
 
+			// Skip pattern matching if already in manual mode
+			if manualModeActivated {
+				continue
+			}
+
 			// Add to buffer for pattern matching
 			outputBuffer.Write(buf[:n])
 			
@@ -91,7 +96,7 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 			externalDepPattern := regexp.MustCompile(
 				`(?i)should terragrunt apply the external dependency.*\?`,
 			)
-			if externalDepPattern.MatchString(cleanOutput) && !manualModeActivated {
+			if externalDepPattern.MatchString(cleanOutput) {
 				logger.Debug("Detected external dependency prompt, responding with 'n'")
 				_, _ = ptmx.Write([]byte("n\r"))
 				outputBuffer.Reset() // Clear buffer after response
@@ -100,8 +105,9 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 
 			// Pattern 2: "Are you sure you want to run" prompt - switch to manual mode
 			confirmationPattern := regexp.MustCompile(`(?i)are you sure you want to run.*`)
-			if confirmationPattern.MatchString(cleanOutput) && !manualModeActivated {
+			if confirmationPattern.MatchString(cleanOutput) {
 				logger.Info("Detected confirmation prompt, switching to manual mode")
+				logger.Info("Manual interaction mode activated - user input forwarded to process")
 				manualModeActivated = true
 				select {
 				case manualMode <- true:
@@ -110,9 +116,9 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 				continue
 			}
 
-			// Pattern 3: Any other "yes/no" prompts - answer "n" by default (only if not in manual mode)
+			// Pattern 3: Any other "yes/no" prompts - answer "n" by default
 			yesNoPattern := regexp.MustCompile(`(?i).*\?.*\[y/n\]`)
-			if yesNoPattern.MatchString(cleanOutput) && !manualModeActivated {
+			if yesNoPattern.MatchString(cleanOutput) {
 				logger.Debug("Detected yes/no prompt, responding with 'n'")
 				_, _ = ptmx.Write([]byte("n\r"))
 				outputBuffer.Reset() // Clear buffer after response
@@ -124,7 +130,6 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 	// Handle manual input when needed
 	go func() {
 		<-manualMode // Wait for signal to switch to manual mode
-		logger.Info("Manual interaction mode activated - user input forwarded to process")
 		_, _ = io.Copy(ptmx, os.Stdin)
 	}()
 
@@ -138,7 +143,8 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 }
 
 func (it *InteractiveShellRepository) removeANSICodes(text string) string {
-	// Remove ANSI escape sequences
-	ansiRegex := regexp.MustCompile(`\x1b\[[0-9;]*m`)
+	// Remove ANSI escape sequences - comprehensive filtering
+	// Handles color codes, cursor movements, device status reports, etc.
+	ansiRegex := regexp.MustCompile(`\x1b\[[0-9;]*[a-zA-Z]|\x1b\([AB]|\^?\[\[[0-9;]*[a-zA-Z]`)
 	return ansiRegex.ReplaceAllString(text, "")
 }
