@@ -8,16 +8,15 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/creack/pty"
 	logger "github.com/sirupsen/logrus"
 )
 
 const (
-	outputChannelSize   = 100
-	outputCheckInterval = 100 * time.Millisecond
-	shellTimeout        = 30 * time.Minute // Allow long-running terraform/terragrunt commands
+	bufferSize          = 1024
+	maxOutputBufferSize = 4096
+	outputTrimSize      = 2048
 )
 
 // InteractiveShellRepository handles interactive commands with auto-answering capabilities.
@@ -41,7 +40,7 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 
 	cmd := exec.CommandContext(context.Background(), command, arguments...)
 	cmd.Dir = directory
-	
+
 	// Set environment to reduce ANSI sequences, similar to expect script
 	cmd.Env = append(os.Environ(), "TERM=dumb")
 
@@ -61,108 +60,127 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 	// Buffer to accumulate output for pattern matching
 	var outputBuffer strings.Builder
 
-	// Read output byte by byte and forward to stdout while monitoring for patterns
-	go func() {
-		buf := make([]byte, 1024)
-		for {
-			n, err := ptmx.Read(buf)
-			if err != nil {
-				if err != io.EOF {
-					logger.Debugf("PTY read error: %v", err)
-				}
-				break
-			}
+	// Start output processing goroutine
+	go it.handleOutput(ptmx, &outputBuffer, &manualModeActivated, manualMode)
 
-			// Filter ANSI sequences before writing to stdout
-			filteredOutput := it.removeANSICodes(string(buf[:n]))
-			_, _ = os.Stdout.WriteString(filteredOutput)
-
-			// Skip pattern matching if already in manual mode
-			if manualModeActivated {
-				continue
-			}
-
-			// Add original output to buffer for pattern matching (before ANSI filtering)
-			outputBuffer.Write(buf[:n])
-			
-			// Check recent output for patterns (keep buffer reasonable size)
-			output := outputBuffer.String()
-			if len(output) > 4096 {
-				// Keep only the last 2048 characters to avoid unbounded growth
-				output = output[len(output)-2048:]
-				outputBuffer.Reset()
-				outputBuffer.WriteString(output)
-			}
-
-			cleanOutput := it.removeANSICodes(output)
-			
-			// Pattern 1: External dependency prompt - answer "n"
-			externalDepPattern := regexp.MustCompile(
-				`(?i)should terragrunt apply the external dependency.*\?`,
-			)
-			if externalDepPattern.MatchString(cleanOutput) {
-				logger.Debug("Detected external dependency prompt, responding with 'n'")
-				_, _ = ptmx.Write([]byte("n\r"))
-				outputBuffer.Reset() // Clear buffer after response
-				continue
-			}
-
-			// Pattern 2: "Are you sure you want to run" prompt - switch to manual mode
-			confirmationPattern := regexp.MustCompile(`(?i)are you sure you want to run.*`)
-			if confirmationPattern.MatchString(cleanOutput) {
-				// Add newline before log messages for better formatting
-				fmt.Fprintln(os.Stdout)
-				logger.Info("Detected confirmation prompt, switching to manual mode")
-				logger.Info("Manual interaction mode activated - user input forwarded to process")
-				manualModeActivated = true
-				select {
-				case manualMode <- true:
-				default:
-				}
-				continue
-			}
-
-			// Pattern 3: Any other "yes/no" prompts - answer "n" by default
-			yesNoPattern := regexp.MustCompile(`(?i).*\?.*\[y/n\]`)
-			if yesNoPattern.MatchString(cleanOutput) {
-				logger.Debug("Detected yes/no prompt, responding with 'n'")
-				_, _ = ptmx.Write([]byte("n\r"))
-				outputBuffer.Reset() // Clear buffer after response
-				continue
-			}
-		}
-	}()
-
-	// Handle manual input when needed with more careful input forwarding
-	go func() {
-		<-manualMode // Wait for signal to switch to manual mode
-		
-		// Use a more controlled input forwarding approach
-		buf := make([]byte, 1)
-		for {
-			n, err := os.Stdin.Read(buf)
-			if err != nil {
-				logger.Debugf("Stdin read error in manual mode: %v", err)
-				break
-			}
-			if n > 0 {
-				// Forward input to PTY
-				_, err = ptmx.Write(buf[:n])
-				if err != nil {
-					logger.Debugf("PTY write error in manual mode: %v", err)
-					break
-				}
-			}
-		}
-	}()
+	// Start manual input handling goroutine
+	go it.handleManualInput(ptmx, manualMode)
 
 	// Wait for the command to complete
-	err = cmd.Wait()
-	if err != nil {
-		err = fmt.Errorf("failed to perform command execution: %w", err)
+	waitErr := cmd.Wait()
+	if waitErr != nil {
+		waitErr = fmt.Errorf("failed to perform command execution: %w", waitErr)
 	}
 
-	return err
+	return waitErr
+}
+
+func (it *InteractiveShellRepository) handleOutput(
+	ptmx *os.File,
+	outputBuffer *strings.Builder,
+	manualModeActivated *bool,
+	manualMode chan bool,
+) {
+	buf := make([]byte, bufferSize)
+	for {
+		n, readErr := ptmx.Read(buf)
+		if readErr != nil {
+			if readErr != io.EOF {
+				logger.Debugf("PTY read error: %v", readErr)
+			}
+			break
+		}
+
+		// Filter ANSI sequences before writing to stdout
+		filteredOutput := it.removeANSICodes(string(buf[:n]))
+		_, _ = os.Stdout.WriteString(filteredOutput)
+
+		// Skip pattern matching if already in manual mode
+		if *manualModeActivated {
+			continue
+		}
+
+		it.processOutputForPatterns(string(buf[:n]), outputBuffer, ptmx, manualModeActivated, manualMode)
+	}
+}
+
+func (it *InteractiveShellRepository) processOutputForPatterns(
+	output string,
+	outputBuffer *strings.Builder,
+	ptmx *os.File,
+	manualModeActivated *bool,
+	manualMode chan bool,
+) {
+	// Add original output to buffer for pattern matching (before ANSI filtering)
+	outputBuffer.WriteString(output)
+
+	// Check recent output for patterns (keep buffer reasonable size)
+	bufferContent := outputBuffer.String()
+	if len(bufferContent) > maxOutputBufferSize {
+		// Keep only the last outputTrimSize characters to avoid unbounded growth
+		bufferContent = bufferContent[len(bufferContent)-outputTrimSize:]
+		outputBuffer.Reset()
+		outputBuffer.WriteString(bufferContent)
+	}
+
+	cleanOutput := it.removeANSICodes(bufferContent)
+
+	// Pattern 1: External dependency prompt - answer "n"
+	externalDepPattern := regexp.MustCompile(
+		`(?i)should terragrunt apply the external dependency.*\?`,
+	)
+	if externalDepPattern.MatchString(cleanOutput) {
+		logger.Debug("Detected external dependency prompt, responding with 'n'")
+		_, _ = ptmx.WriteString("n\r")
+		outputBuffer.Reset() // Clear buffer after response
+		return
+	}
+
+	// Pattern 2: "Are you sure you want to run" prompt - switch to manual mode
+	confirmationPattern := regexp.MustCompile(`(?i)are you sure you want to run.*`)
+	if confirmationPattern.MatchString(cleanOutput) {
+		// Add newline before log messages for better formatting
+		fmt.Fprintln(os.Stdout)
+		logger.Info("Detected confirmation prompt, switching to manual mode")
+		logger.Info("Manual interaction mode activated - user input forwarded to process")
+		*manualModeActivated = true
+		select {
+		case manualMode <- true:
+		default:
+		}
+		return
+	}
+
+	// Pattern 3: Any other "yes/no" prompts - answer "n" by default
+	yesNoPattern := regexp.MustCompile(`(?i).*\?.*\[y/n\]`)
+	if yesNoPattern.MatchString(cleanOutput) {
+		logger.Debug("Detected yes/no prompt, responding with 'n'")
+		_, _ = ptmx.WriteString("n\r")
+		outputBuffer.Reset() // Clear buffer after response
+		return
+	}
+}
+
+func (it *InteractiveShellRepository) handleManualInput(ptmx *os.File, manualMode chan bool) {
+	<-manualMode // Wait for signal to switch to manual mode
+
+	// Use a more controlled input forwarding approach
+	buf := make([]byte, 1)
+	for {
+		n, readErr := os.Stdin.Read(buf)
+		if readErr != nil {
+			logger.Debugf("Stdin read error in manual mode: %v", readErr)
+			break
+		}
+		if n > 0 {
+			// Forward input to PTY
+			_, writeErr := ptmx.Write(buf[:n])
+			if writeErr != nil {
+				logger.Debugf("PTY write error in manual mode: %v", writeErr)
+				break
+			}
+		}
+	}
 }
 
 func (it *InteractiveShellRepository) removeANSICodes(text string) string {
