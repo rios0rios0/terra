@@ -18,7 +18,7 @@ func TestInstallDependenciesCommand_TempFilePatterns(t *testing.T) {
 
 	t.Run("should create unique temp files using same pattern as install function", func(t *testing.T) {
 		t.Parallel()
-		
+
 		// GIVEN: Real OS interface and a valid temp directory
 		osInstance := entities.GetOS()
 		tempDir := osInstance.GetTempDir()
@@ -31,7 +31,7 @@ func TestInstallDependenciesCommand_TempFilePatterns(t *testing.T) {
 		defer tempFile1.Close()
 
 		tempFile2, err := os.CreateTemp(tempDir, "terraform_*")
-		require.NoError(t, err, "Should create second temp file successfully")  
+		require.NoError(t, err, "Should create second temp file successfully")
 		defer os.Remove(tempFile2.Name())
 		defer tempFile2.Close()
 
@@ -50,7 +50,7 @@ func TestInstallDependenciesCommand_TempFilePatterns(t *testing.T) {
 
 	t.Run("should create temp files with write permissions", func(t *testing.T) {
 		t.Parallel()
-		
+
 		// GIVEN: Real OS interface
 		osInstance := entities.GetOS()
 		tempDir := osInstance.GetTempDir()
@@ -71,11 +71,11 @@ func TestInstallDependenciesCommand_TempFilePatterns(t *testing.T) {
 		_ = tempFile.Sync()
 		_, err = tempFile.Seek(0, 0)
 		require.NoError(t, err)
-		
+
 		buf := make([]byte, len(testContent))
 		n, err := tempFile.Read(buf)
 		require.NoError(t, err)
-		assert.Equal(t, testContent, string(buf[:n]), 
+		assert.Equal(t, testContent, string(buf[:n]),
 			"Should be able to read back written content")
 	})
 }
@@ -85,7 +85,7 @@ func TestInstallDependenciesCommand_TempDirectoryPatterns(t *testing.T) {
 
 	t.Run("should create unique temp directories using same pattern as install function", func(t *testing.T) {
 		t.Parallel()
-		
+
 		// GIVEN: Real OS interface and a valid temp directory
 		osInstance := entities.GetOS()
 		tempDir := osInstance.GetTempDir()
@@ -115,7 +115,7 @@ func TestInstallDependenciesCommand_TempDirectoryPatterns(t *testing.T) {
 
 	t.Run("should create temp directories with write permissions", func(t *testing.T) {
 		t.Parallel()
-		
+
 		// GIVEN: Real OS interface
 		osInstance := entities.GetOS()
 		tempDir := osInstance.GetTempDir()

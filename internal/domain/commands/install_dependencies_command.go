@@ -259,7 +259,7 @@ func install(url, name string) {
 		logger.Fatalf("Failed to create temporary file for %s: %s", name, err)
 	}
 	tempFilePath := tempFile.Name()
-	tempFile.Close() // Close immediately since we'll overwrite it during download
+	tempFile.Close()              // Close immediately since we'll overwrite it during download
 	defer os.Remove(tempFilePath) // Ensure cleanup of the temporary file
 
 	destPath := path.Join(currentOS.GetInstallationPath(), name)
