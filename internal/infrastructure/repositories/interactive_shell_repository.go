@@ -31,11 +31,21 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 	arguments []string,
 	directory string,
 ) error {
+	return it.ExecuteCommandWithAnswer(command, arguments, directory, "n")
+}
+
+func (it *InteractiveShellRepository) ExecuteCommandWithAnswer(
+	command string,
+	arguments []string,
+	directory string,
+	autoAnswer string,
+) error {
 	logger.Infof(
-		"Running [%s %s] in %s with auto-answering",
+		"Running [%s %s] in %s with auto-answering (%s)",
 		command,
 		strings.Join(arguments, " "),
 		directory,
+		autoAnswer,
 	)
 
 	cmd := exec.CommandContext(context.Background(), command, arguments...)
@@ -61,7 +71,7 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 	var outputBuffer strings.Builder
 
 	// Start output processing goroutine
-	go it.handleOutput(ptmx, &outputBuffer, &manualModeActivated, manualMode)
+	go it.handleOutput(ptmx, &outputBuffer, &manualModeActivated, manualMode, autoAnswer)
 
 	// Start manual input handling goroutine
 	go it.handleManualInput(ptmx, manualMode)
@@ -80,6 +90,7 @@ func (it *InteractiveShellRepository) handleOutput(
 	outputBuffer *strings.Builder,
 	manualModeActivated *bool,
 	manualMode chan bool,
+	autoAnswer string,
 ) {
 	buf := make([]byte, bufferSize)
 	for {
@@ -100,7 +111,7 @@ func (it *InteractiveShellRepository) handleOutput(
 			continue
 		}
 
-		it.processOutputForPatterns(string(buf[:n]), outputBuffer, ptmx, manualModeActivated, manualMode)
+		it.processOutputForPatterns(string(buf[:n]), outputBuffer, ptmx, manualModeActivated, manualMode, autoAnswer)
 	}
 }
 
@@ -110,6 +121,7 @@ func (it *InteractiveShellRepository) processOutputForPatterns(
 	ptmx *os.File,
 	manualModeActivated *bool,
 	manualMode chan bool,
+	autoAnswer string,
 ) {
 	// Add original output to buffer for pattern matching (before ANSI filtering)
 	outputBuffer.WriteString(output)
@@ -125,13 +137,13 @@ func (it *InteractiveShellRepository) processOutputForPatterns(
 
 	cleanOutput := it.removeANSICodes(bufferContent)
 
-	// Pattern 1: External dependency prompt - answer "n"
+	// Pattern 1: External dependency prompt - use configured auto answer
 	externalDepPattern := regexp.MustCompile(
 		`(?i)should terragrunt apply the external dependency.*\?`,
 	)
 	if externalDepPattern.MatchString(cleanOutput) {
-		logger.Debug("Detected external dependency prompt, responding with 'n'")
-		_, _ = ptmx.WriteString("n\r")
+		logger.Debugf("Detected external dependency prompt, responding with '%s'", autoAnswer)
+		_, _ = ptmx.WriteString(autoAnswer + "\r")
 		outputBuffer.Reset() // Clear buffer after response
 		return
 	}
@@ -151,11 +163,11 @@ func (it *InteractiveShellRepository) processOutputForPatterns(
 		return
 	}
 
-	// Pattern 3: Any other "yes/no" prompts - answer "n" by default
+	// Pattern 3: Any other "yes/no" prompts - use configured auto answer
 	yesNoPattern := regexp.MustCompile(`(?i).*\?.*\[y/n\]`)
 	if yesNoPattern.MatchString(cleanOutput) {
-		logger.Debug("Detected yes/no prompt, responding with 'n'")
-		_, _ = ptmx.WriteString("n\r")
+		logger.Debugf("Detected yes/no prompt, responding with '%s'", autoAnswer)
+		_, _ = ptmx.WriteString(autoAnswer + "\r")
 		outputBuffer.Reset() // Clear buffer after response
 		return
 	}

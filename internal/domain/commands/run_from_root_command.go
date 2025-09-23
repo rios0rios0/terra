@@ -1,10 +1,18 @@
 package commands
 
 import (
+	"strings"
+
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
-	infrastructure_repositories "github.com/rios0rios0/terra/internal/infrastructure/repositories"
 	logger "github.com/sirupsen/logrus"
+)
+
+const (
+	// AutoAnswerFlag represents the --auto-answer flag.
+	AutoAnswerFlag = "--auto-answer"
+	// AutoAnswerShortFlag represents the -a flag.
+	AutoAnswerShortFlag = "-a"
 )
 
 type RunFromRootCommand struct {
@@ -13,7 +21,7 @@ type RunFromRootCommand struct {
 	additionalBefore      RunAdditionalBefore
 	parallelState         ParallelState
 	repository            repositories.ShellRepository
-	interactiveRepository *infrastructure_repositories.InteractiveShellRepository
+	interactiveRepository repositories.InteractiveShellRepository
 }
 
 func NewRunFromRootCommand(
@@ -22,7 +30,7 @@ func NewRunFromRootCommand(
 	additionalBefore RunAdditionalBefore,
 	parallelState ParallelState,
 	repository repositories.ShellRepository,
-	interactiveRepository *infrastructure_repositories.InteractiveShellRepository,
+	interactiveRepository repositories.InteractiveShellRepository,
 ) *RunFromRootCommand {
 	return &RunFromRootCommand{
 		installCommand:        installCommand,
@@ -57,12 +65,14 @@ func (it *RunFromRootCommand) Execute(
 
 	// Check if auto-answer flag is present and filter it out
 	useInteractive := it.hasAutoAnswerFlag(arguments)
+	autoAnswerValue := it.getAutoAnswerValue(arguments)
 	filteredArguments := it.removeAutoAnswerFlag(arguments)
 
 	var err error
 	if useInteractive {
-		logger.Info("Using interactive mode with auto-answering")
-		err = it.interactiveRepository.ExecuteCommand("terragrunt", filteredArguments, targetPath)
+		logger.Infof("Using interactive mode with auto-answering (%s)", autoAnswerValue)
+		err = it.interactiveRepository.ExecuteCommandWithAnswer(
+			"terragrunt", filteredArguments, targetPath, autoAnswerValue)
 	} else {
 		err = it.repository.ExecuteCommand("terragrunt", filteredArguments, targetPath)
 	}
@@ -74,17 +84,36 @@ func (it *RunFromRootCommand) Execute(
 
 func (it *RunFromRootCommand) hasAutoAnswerFlag(arguments []string) bool {
 	for _, arg := range arguments {
-		if arg == "--auto-answer" || arg == "-a" {
+		if arg == AutoAnswerFlag || arg == AutoAnswerShortFlag ||
+			strings.HasPrefix(arg, AutoAnswerFlag+"=") ||
+			strings.HasPrefix(arg, AutoAnswerShortFlag+"=") {
 			return true
 		}
 	}
 	return false
 }
 
+func (it *RunFromRootCommand) getAutoAnswerValue(arguments []string) string {
+	for _, arg := range arguments {
+		if arg == AutoAnswerFlag || arg == AutoAnswerShortFlag {
+			return "n" // Default backward compatibility behavior
+		}
+		if strings.HasPrefix(arg, AutoAnswerFlag+"=") {
+			return arg[len(AutoAnswerFlag+"="):]
+		}
+		if strings.HasPrefix(arg, AutoAnswerShortFlag+"=") {
+			return arg[len(AutoAnswerShortFlag+"="):]
+		}
+	}
+	return ""
+}
+
 func (it *RunFromRootCommand) removeAutoAnswerFlag(arguments []string) []string {
 	var filtered []string
 	for _, arg := range arguments {
-		if arg != "--auto-answer" && arg != "-a" {
+		if arg != AutoAnswerFlag && arg != AutoAnswerShortFlag &&
+			!strings.HasPrefix(arg, AutoAnswerFlag+"=") &&
+			!strings.HasPrefix(arg, AutoAnswerShortFlag+"=") {
 			filtered = append(filtered, arg)
 		}
 	}
@@ -94,4 +123,19 @@ func (it *RunFromRootCommand) removeAutoAnswerFlag(arguments []string) []string 
 // isParallelStateCommand checks if the command should be executed in parallel.
 func (it *RunFromRootCommand) isParallelStateCommand(arguments []string) bool {
 	return HasAllFlag(arguments) && IsStateManipulationCommand(arguments)
+}
+
+// HasAutoAnswerFlagPublic is a public wrapper for testing the private hasAutoAnswerFlag method.
+func (it *RunFromRootCommand) HasAutoAnswerFlagPublic(arguments []string) bool {
+	return it.hasAutoAnswerFlag(arguments)
+}
+
+// GetAutoAnswerValuePublic is a public wrapper for testing the private getAutoAnswerValue method.
+func (it *RunFromRootCommand) GetAutoAnswerValuePublic(arguments []string) string {
+	return it.getAutoAnswerValue(arguments)
+}
+
+// RemoveAutoAnswerFlagPublic is a public wrapper for testing the private removeAutoAnswerFlag method.
+func (it *RunFromRootCommand) RemoveAutoAnswerFlagPublic(arguments []string) []string {
+	return it.removeAutoAnswerFlag(arguments)
 }
