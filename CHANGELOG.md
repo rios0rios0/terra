@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 When a new release is proposed:
 
@@ -18,51 +18,37 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
-- Added "update" command as an alias for "install" command
+- added "update" command as an alias for "install" command
+- added `--auto-answer` flag to automatically handle Terragrunt prompts
+- added `version` command to display Terra, Terraform, and Terragrunt versions
+- added a self-update feature to update the CLI without any additional step
+- added an interactive shell repository for auto-answering functionality
+- added dependency injection with Wire and inverted all dependencies
+- created validation on the `settings` entity
 
 ### Changed
 
 - **BREAKING CHANGE**: Replaced deprecated `run-all` command syntax with `--all` flag to align with Terragrunt's new syntax
-  - Old syntax: `terra run-all apply /path` 
-  - New syntax: `terra apply --all /path`
-  - This addresses Terragrunt deprecation warnings and future compatibility
-
-### Fixed
-
-- Fixed permission denied errors when normal users try to download dependencies via `terra install` or `terra update` by using unique temporary file creation instead of predictable file names
-### Fixed
-
-- Fixed issue where version checks for Terraform and Terragrunt were triggered on every command execution, causing unnecessary network calls and slowdowns
-- Version checks now only occur when explicitly running "install" or "update" commands
-
-### Changed
-
-- added self update feature to update the CLI without any additional step
-- added dependency injection with Wire and inverted all dependencies
-- created validation on the `settings` entity
-- added `--auto-answer` flag to automatically handle Terragrunt prompts
-- added interactive shell repository for auto-answering functionality
-- added `version` command to display Terra, Terraform, and Terragrunt versions
-
-### Changed
-
-- replaced Wire with DIG for dependency injection to support Go 1.25.1 and active maintenance
-- Updated Copilot instructions and contributing guide to enforce LF (Unix) line endings for all new and edited files
-- Updated documentation to require CHANGELOG.md updates for new features and bug fixes (not required for documentation-only changes)
-- Updated .editorconfig to enforce LF line endings across all file types instead of just Go files
-- Updated Copilot instructions to use rios0rios0/pipelines project for linting and CI tools instead of direct tool installation
 - changed the documentation with pipelines and minor change to template files
 - corrected controllers responsibilities mapping the external to internal entities
 - corrected dependency injection architecture
 - corrected the structure to follow best practices using DDD
 - decoupled responsibilities from just one command to other layers
 - moved all business logic to the domain structure
-- upgraded the project to Go 1.23 and all the dependencies
+- replaced Wire with DIG for dependency injection to support Go `1.25.1` and active maintenance
+- updated Copilot instructions and contributing guide to enforce LF (Unix) line endings for all new and edited files
+- updated Copilot instructions to use rios0rios0/pipelines project for linting and CI tools instead of direct tool installation
+- updated `.editorconfig` to enforce LF line endings across all file types instead of just Go files
+- updated documentation to require `CHANGELOG.md` updates for new features and bug fixes (not required for documentation-only changes)
+- upgraded the project to Go `1.23` and all the dependencies
 
 ### Fixed
 
-- fixed slice bounds error in ArgumentsHelper when no arguments are provided
 - fixed optional environment variables validation for TERRA_CLOUD to allow empty values while still enforcing valid values when provided
+- fixed permission denied errors when normal users try to download dependencies via `terra install` or `terra update` by using unique temporary file creation instead of predictable file names
+- fixed slice bounds error in ArgumentsHelper when no arguments are provided
+- fixed the issue where version checks for Terraform and Terragrunt were triggered on every command execution, causing unnecessary network calls and slowdowns
+- fixed version checks to only occur when explicitly running "install" or "update" commands
 
 ## [1.4.0] - 2024-08-07
 
