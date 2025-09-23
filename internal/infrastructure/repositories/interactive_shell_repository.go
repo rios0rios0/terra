@@ -85,9 +85,13 @@ func (it *InteractiveShellRepository) handleOutput(
 
 	// Channel to coordinate between output handling and input sending
 	outputChan := make(chan string, outputChannelSize)
+	
+	// Channel to signal when both stdout and stderr are done
+	doneChan := make(chan struct{}, 2)
 
 	// Read stdout
 	go func() {
+		defer func() { doneChan <- struct{}{} }()
 		for stdoutScanner.Scan() {
 			line := stdoutScanner.Text()
 			logger.Info(line) // Print to user
@@ -97,6 +101,7 @@ func (it *InteractiveShellRepository) handleOutput(
 
 	// Read stderr
 	go func() {
+		defer func() { doneChan <- struct{}{} }()
 		for stderrScanner.Scan() {
 			line := stderrScanner.Text()
 			fmt.Fprintln(os.Stderr, line) // Print to stderr
@@ -106,10 +111,17 @@ func (it *InteractiveShellRepository) handleOutput(
 
 	// Process output and send responses
 	go func() {
+		doneCount := 0
 		for {
 			select {
 			case line := <-outputChan:
 				it.processLineAndRespond(line, stdin)
+			case <-doneChan:
+				doneCount++
+				if doneCount >= 2 {
+					// Both stdout and stderr are done, exit the loop
+					return
+				}
 			case <-time.After(outputCheckInterval):
 				// Continue checking for output
 			}
