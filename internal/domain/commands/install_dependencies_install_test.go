@@ -20,7 +20,9 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when creating temporary files
 
 	t.Run("should handle non-zip binary installation", func(t *testing.T) {
-		t.Parallel()
+		// Use test-friendly temp directory for os.TempDir() to avoid permission issues
+		t.Setenv("TMPDIR", t.TempDir())
+
 		// GIVEN: A server that serves a non-zip binary file
 		binaryServer := repositoryhelpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
@@ -45,7 +47,9 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle directory creation for installation", func(t *testing.T) {
-		t.Parallel()
+		// Use test-friendly temp directory for os.TempDir() to avoid permission issues
+		t.Setenv("TMPDIR", t.TempDir())
+
 		// GIVEN: A dependency that will require installation directory creation
 		binaryServer := repositoryhelpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
@@ -70,7 +74,9 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle installation path permissions", func(t *testing.T) {
-		t.Parallel()
+		// Use test-friendly temp directory for os.TempDir() to avoid permission issues
+		t.Setenv("TMPDIR", t.TempDir())
+
 		// GIVEN: A binary that needs to be made executable
 		binaryServer := repositoryhelpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
@@ -95,7 +101,9 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle temp file creation and cleanup", func(t *testing.T) {
-		t.Parallel()
+		// Use test-friendly temp directory for os.TempDir() to avoid permission issues
+		t.Setenv("TMPDIR", t.TempDir())
+
 		// GIVEN: A zip binary that will trigger temp file creation and cleanup
 		zipServer := repositoryhelpers.HelperCreateSimpleZipServer(t, "temp-test-binary")
 		defer zipServer.Close()
@@ -120,7 +128,9 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	})
 
 	t.Run("should handle file type detection", func(t *testing.T) {
-		t.Parallel()
+		// Use test-friendly temp directory for os.TempDir() to avoid permission issues
+		t.Setenv("TMPDIR", t.TempDir())
+
 		// GIVEN: A binary that will trigger file type detection
 		binaryServer := repositoryhelpers.HelperCreateNonZipBinaryServer(t)
 		defer binaryServer.Close()
