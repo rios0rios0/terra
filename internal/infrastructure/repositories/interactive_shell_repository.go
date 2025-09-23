@@ -110,6 +110,8 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 			// Pattern 2: "Are you sure you want to run" prompt - switch to manual mode
 			confirmationPattern := regexp.MustCompile(`(?i)are you sure you want to run.*`)
 			if confirmationPattern.MatchString(cleanOutput) {
+				// Add newline before log messages for better formatting
+				fmt.Fprintln(os.Stdout)
 				logger.Info("Detected confirmation prompt, switching to manual mode")
 				logger.Info("Manual interaction mode activated - user input forwarded to process")
 				manualModeActivated = true
