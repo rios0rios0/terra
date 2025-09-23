@@ -73,4 +73,34 @@ func TestInteractiveShellRepository_ExecuteCommand(t *testing.T) {
 		// THEN: Should return an error
 		require.Error(t, err, "Expected error for invalid directory")
 	})
+
+	t.Run("should complete execution without hanging when command produces output", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: An interactive shell repository instance and command that produces multiple lines of output
+		repo := repositories.NewInteractiveShellRepository()
+		command := "sh"
+		args := []string{"-c", "echo 'line1'; echo 'line2'; echo 'line3'"}
+		workingDir := "."
+
+		// WHEN: Executing command that produces output
+		err := repo.ExecuteCommand(command, args, workingDir)
+
+		// THEN: Should complete execution without hanging and without error
+		assert.NoError(t, err, "Expected no error for command with output")
+	})
+
+	t.Run("should complete execution without hanging when command produces no output", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: An interactive shell repository instance and command that produces no output
+		repo := repositories.NewInteractiveShellRepository()
+		command := "sh"
+		args := []string{"-c", "exit 0"}
+		workingDir := "."
+
+		// WHEN: Executing command that produces no output
+		err := repo.ExecuteCommand(command, args, workingDir)
+
+		// THEN: Should complete execution without hanging and without error
+		assert.NoError(t, err, "Expected no error for command with no output")
+	})
 }

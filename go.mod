@@ -3,6 +3,7 @@ module github.com/rios0rios0/terra
 go 1.25.1
 
 require (
+	github.com/creack/pty v1.1.24
 	github.com/go-playground/validator/v10 v10.27.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
