@@ -18,6 +18,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
+- added parallel execution support for state manipulation commands (`import`, `state rm`, `state mv`, `state pull`, `state push`, `state show`) when using the `--all` flag
+- added automatic discovery of Terraform/Terragrunt modules in subdirectories for parallel execution
+- added configurable concurrency control (default: 5 parallel jobs) for state operations
+- added error aggregation and reporting for parallel operations with detailed logging
 - added "update" command as an alias for "install" command
 - added `--auto-answer` flag to automatically handle Terragrunt prompts
 - added `version` command to display Terra, Terraform, and Terragrunt versions

@@ -16,6 +16,7 @@ Our motivation: "Have you ever wondered about applying Terraform code like Kuber
 - Version checking for Terra, Terraform, and Terragrunt dependencies.
 - Automatic dependency installation and management.
 - Support for AWS and Azure cloud provider switching.
+- **Parallel execution for state manipulation commands** - Run `import`, `state rm`, `state mv`, and other state commands across multiple modules simultaneously using the `--all` flag.
 
 ## Installation
 To install `terra`, you can build it from source:
@@ -85,6 +86,48 @@ terra apply --all /path
 # With auto-answer - automatically handles most prompts
 terra --auto-answer apply --all /path
 ```
+
+### Parallel State Management
+
+Terra provides powerful parallel execution capabilities for state manipulation commands when using the `--all` flag. This feature automatically discovers Terraform/Terragrunt modules in subdirectories and executes state operations across them simultaneously, significantly reducing execution time.
+
+**Supported State Commands:**
+- `import` - Import existing infrastructure into Terraform state
+- `state rm` - Remove resources from state
+- `state mv` - Move resources in state
+- `state pull` - Pull remote state
+- `state push` - Push local state to remote
+- `state show` - Show attributes of a resource in state
+
+**Examples:**
+```bash
+# Import a resource across all modules in parallel (default: 5 concurrent jobs)
+terra import --all null_resource.example resource-id /path/to/infrastructure
+
+# Remove a resource from state across all modules in parallel
+terra state rm --all null_resource.example /path/to/infrastructure
+
+# Move a resource in state across all modules in parallel
+terra state mv --all old_resource.name new_resource.name /path/to/infrastructure
+
+# Pull state from remote across all modules in parallel
+terra state pull --all /path/to/infrastructure
+```
+
+**How it works:**
+1. **Automatic Module Discovery**: Scans subdirectories for `.tf`, `.tfvars`, or `terragrunt.hcl` files
+2. **Parallel Execution**: Runs up to 5 jobs concurrently by default (configurable internally)
+3. **Error Aggregation**: Collects and reports errors from all parallel operations
+4. **Progress Tracking**: Provides real-time logging of module processing status
+5. **Flag Filtering**: Removes `--all` flag for individual module execution since Terragrunt doesn't support it for state commands
+
+**Benefits:**
+- **Performance**: Executes across multiple modules simultaneously instead of sequentially
+- **Native Integration**: No need for external tools like GNU parallel
+- **Error Handling**: Comprehensive error reporting and aggregation
+- **Logging**: Detailed progress and completion status for each module
+
+**Note:** Regular Terragrunt commands with `--all` (like `plan --all`, `apply --all`) continue to work normally through Terragrunt's native implementation. Parallel execution is only used for state manipulation commands that don't natively support `--all` in Terragrunt.
 
 ### Version Management
 

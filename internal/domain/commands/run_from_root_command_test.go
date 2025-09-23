@@ -33,6 +33,7 @@ func TestNewRunFromRootCommand(t *testing.T) {
 			installCommand,
 			formatCommand,
 			additionalBefore,
+			&commanddoubles.StubParallelState{},
 			repository,
 			interactiveRepository,
 		)
@@ -57,6 +58,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			installCommand,
 			formatCommand,
 			additionalBefore,
+			&commanddoubles.StubParallelState{},
 			repository,
 			interactiveRepository,
 		)
@@ -107,6 +109,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			installCommand,
 			formatCommand,
 			additionalBefore,
+			&commanddoubles.StubParallelState{},
 			repository,
 			interactiveRepository,
 		)
@@ -143,6 +146,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			installCommand,
 			formatCommand,
 			additionalBefore,
+			&commanddoubles.StubParallelState{},
 			repository,
 			interactiveRepository,
 		)
@@ -176,6 +180,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			installCommand,
 			formatCommand,
 			additionalBefore,
+			&commanddoubles.StubParallelState{},
 			repository,
 			interactiveRepository,
 		)
@@ -204,6 +209,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			installCommand,
 			formatCommand,
 			additionalBefore,
+			&commanddoubles.StubParallelState{},
 			repository,
 			interactiveRepository,
 		)
