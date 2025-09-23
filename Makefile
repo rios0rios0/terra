@@ -21,6 +21,12 @@ lint-fix: scripts
 horusec: scripts
 	$(SCRIPTS_DIR)/global/scripts/horusec/run.sh .
 
+semgrep: scripts
+	$(SCRIPTS_DIR)/global/scripts/semgrep/run.sh "golang"
+
+gitleaks: scripts
+	$(SCRIPTS_DIR)/global/scripts/gitleaks/run.sh .
+
 test: scripts
 	$(SCRIPTS_DIR)/global/scripts/golang/test/run.sh .
 

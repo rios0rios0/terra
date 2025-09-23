@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"os"
@@ -25,67 +26,23 @@ func NewParallelStateCommand(repository repositories.ShellRepository) *ParallelS
 	}
 }
 
-// isStateManipulationCommand checks if the command is a state manipulation command
-func (it *ParallelStateCommand) isStateManipulationCommand(arguments []string) bool {
-	if len(arguments) == 0 {
-		return false
-	}
-
-	// Check for state manipulation commands
-	stateCommands := []string{
-		"import", "state",
-	}
-
-	firstArg := arguments[0]
-	for _, cmd := range stateCommands {
-		if firstArg == cmd {
-			return true
-		}
-	}
-
-	// Check for state subcommands (e.g., "state rm", "state mv")
-	if len(arguments) >= 2 && firstArg == "state" {
-		stateSubcommands := []string{
-			"rm", "mv", "pull", "push", "show",
-		}
-		secondArg := arguments[1]
-		for _, subcmd := range stateSubcommands {
-			if secondArg == subcmd {
-				return true
-			}
-		}
-	}
-
-	return false
-}
-
-// hasAllFlag checks if --all flag is present in arguments
-func (it *ParallelStateCommand) hasAllFlag(arguments []string) bool {
-	for _, arg := range arguments {
-		if arg == "--all" {
-			return true
-		}
-	}
-	return false
-}
-
-// shouldExecuteInParallel determines if the command should be executed in parallel
+// shouldExecuteInParallel determines if the command should be executed in parallel.
 func (it *ParallelStateCommand) shouldExecuteInParallel(arguments []string) bool {
-	return it.isStateManipulationCommand(arguments) && it.hasAllFlag(arguments)
+	return IsStateManipulationCommand(arguments) && HasAllFlag(arguments)
 }
 
-// removeAllFlag removes --all flag from arguments since terragrunt doesn't support it for state commands
+// removeAllFlag removes --all flag from arguments since terragrunt doesn't support it for state commands.
 func (it *ParallelStateCommand) removeAllFlag(arguments []string) []string {
 	var filtered []string
 	for _, arg := range arguments {
-		if arg != "--all" {
+		if arg != AllFlag {
 			filtered = append(filtered, arg)
 		}
 	}
 	return filtered
 }
 
-// findSubdirectories finds all subdirectories that contain terraform/terragrunt files
+// findSubdirectories finds all subdirectories that contain terraform/terragrunt files.
 func (it *ParallelStateCommand) findSubdirectories(rootPath string) ([]string, error) {
 	var modules []string
 
@@ -125,7 +82,7 @@ func (it *ParallelStateCommand) findSubdirectories(rootPath string) ([]string, e
 	return modules, nil
 }
 
-// containsTerraformFiles checks if a directory contains terraform or terragrunt files
+// containsTerraformFiles checks if a directory contains terraform or terragrunt files.
 func (it *ParallelStateCommand) containsTerraformFiles(dirPath string) bool {
 	entries, err := os.ReadDir(dirPath)
 	if err != nil {
@@ -148,7 +105,7 @@ func (it *ParallelStateCommand) containsTerraformFiles(dirPath string) bool {
 	return false
 }
 
-// executeInParallel executes the command in parallel across multiple directories
+// executeInParallel executes the command in parallel across multiple directories.
 func (it *ParallelStateCommand) executeInParallel(
 	targetPath string,
 	arguments []string,
@@ -171,16 +128,16 @@ func (it *ParallelStateCommand) executeInParallel(
 
 	// Start worker goroutines
 	var wg sync.WaitGroup
-	for i := 0; i < maxJobs; i++ {
+	for range maxJobs {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for modulePath := range jobs {
 				logger.Infof("==> Processing %s", modulePath)
-				err := it.repository.ExecuteCommand("terragrunt", filteredArguments, modulePath)
-				if err != nil {
-					logger.Errorf("✗ %s: %s", modulePath, err)
-					results <- fmt.Errorf("module %s failed: %w", modulePath, err)
+				executeErr := it.repository.ExecuteCommand("terragrunt", filteredArguments, modulePath)
+				if executeErr != nil {
+					logger.Errorf("✗ %s: %s", modulePath, executeErr)
+					results <- fmt.Errorf("module %s failed: %w", modulePath, executeErr)
 				} else {
 					logger.Infof("✓ %s", modulePath)
 					results <- nil
@@ -204,23 +161,23 @@ func (it *ParallelStateCommand) executeInParallel(
 	}()
 
 	// Collect results
-	var errors []error
+	var executeErrors []error
 	for err := range results {
 		if err != nil {
-			errors = append(errors, err)
+			executeErrors = append(executeErrors, err)
 		}
 	}
 
 	// Report summary
-	successful := len(modules) - len(errors)
-	logger.Infof("Parallel execution completed: %d successful, %d failed", successful, len(errors))
+	successful := len(modules) - len(executeErrors)
+	logger.Infof("Parallel execution completed: %d successful, %d failed", successful, len(executeErrors))
 
-	if len(errors) > 0 {
+	if len(executeErrors) > 0 {
 		// Return first error for simplicity, but log all errors
-		for _, err := range errors {
+		for _, err := range executeErrors {
 			logger.Error(err)
 		}
-		return fmt.Errorf("parallel execution failed with %d errors", len(errors))
+		return fmt.Errorf("parallel execution failed with %d errors", len(executeErrors))
 	}
 
 	return nil
@@ -229,12 +186,12 @@ func (it *ParallelStateCommand) executeInParallel(
 func (it *ParallelStateCommand) Execute(
 	targetPath string,
 	arguments []string,
-	dependencies []entities.Dependency,
+	_ []entities.Dependency,
 ) error {
 	// Check if this should be executed in parallel
 	if !it.shouldExecuteInParallel(arguments) {
 		// Not a parallel state command, should not reach here
-		return fmt.Errorf("command is not a parallel state manipulation command")
+		return errors.New("command is not a parallel state manipulation command")
 	}
 
 	// Execute in parallel with default max jobs

@@ -91,49 +91,7 @@ func (it *RunFromRootCommand) removeAutoAnswerFlag(arguments []string) []string 
 	return filtered
 }
 
-// isParallelStateCommand checks if the command should be executed in parallel
+// isParallelStateCommand checks if the command should be executed in parallel.
 func (it *RunFromRootCommand) isParallelStateCommand(arguments []string) bool {
-	if len(arguments) == 0 {
-		return false
-	}
-
-	// Check if --all flag is present
-	hasAllFlag := false
-	for _, arg := range arguments {
-		if arg == "--all" {
-			hasAllFlag = true
-			break
-		}
-	}
-
-	if !hasAllFlag {
-		return false
-	}
-
-	// Check for state manipulation commands
-	stateCommands := []string{
-		"import", "state",
-	}
-
-	firstArg := arguments[0]
-	for _, cmd := range stateCommands {
-		if firstArg == cmd {
-			return true
-		}
-	}
-
-	// Check for state subcommands (e.g., "state rm", "state mv")
-	if len(arguments) >= 2 && firstArg == "state" {
-		stateSubcommands := []string{
-			"rm", "mv", "pull", "push", "show",
-		}
-		secondArg := arguments[1]
-		for _, subcmd := range stateSubcommands {
-			if secondArg == subcmd {
-				return true
-			}
-		}
-	}
-
-	return false
+	return HasAllFlag(arguments) && IsStateManipulationCommand(arguments)
 }
