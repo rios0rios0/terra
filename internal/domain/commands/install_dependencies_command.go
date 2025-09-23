@@ -260,6 +260,7 @@ func install(url, name string) {
 	}
 	tempFilePath := tempFile.Name()
 	tempFile.Close() // Close immediately since we'll overwrite it during download
+	defer os.Remove(tempFilePath) // Ensure cleanup of the temporary file
 
 	destPath := path.Join(currentOS.GetInstallationPath(), name)
 
