@@ -18,6 +18,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
+### Fixed
+
+- Fixed permission denied errors when normal users try to download dependencies via `terra install` or `terra update` by using unique temporary file creation instead of predictable file names
+
 - Added "update" command as an alias for "install" command
 
 ### Fixed
