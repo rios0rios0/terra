@@ -1,9 +1,10 @@
 package commands
 
 import (
+	"strings"
+
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
-	infrastructure_repositories "github.com/rios0rios0/terra/internal/infrastructure/repositories"
 	logger "github.com/sirupsen/logrus"
 )
 
@@ -13,7 +14,7 @@ type RunFromRootCommand struct {
 	additionalBefore      RunAdditionalBefore
 	parallelState         ParallelState
 	repository            repositories.ShellRepository
-	interactiveRepository *infrastructure_repositories.InteractiveShellRepository
+	interactiveRepository repositories.InteractiveShellRepository
 }
 
 func NewRunFromRootCommand(
@@ -22,7 +23,7 @@ func NewRunFromRootCommand(
 	additionalBefore RunAdditionalBefore,
 	parallelState ParallelState,
 	repository repositories.ShellRepository,
-	interactiveRepository *infrastructure_repositories.InteractiveShellRepository,
+	interactiveRepository repositories.InteractiveShellRepository,
 ) *RunFromRootCommand {
 	return &RunFromRootCommand{
 		installCommand:        installCommand,
@@ -57,12 +58,13 @@ func (it *RunFromRootCommand) Execute(
 
 	// Check if auto-answer flag is present and filter it out
 	useInteractive := it.hasAutoAnswerFlag(arguments)
+	autoAnswerValue := it.getAutoAnswerValue(arguments)
 	filteredArguments := it.removeAutoAnswerFlag(arguments)
 
 	var err error
 	if useInteractive {
-		logger.Info("Using interactive mode with auto-answering")
-		err = it.interactiveRepository.ExecuteCommand("terragrunt", filteredArguments, targetPath)
+		logger.Infof("Using interactive mode with auto-answering (%s)", autoAnswerValue)
+		err = it.interactiveRepository.ExecuteCommandWithAnswer("terragrunt", filteredArguments, targetPath, autoAnswerValue)
 	} else {
 		err = it.repository.ExecuteCommand("terragrunt", filteredArguments, targetPath)
 	}
@@ -74,17 +76,36 @@ func (it *RunFromRootCommand) Execute(
 
 func (it *RunFromRootCommand) hasAutoAnswerFlag(arguments []string) bool {
 	for _, arg := range arguments {
-		if arg == "--auto-answer" || arg == "-a" {
+		if arg == "--auto-answer" || arg == "-a" ||
+			strings.HasPrefix(arg, "--auto-answer=") ||
+			strings.HasPrefix(arg, "-a=") {
 			return true
 		}
 	}
 	return false
 }
 
+func (it *RunFromRootCommand) getAutoAnswerValue(arguments []string) string {
+	for _, arg := range arguments {
+		if arg == "--auto-answer" || arg == "-a" {
+			return "n" // Default backward compatibility behavior
+		}
+		if strings.HasPrefix(arg, "--auto-answer=") {
+			return arg[len("--auto-answer="):]
+		}
+		if strings.HasPrefix(arg, "-a=") {
+			return arg[len("-a="):]
+		}
+	}
+	return ""
+}
+
 func (it *RunFromRootCommand) removeAutoAnswerFlag(arguments []string) []string {
 	var filtered []string
 	for _, arg := range arguments {
-		if arg != "--auto-answer" && arg != "-a" {
+		if arg != "--auto-answer" && arg != "-a" &&
+			!strings.HasPrefix(arg, "--auto-answer=") &&
+			!strings.HasPrefix(arg, "-a=") {
 			filtered = append(filtered, arg)
 		}
 	}
@@ -94,4 +115,17 @@ func (it *RunFromRootCommand) removeAutoAnswerFlag(arguments []string) []string 
 // isParallelStateCommand checks if the command should be executed in parallel.
 func (it *RunFromRootCommand) isParallelStateCommand(arguments []string) bool {
 	return HasAllFlag(arguments) && IsStateManipulationCommand(arguments)
+}
+
+// Public wrappers for testing private methods
+func (it *RunFromRootCommand) HasAutoAnswerFlagPublic(arguments []string) bool {
+	return it.hasAutoAnswerFlag(arguments)
+}
+
+func (it *RunFromRootCommand) GetAutoAnswerValuePublic(arguments []string) string {
+	return it.getAutoAnswerValue(arguments)
+}
+
+func (it *RunFromRootCommand) RemoveAutoAnswerFlagPublic(arguments []string) []string {
+	return it.removeAutoAnswerFlag(arguments)
 }

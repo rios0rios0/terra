@@ -17,6 +17,12 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ## [Unreleased]
 
 ### Added
+- Enhanced `--auto-answer` feature to support configurable responses (`--auto-answer=y` or `--auto-answer=n`)
+- Support for short form syntax (`-a=y` or `-a=n`) for auto-answer configuration
+- Backward compatibility maintained - boolean `--auto-answer` and `-a` flags default to "n"
+- Comprehensive unit and integration tests for auto-answer functionality
+
+### Changed
 
 - added parallel execution support for state manipulation commands (`import`, `state rm`, `state mv`, `state pull`, `state push`, `state show`) when using the `--all` flag
 - added automatic discovery of Terraform/Terragrunt modules in subdirectories for parallel execution
