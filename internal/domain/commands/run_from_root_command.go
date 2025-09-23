@@ -11,6 +11,7 @@ type RunFromRootCommand struct {
 	installCommand        InstallDependencies
 	formatCommand         FormatFiles
 	additionalBefore      RunAdditionalBefore
+	parallelState         ParallelState
 	repository            repositories.ShellRepository
 	interactiveRepository *infrastructure_repositories.InteractiveShellRepository
 }
@@ -19,6 +20,7 @@ func NewRunFromRootCommand(
 	installCommand InstallDependencies,
 	formatCommand FormatFiles,
 	additionalBefore RunAdditionalBefore,
+	parallelState ParallelState,
 	repository repositories.ShellRepository,
 	interactiveRepository *infrastructure_repositories.InteractiveShellRepository,
 ) *RunFromRootCommand {
@@ -26,6 +28,7 @@ func NewRunFromRootCommand(
 		installCommand:        installCommand,
 		formatCommand:         formatCommand,
 		additionalBefore:      additionalBefore,
+		parallelState:         parallelState,
 		repository:            repository,
 		interactiveRepository: interactiveRepository,
 	}
@@ -37,6 +40,19 @@ func (it *RunFromRootCommand) Execute(
 	dependencies []entities.Dependency,
 ) {
 	it.formatCommand.Execute(dependencies)
+
+	// Check if this is a parallel state manipulation command
+	if it.isParallelStateCommand(arguments) {
+		// For parallel state commands, skip additional before steps as they don't make sense
+		// when running across multiple directories
+		err := it.parallelState.Execute(targetPath, arguments, dependencies)
+		if err != nil {
+			logger.Fatalf("Parallel state command failed: %s", err)
+		}
+		return
+	}
+
+	// Normal execution path for non-parallel commands
 	it.additionalBefore.Execute(targetPath, arguments)
 
 	// Check if auto-answer flag is present and filter it out
@@ -73,4 +89,51 @@ func (it *RunFromRootCommand) removeAutoAnswerFlag(arguments []string) []string 
 		}
 	}
 	return filtered
+}
+
+// isParallelStateCommand checks if the command should be executed in parallel
+func (it *RunFromRootCommand) isParallelStateCommand(arguments []string) bool {
+	if len(arguments) == 0 {
+		return false
+	}
+
+	// Check if --all flag is present
+	hasAllFlag := false
+	for _, arg := range arguments {
+		if arg == "--all" {
+			hasAllFlag = true
+			break
+		}
+	}
+
+	if !hasAllFlag {
+		return false
+	}
+
+	// Check for state manipulation commands
+	stateCommands := []string{
+		"import", "state",
+	}
+
+	firstArg := arguments[0]
+	for _, cmd := range stateCommands {
+		if firstArg == cmd {
+			return true
+		}
+	}
+
+	// Check for state subcommands (e.g., "state rm", "state mv")
+	if len(arguments) >= 2 && firstArg == "state" {
+		stateSubcommands := []string{
+			"rm", "mv", "pull", "push", "show",
+		}
+		secondArg := arguments[1]
+		for _, subcmd := range stateSubcommands {
+			if secondArg == subcmd {
+				return true
+			}
+		}
+	}
+
+	return false
 }
