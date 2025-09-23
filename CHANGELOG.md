@@ -20,6 +20,13 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 - Added "update" command as an alias for "install" command
 
+### Changed
+
+- **BREAKING CHANGE**: Replaced deprecated `run-all` command syntax with `--all` flag to align with Terragrunt's new syntax
+  - Old syntax: `terra run-all apply /path` 
+  - New syntax: `terra apply --all /path`
+  - This addresses Terragrunt deprecation warnings and future compatibility
+
 ### Fixed
 
 - Fixed permission denied errors when normal users try to download dependencies via `terra install` or `terra update` by using unique temporary file creation instead of predictable file names

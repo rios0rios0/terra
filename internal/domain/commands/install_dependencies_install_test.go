@@ -9,7 +9,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 
 	"github.com/rios0rios0/terra/test/domain/entitybuilders"
-	
+
 	"github.com/rios0rios0/terra/test/infrastructure/repositoryhelpers"
 )
 
