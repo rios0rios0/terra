@@ -8,6 +8,13 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+const (
+	// AutoAnswerFlag represents the --auto-answer flag.
+	AutoAnswerFlag = "--auto-answer"
+	// AutoAnswerShortFlag represents the -a flag.
+	AutoAnswerShortFlag = "-a"
+)
+
 type RunFromRootCommand struct {
 	installCommand        InstallDependencies
 	formatCommand         FormatFiles
@@ -64,7 +71,8 @@ func (it *RunFromRootCommand) Execute(
 	var err error
 	if useInteractive {
 		logger.Infof("Using interactive mode with auto-answering (%s)", autoAnswerValue)
-		err = it.interactiveRepository.ExecuteCommandWithAnswer("terragrunt", filteredArguments, targetPath, autoAnswerValue)
+		err = it.interactiveRepository.ExecuteCommandWithAnswer(
+			"terragrunt", filteredArguments, targetPath, autoAnswerValue)
 	} else {
 		err = it.repository.ExecuteCommand("terragrunt", filteredArguments, targetPath)
 	}
@@ -76,9 +84,9 @@ func (it *RunFromRootCommand) Execute(
 
 func (it *RunFromRootCommand) hasAutoAnswerFlag(arguments []string) bool {
 	for _, arg := range arguments {
-		if arg == "--auto-answer" || arg == "-a" ||
-			strings.HasPrefix(arg, "--auto-answer=") ||
-			strings.HasPrefix(arg, "-a=") {
+		if arg == AutoAnswerFlag || arg == AutoAnswerShortFlag ||
+			strings.HasPrefix(arg, AutoAnswerFlag+"=") ||
+			strings.HasPrefix(arg, AutoAnswerShortFlag+"=") {
 			return true
 		}
 	}
@@ -87,14 +95,14 @@ func (it *RunFromRootCommand) hasAutoAnswerFlag(arguments []string) bool {
 
 func (it *RunFromRootCommand) getAutoAnswerValue(arguments []string) string {
 	for _, arg := range arguments {
-		if arg == "--auto-answer" || arg == "-a" {
+		if arg == AutoAnswerFlag || arg == AutoAnswerShortFlag {
 			return "n" // Default backward compatibility behavior
 		}
-		if strings.HasPrefix(arg, "--auto-answer=") {
-			return arg[len("--auto-answer="):]
+		if strings.HasPrefix(arg, AutoAnswerFlag+"=") {
+			return arg[len(AutoAnswerFlag+"="):]
 		}
-		if strings.HasPrefix(arg, "-a=") {
-			return arg[len("-a="):]
+		if strings.HasPrefix(arg, AutoAnswerShortFlag+"=") {
+			return arg[len(AutoAnswerShortFlag+"="):]
 		}
 	}
 	return ""
@@ -103,9 +111,9 @@ func (it *RunFromRootCommand) getAutoAnswerValue(arguments []string) string {
 func (it *RunFromRootCommand) removeAutoAnswerFlag(arguments []string) []string {
 	var filtered []string
 	for _, arg := range arguments {
-		if arg != "--auto-answer" && arg != "-a" &&
-			!strings.HasPrefix(arg, "--auto-answer=") &&
-			!strings.HasPrefix(arg, "-a=") {
+		if arg != AutoAnswerFlag && arg != AutoAnswerShortFlag &&
+			!strings.HasPrefix(arg, AutoAnswerFlag+"=") &&
+			!strings.HasPrefix(arg, AutoAnswerShortFlag+"=") {
 			filtered = append(filtered, arg)
 		}
 	}
@@ -117,15 +125,17 @@ func (it *RunFromRootCommand) isParallelStateCommand(arguments []string) bool {
 	return HasAllFlag(arguments) && IsStateManipulationCommand(arguments)
 }
 
-// Public wrappers for testing private methods
+// HasAutoAnswerFlagPublic is a public wrapper for testing the private hasAutoAnswerFlag method.
 func (it *RunFromRootCommand) HasAutoAnswerFlagPublic(arguments []string) bool {
 	return it.hasAutoAnswerFlag(arguments)
 }
 
+// GetAutoAnswerValuePublic is a public wrapper for testing the private getAutoAnswerValue method.
 func (it *RunFromRootCommand) GetAutoAnswerValuePublic(arguments []string) string {
 	return it.getAutoAnswerValue(arguments)
 }
 
+// RemoveAutoAnswerFlagPublic is a public wrapper for testing the private removeAutoAnswerFlag method.
 func (it *RunFromRootCommand) RemoveAutoAnswerFlagPublic(arguments []string) []string {
 	return it.removeAutoAnswerFlag(arguments)
 }
