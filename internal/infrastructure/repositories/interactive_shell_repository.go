@@ -65,7 +65,7 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 			n, err := ptmx.Read(buf)
 			if err != nil {
 				if err != io.EOF {
-					fmt.Fprintf(os.Stderr, "\n[DEBUG] PTY read error: %v\n", err)
+					logger.Debugf("PTY read error: %v", err)
 				}
 				break
 			}
@@ -85,20 +85,14 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 				outputBuffer.WriteString(output)
 			}
 
-			// Debug: Always print what we're checking
-			fmt.Fprintf(os.Stderr, "\n[DEBUG] Buffer content: %q\n", output)
-
 			cleanOutput := it.removeANSICodes(output)
-			
-			// Debug: Print what we're checking
-			fmt.Fprintf(os.Stderr, "\n[DEBUG] Checking pattern against clean: %q\n", cleanOutput)
 			
 			// Pattern 1: External dependency prompt - answer "n"
 			externalDepPattern := regexp.MustCompile(
 				`(?i)should terragrunt apply the external dependency.*\?`,
 			)
 			if externalDepPattern.MatchString(cleanOutput) && !manualModeActivated {
-				fmt.Fprintf(os.Stderr, "\n[DEBUG] Detected external dependency prompt, responding with 'n'\n")
+				logger.Debug("Detected external dependency prompt, responding with 'n'")
 				_, _ = ptmx.Write([]byte("n\r"))
 				outputBuffer.Reset() // Clear buffer after response
 				continue
@@ -107,7 +101,7 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 			// Pattern 2: "Are you sure you want to run" prompt - switch to manual mode
 			confirmationPattern := regexp.MustCompile(`(?i)are you sure you want to run.*`)
 			if confirmationPattern.MatchString(cleanOutput) && !manualModeActivated {
-				fmt.Fprintf(os.Stderr, "\n[DEBUG] Detected confirmation prompt, switching to manual mode\n")
+				logger.Info("Detected confirmation prompt, switching to manual mode")
 				manualModeActivated = true
 				select {
 				case manualMode <- true:
@@ -119,7 +113,7 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 			// Pattern 3: Any other "yes/no" prompts - answer "n" by default (only if not in manual mode)
 			yesNoPattern := regexp.MustCompile(`(?i).*\?.*\[y/n\]`)
 			if yesNoPattern.MatchString(cleanOutput) && !manualModeActivated {
-				fmt.Fprintf(os.Stderr, "\n[DEBUG] Detected yes/no prompt, responding with 'n'\n")
+				logger.Debug("Detected yes/no prompt, responding with 'n'")
 				_, _ = ptmx.Write([]byte("n\r"))
 				outputBuffer.Reset() // Clear buffer after response
 				continue
