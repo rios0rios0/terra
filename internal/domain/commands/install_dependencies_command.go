@@ -250,9 +250,8 @@ func findBinaryInArchive(extractDir, binaryName string) (string, error) {
 	return foundPath, nil
 }
 
-// installing dependencies doesn't matter the operating system.
-func install(url, name string) {
-	currentOS := entities.GetOS()
+// setupInstallationEnvironment prepares the temporary file and installation directory.
+func setupInstallationEnvironment(name string, currentOS entities.OS) (string, string) {
 	// Create a unique temporary file to avoid permission conflicts
 	tempFile, err := os.CreateTemp(currentOS.GetTempDir(), name+"_*")
 	if err != nil {
@@ -262,7 +261,6 @@ func install(url, name string) {
 	if closeErr := tempFile.Close(); closeErr != nil {
 		logger.Warnf("Failed to close temporary file %s: %s", tempFilePath, closeErr)
 	} // Close immediately since we'll overwrite it during download
-	defer os.Remove(tempFilePath) // Ensure cleanup of the temporary file
 
 	destPath := path.Join(currentOS.GetInstallationPath(), name)
 
@@ -273,11 +271,19 @@ func install(url, name string) {
 		logger.Fatalf("Failed to create installation directory %s: %s", installDir, mkdirErr)
 	}
 
+	return tempFilePath, destPath
+}
+
+// downloadDependency downloads the dependency to the specified temporary file.
+func downloadDependency(url, name, tempFilePath string, currentOS entities.OS) {
 	logger.Infof("Downloading %s from %s...", name, url)
 	if downloadErr := currentOS.Download(url, tempFilePath); downloadErr != nil {
 		logger.Fatalf("Failed to download %s: %s", name, downloadErr)
 	}
+}
 
+// detectFileType determines if the downloaded file is a zip archive.
+func detectFileType(tempFilePath, name string) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
 	fileTypeCmd := exec.CommandContext(ctx, "file", tempFilePath)
@@ -285,45 +291,74 @@ func install(url, name string) {
 	if err != nil {
 		logger.Fatalf("Failed to determine file type of %s: %s", name, err)
 	}
+	return strings.Contains(string(fileTypeOutput), "Zip archive data")
+}
 
-	//nolint:nestif // Complex file type detection logic requires nested conditions
-	if strings.Contains(string(fileTypeOutput), "Zip archive data") {
-		logger.Infof("%s is a zip file, extracting...", name)
-		// Create a unique temporary directory for extraction
-		extractDir, extractErr := os.MkdirTemp(currentOS.GetTempDir(), name+"_extract_*")
-		if extractErr != nil {
-			logger.Fatalf("Failed to create temporary extraction directory for %s: %s", name, extractErr)
-		}
-		if extractErr = currentOS.Extract(tempFilePath, extractDir); extractErr != nil {
-			logger.Fatalf("Failed to extract %s: %s", name, extractErr)
-		}
+// processArchive extracts the zip archive and moves the binary to destination.
+func processArchive(tempFilePath, destPath, name string, currentOS entities.OS) {
+	logger.Infof("%s is a zip file, extracting...", name)
 
-		// Find the actual binary in the extracted directory using recursive search
-		var binaryPath string
-		binaryPath, err = findBinaryInArchive(extractDir, name)
-		if err != nil {
-			logger.Fatalf("Failed to find %s binary in extracted archive: %s", name, err)
-		}
-
-		// Move the binary to the destination
-		if err = currentOS.Move(binaryPath, destPath); err != nil {
-			logger.Fatalf("Failed to move %s to %s: %s", name, destPath, err)
-		}
-
-		// Clean up
-		if err = currentOS.Remove(tempFilePath); err != nil {
-			logger.Fatalf("Failed to remove %s: %s", name, err)
-		}
-		if err = os.RemoveAll(extractDir); err != nil {
-			logger.Fatalf("Failed to remove extraction directory %s: %s", extractDir, err)
-		}
-	} else {
-		if err = currentOS.Move(tempFilePath, destPath); err != nil {
-			logger.Fatalf("Failed to move %s to %s: %s", name, destPath, err)
-		}
+	// Create a unique temporary directory for extraction
+	extractDir, extractErr := os.MkdirTemp(currentOS.GetTempDir(), name+"_extract_*")
+	if extractErr != nil {
+		logger.Fatalf("Failed to create temporary extraction directory for %s: %s", name, extractErr)
 	}
 
-	if err = currentOS.MakeExecutable(destPath); err != nil {
+	if extractErr = currentOS.Extract(tempFilePath, extractDir); extractErr != nil {
+		logger.Fatalf("Failed to extract %s: %s", name, extractErr)
+	}
+
+	// Find the actual binary in the extracted directory using recursive search
+	binaryPath, err := findBinaryInArchive(extractDir, name)
+	if err != nil {
+		logger.Fatalf("Failed to find %s binary in extracted archive: %s", name, err)
+	}
+
+	// Move the binary to the destination
+	if err = currentOS.Move(binaryPath, destPath); err != nil {
+		logger.Fatalf("Failed to move %s to %s: %s", name, destPath, err)
+	}
+
+	// Clean up temporary files
+	cleanupArchiveFiles(tempFilePath, extractDir, name, currentOS)
+}
+
+// cleanupArchiveFiles removes temporary files after archive processing.
+func cleanupArchiveFiles(tempFilePath, extractDir, name string, currentOS entities.OS) {
+	if err := currentOS.Remove(tempFilePath); err != nil {
+		logger.Fatalf("Failed to remove %s: %s", name, err)
+	}
+	if err := os.RemoveAll(extractDir); err != nil {
+		logger.Fatalf("Failed to remove extraction directory %s: %s", extractDir, err)
+	}
+}
+
+// installBinary moves the binary to destination and makes it executable.
+func installBinary(tempFilePath, destPath, name string, currentOS entities.OS) {
+	if err := currentOS.Move(tempFilePath, destPath); err != nil {
+		logger.Fatalf("Failed to move %s to %s: %s", name, destPath, err)
+	}
+
+	if err := currentOS.MakeExecutable(destPath); err != nil {
 		logger.Fatalf("Failed to make %s executable: %s", name, err)
+	}
+}
+
+// installing dependencies doesn't matter the operating system.
+func install(url, name string) {
+	currentOS := entities.GetOS()
+
+	// Setup environment
+	tempFilePath, destPath := setupInstallationEnvironment(name, currentOS)
+	defer os.Remove(tempFilePath) // Ensure cleanup of the temporary file
+
+	// Download the dependency
+	downloadDependency(url, name, tempFilePath, currentOS)
+
+	// Process based on file type
+	if detectFileType(tempFilePath, name) {
+		processArchive(tempFilePath, destPath, name, currentOS)
+	} else {
+		installBinary(tempFilePath, destPath, name, currentOS)
 	}
 }
