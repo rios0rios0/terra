@@ -16,6 +16,9 @@ func RegisterProviders(container *dig.Container) error {
 	if err := container.Provide(NewInstallDependenciesCommand); err != nil {
 		return err
 	}
+	if err := container.Provide(NewParallelStateCommand); err != nil {
+		return err
+	}
 	if err := container.Provide(NewRunAdditionalBeforeCommand); err != nil {
 		return err
 	}
@@ -41,6 +44,11 @@ func RegisterProviders(container *dig.Container) error {
 		return err
 	}
 	if err := container.Provide(func(impl *InstallDependenciesCommand) InstallDependencies {
+		return impl
+	}); err != nil {
+		return err
+	}
+	if err := container.Provide(func(impl *ParallelStateCommand) ParallelState {
 		return impl
 	}); err != nil {
 		return err
