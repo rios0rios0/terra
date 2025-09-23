@@ -132,6 +132,9 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		mockBinaryDir := repositoryhelpers.HelperCreateMockTerraformBinary(t, "1.0.0")
 		defer os.RemoveAll(mockBinaryDir)
 
+		// Use test-friendly temp directory for os.TempDir() to avoid permission issues
+		t.Setenv("TMPDIR", t.TempDir())
+
 		// Prepend mock binary directory to PATH
 		originalPath := os.Getenv("PATH")
 		newPath := mockBinaryDir + string(os.PathListSeparator) + originalPath
