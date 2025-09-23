@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"slices"
-
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
 	logger "github.com/sirupsen/logrus"
@@ -63,6 +61,17 @@ func (it *RunAdditionalBeforeCommand) shouldChangeWorkspace() (string, bool) {
 }
 
 func shouldInitEnvironment(arguments []string) bool {
-	undesiredCommands := []string{"init", "run-all"}
-	return !slices.Contains(undesiredCommands, arguments[0])
+	// Don't init when the first argument is "init"
+	if len(arguments) > 0 && arguments[0] == "init" {
+		return false
+	}
+
+	// Don't init when using --all flag (equivalent to deprecated run-all)
+	for _, arg := range arguments {
+		if arg == "--all" {
+			return false
+		}
+	}
+
+	return true
 }

@@ -174,16 +174,16 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		}
 	})
 
-	t.Run("should not init environment when arguments are run-all", func(t *testing.T) {
+	t.Run("should not init environment when arguments contain --all flag", func(t *testing.T) {
 		t.Parallel()
-		// GIVEN: A command with 'run-all' argument
+		// GIVEN: A command with '--all' flag
 		settings := &entities.Settings{
 			TerraCloud: "aws",
 		}
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
-		arguments := []string{"run-all", "plan"}
+		arguments := []string{"apply", "--all"}
 
 		// WHEN: Executing the command
 		cmd.Execute(targetPath, arguments)
@@ -192,7 +192,30 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		for _, call := range repository.CallHistory {
 			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
 				call.Arguments[0] == "init" {
-				assert.Fail(t, "Should not execute terragrunt init when argument is run-all")
+				assert.Fail(t, "Should not execute terragrunt init when using --all flag")
+			}
+		}
+	})
+
+	t.Run("should not init environment when --all flag is in different position", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A command with '--all' flag in different position
+		settings := &entities.Settings{
+			TerraCloud: "aws",
+		}
+		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
+		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
+		targetPath := "/test/path"
+		arguments := []string{"plan", "--detailed-exitcode", "--all", "--out=plan.out"}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments)
+
+		// THEN: Should not execute terragrunt init command (indirectly tests shouldInitEnvironment)
+		for _, call := range repository.CallHistory {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
+				assert.Fail(t, "Should not execute terragrunt init when --all flag is present")
 			}
 		}
 	})

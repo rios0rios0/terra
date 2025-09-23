@@ -8,7 +8,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	infrastructure_repositories "github.com/rios0rios0/terra/internal/infrastructure/repositories"
-	
+
 	"github.com/rios0rios0/terra/test/domain/commanddoubles"
 	"github.com/rios0rios0/terra/test/infrastructure/repositorydoubles"
 
