@@ -294,8 +294,8 @@ func install(url, name string) {
 		if extractErr != nil {
 			logger.Fatalf("Failed to create temporary extraction directory for %s: %s", name, extractErr)
 		}
-		if err = currentOS.Extract(tempFilePath, extractDir); err != nil {
-			logger.Fatalf("Failed to extract %s: %s", name, err)
+		if extractErr = currentOS.Extract(tempFilePath, extractDir); extractErr != nil {
+			logger.Fatalf("Failed to extract %s: %s", name, extractErr)
 		}
 
 		// Find the actual binary in the extracted directory using recursive search
