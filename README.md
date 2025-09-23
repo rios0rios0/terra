@@ -41,20 +41,20 @@ terra self-update
 Here's how to use `terra` with Terraform/Terragrunt:
 ```bash
 # it's going to apply all subdirectories inside "path"
-terra run-all apply /path
+terra apply --all /path
 
 # it's going to plan all subdirectories inside "to"
-terra run-all plan /path/to
+terra plan --all /path/to
 
 # it's going to plan just the "module" subdirectory inside "to"
-terra run-all plan /path/to/module
+terra plan --all /path/to/module
 
 # or using Terraform approach, plan just the "module" subdirectory inside "to"
 terra plan /path/to/module
 
 # with auto-answering to avoid manual prompts (answers "n" to external dependency prompts)
-terra --auto-answer run-all apply /path
-terra -a run-all plan /path/to
+terra --auto-answer apply --all /path
+terra -a plan --all /path/to
 ```
 
 The commands available are:
@@ -80,10 +80,10 @@ The `--auto-answer` (or `-a`) flag enables automatic responses to Terragrunt pro
 **Example:**
 ```bash
 # Without auto-answer - requires manual input for each prompt
-terra run-all apply /path
+terra apply --all /path
 
 # With auto-answer - automatically handles most prompts
-terra --auto-answer run-all apply /path
+terra --auto-answer apply --all /path
 ```
 
 ### Version Management
@@ -150,7 +150,7 @@ If you have some input variables, you can use environment variables (`.env`) wit
 # .env example for Terraform variables
 TF_VAR_foo=bar
 # command (that depends on the environment variable called "foo")
-terra run-all apply /path/to/module
+terra apply --all /path/to/module
 ```
 More about it in:
 - [Terraform documentation](https://www.terraform.io/docs/language/values/variables.html#environment-variables).

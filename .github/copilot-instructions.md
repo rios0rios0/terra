@@ -117,10 +117,10 @@ terra install
 ### Main Terra Commands (require terraform/terragrunt)
 ```bash
 # Apply all subdirectories in path
-terra run-all apply /path/to/infrastructure
+terra apply --all /path/to/infrastructure
 
 # Plan all subdirectories in path
-terra run-all plan /path/to/infrastructure
+terra plan --all /path/to/infrastructure
 
 # Plan specific module
 terra plan /path/to/infrastructure/module
