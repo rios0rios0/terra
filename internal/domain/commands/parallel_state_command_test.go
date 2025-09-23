@@ -15,7 +15,8 @@ import (
 
 // Helper functions for file operations in tests
 func mkdir(dir string) error {
-	return os.MkdirAll(dir, 0755)
+	// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+	return os.MkdirAll(dir, 0755) // Directory requires execute permission (0700) for traversal in tests
 }
 
 func writeFile(filename, content string) error {
