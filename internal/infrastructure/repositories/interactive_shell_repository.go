@@ -85,9 +85,10 @@ func (it *InteractiveShellRepository) handleOutput(
 
 	// Channel to coordinate between output handling and input sending
 	outputChan := make(chan string, outputChannelSize)
-	
+
 	// Channel to signal when both stdout and stderr are done
-	doneChan := make(chan struct{}, 2)
+	const expectedStreams = 2
+	doneChan := make(chan struct{}, expectedStreams)
 
 	// Read stdout
 	go func() {
@@ -118,7 +119,7 @@ func (it *InteractiveShellRepository) handleOutput(
 				it.processLineAndRespond(line, stdin)
 			case <-doneChan:
 				doneCount++
-				if doneCount >= 2 {
+				if doneCount >= expectedStreams {
 					// Both stdout and stderr are done, exit the loop
 					return
 				}
