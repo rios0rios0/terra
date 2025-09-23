@@ -259,7 +259,9 @@ func install(url, name string) {
 		logger.Fatalf("Failed to create temporary file for %s: %s", name, err)
 	}
 	tempFilePath := tempFile.Name()
-	tempFile.Close()              // Close immediately since we'll overwrite it during download
+	if closeErr := tempFile.Close(); closeErr != nil {
+		logger.Warnf("Failed to close temporary file %s: %s", tempFilePath, closeErr)
+	} // Close immediately since we'll overwrite it during download
 	defer os.Remove(tempFilePath) // Ensure cleanup of the temporary file
 
 	destPath := path.Join(currentOS.GetInstallationPath(), name)
@@ -267,13 +269,13 @@ func install(url, name string) {
 	// Ensure installation directory exists
 	installDir := currentOS.GetInstallationPath()
 	// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
-	if err := os.MkdirAll(installDir, 0750); err != nil {
-		logger.Fatalf("Failed to create installation directory %s: %s", installDir, err)
+	if mkdirErr := os.MkdirAll(installDir, 0750); mkdirErr != nil {
+		logger.Fatalf("Failed to create installation directory %s: %s", installDir, mkdirErr)
 	}
 
 	logger.Infof("Downloading %s from %s...", name, url)
-	if err := currentOS.Download(url, tempFilePath); err != nil {
-		logger.Fatalf("Failed to download %s: %s", name, err)
+	if downloadErr := currentOS.Download(url, tempFilePath); downloadErr != nil {
+		logger.Fatalf("Failed to download %s: %s", name, downloadErr)
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
@@ -288,9 +290,9 @@ func install(url, name string) {
 	if strings.Contains(string(fileTypeOutput), "Zip archive data") {
 		logger.Infof("%s is a zip file, extracting...", name)
 		// Create a unique temporary directory for extraction
-		extractDir, err := os.MkdirTemp(currentOS.GetTempDir(), name+"_extract_*")
-		if err != nil {
-			logger.Fatalf("Failed to create temporary extraction directory for %s: %s", name, err)
+		extractDir, extractErr := os.MkdirTemp(currentOS.GetTempDir(), name+"_extract_*")
+		if extractErr != nil {
+			logger.Fatalf("Failed to create temporary extraction directory for %s: %s", name, extractErr)
 		}
 		if err = currentOS.Extract(tempFilePath, extractDir); err != nil {
 			logger.Fatalf("Failed to extract %s: %s", name, err)
