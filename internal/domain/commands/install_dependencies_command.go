@@ -253,7 +253,14 @@ func findBinaryInArchive(extractDir, binaryName string) (string, error) {
 // installing dependencies doesn't matter the operating system.
 func install(url, name string) {
 	currentOS := entities.GetOS()
-	tempFilePath := path.Join(currentOS.GetTempDir(), name)
+	// Create a unique temporary file to avoid permission conflicts
+	tempFile, err := os.CreateTemp(currentOS.GetTempDir(), name+"_*")
+	if err != nil {
+		logger.Fatalf("Failed to create temporary file for %s: %s", name, err)
+	}
+	tempFilePath := tempFile.Name()
+	tempFile.Close() // Close immediately since we'll overwrite it during download
+
 	destPath := path.Join(currentOS.GetInstallationPath(), name)
 
 	// Ensure installation directory exists
@@ -279,8 +286,11 @@ func install(url, name string) {
 	//nolint:nestif // Complex file type detection logic requires nested conditions
 	if strings.Contains(string(fileTypeOutput), "Zip archive data") {
 		logger.Infof("%s is a zip file, extracting...", name)
-		// Create a temporary directory for extraction
-		extractDir := path.Join(currentOS.GetTempDir(), name+"_extract")
+		// Create a unique temporary directory for extraction
+		extractDir, err := os.MkdirTemp(currentOS.GetTempDir(), name+"_extract_*")
+		if err != nil {
+			logger.Fatalf("Failed to create temporary extraction directory for %s: %s", name, err)
+		}
 		if err = currentOS.Extract(tempFilePath, extractDir); err != nil {
 			logger.Fatalf("Failed to extract %s: %s", name, err)
 		}
