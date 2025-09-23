@@ -53,9 +53,17 @@ terra plan --all /path/to/module
 # or using Terraform approach, plan just the "module" subdirectory inside "to"
 terra plan /path/to/module
 
-# with auto-answering to avoid manual prompts (answers "n" to external dependency prompts)
+# with auto-answering to avoid manual prompts (defaults to "n" for backward compatibility)
 terra --auto-answer apply --all /path
 terra -a plan --all /path/to
+
+# with explicit "y" responses to prompts
+terra --auto-answer=y apply --all /path
+terra -a=y plan --all /path/to
+
+# with explicit "n" responses to prompts  
+terra --auto-answer=n apply --all /path
+terra -a=n plan --all /path/to
 ```
 
 The commands available are:
@@ -73,18 +81,36 @@ version     Show Terra, Terraform, and Terragrunt versions
 The `--auto-answer` (or `-a`) flag enables automatic responses to Terragrunt prompts, eliminating the need for manual intervention during long-running operations. This is particularly useful in CI/CD pipelines or when running multiple Terragrunt commands.
 
 **What it does:**
-- Automatically answers "n" to external dependency prompts
-- Automatically answers "n" to general yes/no prompts
+- Automatically answers "n" to external dependency prompts (when using boolean flag or explicit --auto-answer=n)
+- Automatically answers "y" to external dependency prompts (when using --auto-answer=y)
+- Automatically answers general yes/no prompts with the specified value
 - Switches to manual mode for confirmation prompts (like "Are you sure you want to run...")
 - Filters out the auto-answer flag before passing arguments to Terragrunt
+
+**Usage Options:**
+- `--auto-answer` or `-a` - Boolean flag (defaults to "n" for backward compatibility)
+- `--auto-answer=y` - Explicitly answer "y" to prompts
+- `--auto-answer=n` - Explicitly answer "n" to prompts
+- `-a=y` - Short form to answer "y"
+- `-a=n` - Short form to answer "n"
 
 **Example:**
 ```bash
 # Without auto-answer - requires manual input for each prompt
 terra apply --all /path
 
-# With auto-answer - automatically handles most prompts
+# With boolean auto-answer - automatically answers "n" (backward compatible)
 terra --auto-answer apply --all /path
+
+# With explicit "y" answer - automatically answers "y" to prompts
+terra --auto-answer=y apply --all /path
+
+# With explicit "n" answer - automatically answers "n" to prompts  
+terra --auto-answer=n apply --all /path
+
+# Short form syntax
+terra -a=y apply --all /path
+terra -a=n plan --all /path
 ```
 
 ### Parallel State Management

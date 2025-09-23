@@ -19,5 +19,11 @@ func RegisterProviders(container *dig.Container) error {
 	}); err != nil {
 		return err
 	}
+	// Bind InteractiveShellRepository interface to implementation
+	if err := container.Provide(func(impl *InteractiveShellRepository) repositories.InteractiveShellRepository {
+		return impl
+	}); err != nil {
+		return err
+	}
 	return nil
 }
