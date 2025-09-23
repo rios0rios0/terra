@@ -41,6 +41,9 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 
 	cmd := exec.CommandContext(context.Background(), command, arguments...)
 	cmd.Dir = directory
+	
+	// Set environment to reduce ANSI sequences, similar to expect script
+	cmd.Env = append(os.Environ(), "TERM=dumb")
 
 	// Start the command with a pseudo-terminal to preserve interactivity
 	ptmx, err := pty.Start(cmd)
@@ -70,15 +73,16 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 				break
 			}
 
-			// Write to stdout for user to see
-			_, _ = os.Stdout.Write(buf[:n])
+			// Filter ANSI sequences before writing to stdout
+			filteredOutput := it.removeANSICodes(string(buf[:n]))
+			_, _ = os.Stdout.WriteString(filteredOutput)
 
 			// Skip pattern matching if already in manual mode
 			if manualModeActivated {
 				continue
 			}
 
-			// Add to buffer for pattern matching
+			// Add original output to buffer for pattern matching (before ANSI filtering)
 			outputBuffer.Write(buf[:n])
 			
 			// Check recent output for patterns (keep buffer reasonable size)
@@ -127,10 +131,27 @@ func (it *InteractiveShellRepository) ExecuteCommand(
 		}
 	}()
 
-	// Handle manual input when needed
+	// Handle manual input when needed with more careful input forwarding
 	go func() {
 		<-manualMode // Wait for signal to switch to manual mode
-		_, _ = io.Copy(ptmx, os.Stdin)
+		
+		// Use a more controlled input forwarding approach
+		buf := make([]byte, 1)
+		for {
+			n, err := os.Stdin.Read(buf)
+			if err != nil {
+				logger.Debugf("Stdin read error in manual mode: %v", err)
+				break
+			}
+			if n > 0 {
+				// Forward input to PTY
+				_, err = ptmx.Write(buf[:n])
+				if err != nil {
+					logger.Debugf("PTY write error in manual mode: %v", err)
+					break
+				}
+			}
+		}
 	}()
 
 	// Wait for the command to complete
