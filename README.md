@@ -19,14 +19,45 @@ Our motivation: "Have you ever wondered about applying Terraform code like Kuber
 - **Parallel execution for state manipulation commands** - Run `import`, `state rm`, `state mv`, and other state commands across multiple modules simultaneously using the `--all` flag.
 
 ## Installation
-To install `terra`, you can build it from source:
+
+### Quick Install (Recommended)
+Install `terra` with a single command:
+```bash
+curl -fsSL https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh
+```
+
+Or using wget:
+```bash
+wget -qO- https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh
+```
+
+### Installation Options
+The installer supports several options:
+```bash
+# Install specific version
+curl -fsSL https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh -s -- --version v1.0.0
+
+# Install to custom directory
+curl -fsSL https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh -s -- --install-dir /usr/local/bin
+
+# Show what would be installed without doing it
+curl -fsSL https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh -s -- --dry-run
+
+# Force reinstallation
+curl -fsSL https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh -s -- --force
+```
+
+### Alternative Installation Methods
+
+#### Build from Source
 ```bash
 git clone https://github.com/rios0rios0/terra.git
 cd terra
 make install
 ```
 
-Or download pre-built binaries from the [releases page](https://github.com/rios0rios0/terra/releases).
+#### Download Pre-built Binaries
+Download pre-built binaries from the [releases page](https://github.com/rios0rios0/terra/releases).
 
 After installation, you can install Terraform and Terragrunt dependencies automatically:
 ```bash
