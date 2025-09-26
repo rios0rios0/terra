@@ -2,8 +2,7 @@ SCRIPTS_DIR := $(HOME)/Development/github.com/rios0rios0/pipelines
 REPO_URL    := https://github.com/rios0rios0/pipelines.git
 
 .PHONY: all scripts lint lint-fix horusec test
-
-all: lint horusec test
+all: lint horusec semgrep gitleaks test
 
 scripts:
 	if [ ! -d "$(SCRIPTS_DIR)" ]; then \
@@ -30,6 +29,7 @@ gitleaks: scripts
 test: scripts
 	$(SCRIPTS_DIR)/global/scripts/golang/test/run.sh .
 
+
 clear:
 	sudo rm -rf .go
 	rm -rf bin coverage.* cobertura.xml junit.xml
@@ -54,4 +54,5 @@ run:
 
 install:
 	make build
+	mkdir -p ~/.local/bin
 	cp -v bin/terra ~/.local/bin/terra
