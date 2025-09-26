@@ -282,7 +282,7 @@ check_existing_installation() {
     if [ -f "$TERRA_INSTALL_DIR/terra" ]; then
         if [ "$TERRA_FORCE" = "false" ]; then
             local current_version
-            current_version=$("$TERRA_INSTALL_DIR/terra" version 2>/dev/null | head -n1 | cut -d' ' -f3 || echo "unknown")
+            current_version=$("$TERRA_INSTALL_DIR/terra" --version 2>/dev/null | head -n1 | cut -d' ' -f3 || echo "unknown")
             warn "terra is already installed at $TERRA_INSTALL_DIR/terra (version: $current_version)"
             warn "Use --force to reinstall"
             return 1
