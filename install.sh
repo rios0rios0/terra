@@ -231,6 +231,106 @@ get_latest_release() {
     echo "$tag_name"
 }
 
+# Parse JSON to extract download URL (with jq fallback for reliability)
+parse_download_url() {
+    local temp_file="$1"
+    local asset_name="$2"
+    
+    # Try with jq first (if available) for robust JSON parsing
+    if command_exists jq; then
+        local download_url
+        download_url=$(jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .browser_download_url' "$temp_file" 2>/dev/null)
+        
+        if [ -n "$download_url" ] && [ "$download_url" != "null" ]; then
+            echo "$download_url"
+            return 0
+        fi
+    fi
+    
+    # Fallback to manual parsing - simpler and more reliable approach
+    # Find lines containing both the asset name and the download URL in the same JSON object
+    local download_url
+    
+    # First, try to extract the JSON object containing our asset name
+    # Use Python if available for more reliable JSON parsing
+    if command_exists python3; then
+        download_url=$(python3 -c "
+import json, sys
+try:
+    with open('$temp_file', 'r') as f:
+        data = json.load(f)
+    for asset in data.get('assets', []):
+        if asset.get('name') == '$asset_name':
+            print(asset.get('browser_download_url', ''))
+            break
+except:
+    pass
+" 2>/dev/null)
+    elif command_exists python; then
+        download_url=$(python -c "
+import json, sys
+try:
+    with open('$temp_file', 'r') as f:
+        data = json.load(f)
+    for asset in data.get('assets', []):
+        if asset.get('name') == '$asset_name':
+            print(asset.get('browser_download_url', ''))
+            break
+except:
+    pass
+" 2>/dev/null)
+    fi
+    
+    # If Python parsing worked, use it
+    if [ -n "$download_url" ]; then
+        echo "$download_url"
+        return 0
+    fi
+    
+    # Ultimate fallback: use sed and awk more carefully
+    download_url=$(awk -v RS='}' -v asset="$asset_name" '
+        {
+            if ($0 ~ "\"name\"[[:space:]]*:[[:space:]]*\"" asset "\"") {
+                if (match($0, /"browser_download_url"[[:space:]]*:[[:space:]]*"([^"]*)"/, arr)) {
+                    print arr[1]
+                    exit
+                }
+            }
+        }
+    ' "$temp_file" 2>/dev/null)
+    
+    if [ -n "$download_url" ]; then
+        echo "$download_url"
+        return 0
+    fi
+    
+    # Last resort: try the original method but with better error handling
+    download_url=$(grep -A 3 "\"name\"[[:space:]]*:[[:space:]]*\"${asset_name}\"" "$temp_file" | \
+                   grep "browser_download_url" | \
+                   sed 's/.*"browser_download_url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
+    
+    if [ -n "$download_url" ]; then
+        echo "$download_url"
+        return 0
+    fi
+    
+    return 1
+}
+
+# List available assets for error reporting
+list_available_assets() {
+    local temp_file="$1"
+    
+    # Try with jq first for clean output
+    if command_exists jq; then
+        jq -r '.assets[].name' "$temp_file" 2>/dev/null | sed 's/^/  /' && return 0
+    fi
+    
+    # Fallback to manual parsing
+    grep '"name"[[:space:]]*:[[:space:]]*"' "$temp_file" | \
+        sed 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/  \1/' 2>/dev/null
+}
+
 # Get download URL for specific version and platform
 get_download_url() {
     local version="$1"
@@ -259,17 +359,15 @@ get_download_url() {
         exit 1
     fi
     
-    # Extract download URL for the specific asset
+    # Extract download URL for the specific asset using improved parsing
     local download_url
-    download_url=$(grep -A 1 "\"name\"[[:space:]]*:[[:space:]]*\"${asset_name}\"" "$temp_file" | \
-                   grep "browser_download_url" | \
-                   cut -d'"' -f4)
+    download_url=$(parse_download_url "$temp_file" "$asset_name")
     
     if [ -z "$download_url" ]; then
         rm -f "$temp_file"
         error "No binary found for platform ${os}_${arch} in version $version"
         error "Available assets:"
-        grep '"name"' "$temp_file" | cut -d'"' -f4 | sed 's/^/  /'
+        list_available_assets "$temp_file"
         exit 1
     fi
     
@@ -282,7 +380,7 @@ check_existing_installation() {
     if [ -f "$TERRA_INSTALL_DIR/terra" ]; then
         if [ "$TERRA_FORCE" = "false" ]; then
             local current_version
-            current_version=$("$TERRA_INSTALL_DIR/terra" --version 2>/dev/null | head -n1 | cut -d' ' -f3 || echo "unknown")
+            current_version=$("$TERRA_INSTALL_DIR/terra" version 2>&1 | head -n1 | sed 's/.*Terra version: *\([^ ]*\).*/\1/' || echo "unknown")
             warn "terra is already installed at $TERRA_INSTALL_DIR/terra (version: $current_version)"
             warn "Use --force to reinstall"
             return 1
@@ -356,7 +454,7 @@ verify_installation() {
     
     if [ -x "$TERRA_INSTALL_DIR/terra" ]; then
         local installed_version
-        installed_version=$("$TERRA_INSTALL_DIR/terra" --version 2>/dev/null | head -n1 || echo "unknown")
+        installed_version=$("$TERRA_INSTALL_DIR/terra" version 2>&1 | head -n1 | sed 's/.*Terra version: *\([^ ]*\).*/\1/' || echo "unknown")
         success "Installation verified: $installed_version"
         
         # Check if install directory is in PATH
