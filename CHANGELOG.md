@@ -18,6 +18,14 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 - Enhanced `--auto-answer` feature to support configurable responses (`--auto-answer=y` or `--auto-answer=n`)
+- Installation shell script (`install.sh`) for automated terra installation from GitHub releases
+  - Platform detection (Linux, macOS, Windows) with architecture support (amd64, arm64, 386, arm)
+  - One-liner installation command: `curl -fsSL https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh`
+  - Support for installation options: `--version`, `--force`, `--dry-run`, `--install-dir`
+  - Environment variable support: `TERRA_INSTALL_DIR`, `TERRA_VERSION`, `TERRA_FORCE`, `TERRA_DRY_RUN`
+  - Comprehensive error handling and user-friendly output with colors
+  - Installation to `~/.local/bin` by default (follows existing terra pattern)
+  - Verification of installation and PATH guidance
 - Support for short form syntax (`-a=y` or `-a=n`) for auto-answer configuration
 - Backward compatibility maintained - boolean `--auto-answer` and `-a` flags default to "n"
 - Comprehensive unit and integration tests for auto-answer functionality
