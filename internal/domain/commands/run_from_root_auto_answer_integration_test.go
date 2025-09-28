@@ -41,7 +41,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			&commanddoubles.StubFormatFiles{},
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
-			repositories.NewStdShellRepository(),
+			repositories.NewUpgradeAwareShellRepository(),
 			repositories.NewInteractiveShellRepository(),
 		)
 
@@ -83,7 +83,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			&commanddoubles.StubFormatFiles{},
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
-			repositories.NewStdShellRepository(),
+			repositories.NewUpgradeAwareShellRepository(),
 			repositories.NewInteractiveShellRepository(),
 		)
 
@@ -125,7 +125,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			&commanddoubles.StubFormatFiles{},
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
-			repositories.NewStdShellRepository(),
+			repositories.NewUpgradeAwareShellRepository(),
 			repositories.NewInteractiveShellRepository(),
 		)
 
@@ -160,7 +160,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 // createMockTerragruntConfig creates a minimal terragrunt configuration for testing
 func createMockTerragruntConfig(t *testing.T, dir, expectedAnswer string) {
 	t.Helper()
-	
+
 	// Create a simple terragrunt.hcl file
 	terragruntConfig := fmt.Sprintf(`
 terraform {
@@ -182,7 +182,7 @@ resource "null_resource" "test" {
   }
 }
 `
-	
+
 	mainPath := filepath.Join(dir, "main.tf")
 	err = os.WriteFile(mainPath, []byte(terraformConfig), 0644)
 	require.NoError(t, err, "Failed to create mock terraform config")

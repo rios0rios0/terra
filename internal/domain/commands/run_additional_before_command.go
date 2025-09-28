@@ -9,13 +9,13 @@ import (
 type RunAdditionalBeforeCommand struct {
 	settings   *entities.Settings
 	cli        entities.CLI
-	repository repositories.ShellRepository
+	repository repositories.ShellRepositoryWithUpgrade
 }
 
 func NewRunAdditionalBeforeCommand(
 	settings *entities.Settings,
 	cli entities.CLI,
-	repository repositories.ShellRepository,
+	repository repositories.ShellRepositoryWithUpgrade,
 ) *RunAdditionalBeforeCommand {
 	return &RunAdditionalBeforeCommand{
 		settings:   settings,

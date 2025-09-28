@@ -18,6 +18,11 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 - Enhanced `--auto-answer` feature to support configurable responses (`--auto-answer=y` or `--auto-answer=n`)
+- Auto-initialization mode with upgrade detection for terraform/terragrunt commands
+  - Automatically detects when `terraform init --upgrade` or `terragrunt init --upgrade` is needed
+  - Handles common scenarios: module not initialized, backend changes, provider version conflicts
+  - Supports both terraform and terragrunt error patterns
+  - Automatically retries original command after successful upgrade initialization
 - Installation shell script (`install.sh`) for automated terra installation from GitHub releases
   - Platform detection (Linux, macOS, Windows) with architecture support (amd64, arm64, 386, arm)
   - One-liner installation command: `curl -fsSL https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh`

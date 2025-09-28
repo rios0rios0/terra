@@ -4,3 +4,9 @@ package repositories
 type ShellRepository interface {
 	ExecuteCommand(command string, arguments []string, directory string) error
 }
+
+// ShellRepositoryWithUpgrade extends ShellRepository with auto-upgrade detection capabilities.
+type ShellRepositoryWithUpgrade interface {
+	ShellRepository
+	ExecuteCommandWithUpgradeDetection(command string, arguments []string, directory string) error
+}

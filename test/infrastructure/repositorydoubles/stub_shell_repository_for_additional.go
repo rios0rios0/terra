@@ -2,7 +2,7 @@
 
 package repositorydoubles //nolint:staticcheck // Test package naming follows established project structure
 
-// StubShellRepositoryForAdditional is a stub implementation of repositories.ShellRepository.
+// StubShellRepositoryForAdditional is a stub implementation of repositories.ShellRepositoryWithUpgrade.
 type StubShellRepositoryForAdditional struct {
 	ExecuteCallCount int
 	LastCommand      string
@@ -42,4 +42,14 @@ func (m *StubShellRepositoryForAdditional) ExecuteCommand(
 		return err
 	}
 	return nil
+}
+
+// ExecuteCommandWithUpgradeDetection implements the ShellRepositoryWithUpgrade interface
+func (m *StubShellRepositoryForAdditional) ExecuteCommandWithUpgradeDetection(
+	command string,
+	arguments []string,
+	directory string,
+) error {
+	// For testing purposes, delegate to ExecuteCommand
+	return m.ExecuteCommand(command, arguments, directory)
 }
