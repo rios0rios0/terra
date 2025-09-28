@@ -2,7 +2,7 @@
 
 package repositorydoubles //nolint:staticcheck // Test package naming follows established project structure
 
-// StubShellRepositoryForRoot is a stub implementation of repositories.ShellRepository.
+// StubShellRepositoryForRoot is a stub implementation of repositories.ShellRepositoryWithUpgrade.
 type StubShellRepositoryForRoot struct {
 	ExecuteCallCount int
 	LastCommand      string
@@ -42,4 +42,14 @@ func (m *StubShellRepositoryForRoot) ExecuteCommand(
 		return err
 	}
 	return nil
+}
+
+// ExecuteCommandWithUpgradeDetection implements the ShellRepositoryWithUpgrade interface
+func (m *StubShellRepositoryForRoot) ExecuteCommandWithUpgradeDetection(
+	command string,
+	arguments []string,
+	directory string,
+) error {
+	// For testing purposes, delegate to ExecuteCommand
+	return m.ExecuteCommand(command, arguments, directory)
 }

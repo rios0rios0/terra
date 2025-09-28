@@ -13,8 +13,17 @@ func RegisterProviders(container *dig.Container) error {
 	if err := container.Provide(NewInteractiveShellRepository); err != nil {
 		return err
 	}
-	// Bind interface to implementation
-	if err := container.Provide(func(impl *StdShellRepository) repositories.ShellRepository {
+	if err := container.Provide(NewUpgradeAwareShellRepository); err != nil {
+		return err
+	}
+	// Bind interface to implementation - use UpgradeAwareShellRepository as the default
+	if err := container.Provide(func(impl *UpgradeAwareShellRepository) repositories.ShellRepository {
+		return impl
+	}); err != nil {
+		return err
+	}
+	// Bind ShellRepositoryWithUpgrade interface to implementation
+	if err := container.Provide(func(impl *UpgradeAwareShellRepository) repositories.ShellRepositoryWithUpgrade {
 		return impl
 	}); err != nil {
 		return err

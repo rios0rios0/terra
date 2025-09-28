@@ -20,7 +20,7 @@ type RunFromRootCommand struct {
 	formatCommand         FormatFiles
 	additionalBefore      RunAdditionalBefore
 	parallelState         ParallelState
-	repository            repositories.ShellRepository
+	repository            repositories.ShellRepositoryWithUpgrade
 	interactiveRepository repositories.InteractiveShellRepository
 }
 
@@ -29,7 +29,7 @@ func NewRunFromRootCommand(
 	formatCommand FormatFiles,
 	additionalBefore RunAdditionalBefore,
 	parallelState ParallelState,
-	repository repositories.ShellRepository,
+	repository repositories.ShellRepositoryWithUpgrade,
 	interactiveRepository repositories.InteractiveShellRepository,
 ) *RunFromRootCommand {
 	return &RunFromRootCommand{
@@ -74,7 +74,7 @@ func (it *RunFromRootCommand) Execute(
 		err = it.interactiveRepository.ExecuteCommandWithAnswer(
 			"terragrunt", filteredArguments, targetPath, autoAnswerValue)
 	} else {
-		err = it.repository.ExecuteCommand("terragrunt", filteredArguments, targetPath)
+		err = it.repository.ExecuteCommandWithUpgradeDetection("terragrunt", filteredArguments, targetPath)
 	}
 
 	if err != nil {
