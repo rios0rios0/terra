@@ -17,10 +17,10 @@ func TestUpgradeAwareShellRepository_ExecuteCommandWithUpgradeDetection_RealWorl
 
 	// Real-world terraform/terragrunt error messages that should trigger upgrade
 	realWorldTestCases := []struct {
-		name           string
-		errorOutput    string
-		shouldDetect   bool
-		description    string
+		name         string
+		errorOutput  string
+		shouldDetect bool
+		description  string
 	}{
 		{
 			name: "terraform_not_initialized",
@@ -195,6 +195,6 @@ func containsRealWorldUpgradePattern(output string) bool {
 			return true
 		}
 	}
-	
+
 	return false
 }

@@ -18,10 +18,10 @@ func TestNewUpgradeAwareShellRepository(t *testing.T) {
 	t.Run("should create repository instance successfully", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: No specific setup needed
-		
+
 		// WHEN: Creating a new repository instance
 		repo := repositories.NewUpgradeAwareShellRepository()
-		
+
 		// THEN: Should create repository successfully
 		require.NotNil(t, repo, "Repository should not be nil")
 		assert.IsType(t, &repositories.UpgradeAwareShellRepository{}, repo, "Should be correct type")
@@ -57,7 +57,7 @@ func TestUpgradeAwareShellRepository_ExecuteCommand(t *testing.T) {
 		// WHEN: Executing an invalid command
 		err := repo.ExecuteCommand(invalidCommand, args, workingDir)
 
-		// THEN: Should return an error with expected message  
+		// THEN: Should return an error with expected message
 		require.Error(t, err, "Expected error for invalid command")
 		assert.Contains(t, err.Error(), "failed to perform command execution",
 			"Error message should contain expected text")
@@ -69,10 +69,10 @@ func TestUpgradeAwareShellRepository_ExecuteCommandWithUpgradeDetection_UpgradeP
 
 	// Test cases for different upgrade detection patterns
 	testCases := []struct {
-		name           string
-		output         string
-		shouldDetect   bool
-		description    string
+		name         string
+		output       string
+		shouldDetect bool
+		description  string
 	}{
 		{
 			name:         "should detect terraform not initialized",
@@ -162,7 +162,7 @@ func containsUpgradePattern(output string) bool {
 	upgradePatterns := []string{
 		"terraform init",
 		"has not been run",
-		"working directory is not initialized", 
+		"working directory is not initialized",
 		"backend configuration changed",
 		"provider version constraint",
 		"terraform init -upgrade",
@@ -174,7 +174,7 @@ func containsUpgradePattern(output string) bool {
 		"run \"terraform init\"",
 		"run \"terragrunt init\"",
 	}
-	
+
 	outputLower := strings.ToLower(output)
 	for _, pattern := range upgradePatterns {
 		if strings.Contains(outputLower, strings.ToLower(pattern)) {
