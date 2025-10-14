@@ -17,6 +17,13 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ## [Unreleased]
 
 ### Added
+- MCP (Model Context Protocol) documentation (`MCP.md`) for AI agents with comprehensive CLI reference
+  - Complete command reference with usage patterns, examples, and flags
+  - Environment variable configuration guide
+  - Parallel state management documentation
+  - Execution flow descriptions
+  - Known issues and caveats section
+  - Command patterns optimized for AI agent understanding
 - Enhanced `--auto-answer` feature to support configurable responses (`--auto-answer=y` or `--auto-answer=n`)
 - Installation shell script (`install.sh`) for automated terra installation from GitHub releases
   - Platform detection (Linux, macOS, Windows) with architecture support (amd64, arm64, 386, arm)
