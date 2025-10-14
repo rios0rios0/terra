@@ -265,6 +265,13 @@ More about it in:
    That means, you exceeded the `path` size limitation on the current `path` you are running the command.
    To avoid this issue, move your infrastructure project to a shorter `path`. Closer to your "/home" directory, for example.
 
+## Documentation
+
+- **[README.md](README.md)** - Quick start guide and general usage
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines and contribution process
+- **[MCP.md](MCP.md)** - Comprehensive documentation for AI agents (Model Context Protocol)
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
+
 ## Contributing
 Contributions to `terra` are welcome! Whether it's bug reports, feature requests, or code contributions, please feel free to contribute.
 Check out our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute.
