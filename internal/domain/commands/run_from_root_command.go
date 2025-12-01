@@ -49,13 +49,16 @@ func (it *RunFromRootCommand) Execute(
 ) {
 	it.formatCommand.Execute(dependencies)
 
-	// Check if this is a parallel state manipulation command
-	if it.isParallelStateCommand(arguments) {
-		// For parallel state commands, skip additional before steps as they don't make sense
+	// Validate flag combinations before execution
+	it.validateFlagCombinations(arguments)
+
+	// Check if this is a parallel command (either state command with --all or any command with --parallel=N)
+	if it.isParallelCommand(arguments) {
+		// For parallel commands, skip additional before steps as they don't make sense
 		// when running across multiple directories
 		err := it.parallelState.Execute(targetPath, arguments, dependencies)
 		if err != nil {
-			logger.Fatalf("Parallel state command failed: %s", err)
+			logger.Fatalf("Parallel command failed: %s", err)
 		}
 		return
 	}
@@ -67,6 +70,9 @@ func (it *RunFromRootCommand) Execute(
 	useInteractive := it.hasAutoAnswerFlag(arguments)
 	autoAnswerValue := it.getAutoAnswerValue(arguments)
 	filteredArguments := it.removeAutoAnswerFlag(arguments)
+	
+	// Remove --no-parallel-bypass flag before passing to terragrunt
+	filteredArguments = RemoveNoParallelBypassFlag(filteredArguments)
 
 	var err error
 	if useInteractive {
@@ -120,8 +126,61 @@ func (it *RunFromRootCommand) removeAutoAnswerFlag(arguments []string) []string 
 	return filtered
 }
 
-// isParallelStateCommand checks if the command should be executed in parallel.
-func (it *RunFromRootCommand) isParallelStateCommand(arguments []string) bool {
+// validateFlagCombinations validates that flag combinations are correct.
+// Errors and exits if invalid combinations are detected.
+func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
+	hasParallelFlag := HasParallelFlag(arguments)
+	hasNoParallelBypass := HasNoParallelBypassFlag(arguments)
+	hasAutoAnswerFlag := it.hasAutoAnswerFlag(arguments)
+	hasAllFlag := HasAllFlag(arguments)
+	isStateCommand := IsStateManipulationCommand(arguments)
+
+	// If --parallel is used without --no-parallel-bypass, terra handles parallel execution
+	// In this case, flags intended for terragrunt should not be used
+	if hasParallelFlag && !hasNoParallelBypass {
+		// Error if --auto-answer is used (intended for terragrunt, not terra's parallel execution)
+		if hasAutoAnswerFlag {
+			logger.Fatalf("Error: --auto-answer flag is intended for terragrunt and should only be used with --no-parallel-bypass. " +
+				"When using --parallel without --no-parallel-bypass, terra handles parallel execution and --auto-answer is not applicable.")
+		}
+
+		// Error if --all is used with --parallel (redundant, since --parallel already implies --all behavior)
+		if hasAllFlag {
+			logger.Fatalf("Error: --all flag is not needed when using --parallel flag. " +
+				"The --parallel flag already executes across all modules. Remove --all or use --no-parallel-bypass to forward --parallel to terragrunt.")
+		}
+	}
+
+	// If --no-parallel-bypass is used with state commands, error out (terragrunt doesn't handle state commands)
+	if hasNoParallelBypass && isStateCommand {
+		logger.Fatalf("Error: --no-parallel-bypass cannot be used with state commands. " +
+			"Terragrunt doesn't support state operations, so state commands must be handled by terra. " +
+			"Remove --no-parallel-bypass to let terra handle the parallel execution.")
+	}
+
+	// If --no-parallel-bypass is used, --all is required (for non-state commands)
+	if hasNoParallelBypass && hasParallelFlag && !isStateCommand {
+		if !hasAllFlag {
+			logger.Fatalf("Error: --all flag is required when using --no-parallel-bypass with --parallel. " +
+				"Terragrunt needs --all to understand that it should apply to all modules.")
+		}
+	}
+}
+
+// isParallelCommand checks if the command should be executed in parallel.
+// Returns true if:
+// 1. It's a state command with --all flag (backward compatibility)
+// 2. It has --parallel=N flag (new functionality for any command), UNLESS --no-parallel-bypass is present
+// If --no-parallel-bypass is present, --parallel flag will be forwarded to terragrunt instead
+func (it *RunFromRootCommand) isParallelCommand(arguments []string) bool {
+	// Check if --no-parallel-bypass is present
+	hasNoParallelBypass := HasNoParallelBypassFlag(arguments)
+	
+	// New: support parallel=N for any command, but only if --no-parallel-bypass is NOT present
+	if HasParallelFlag(arguments) && !hasNoParallelBypass {
+		return true
+	}
+	// Backward compatibility: state commands with --all flag (always handled by terra, regardless of --no-parallel-bypass)
 	return HasAllFlag(arguments) && IsStateManipulationCommand(arguments)
 }
 
