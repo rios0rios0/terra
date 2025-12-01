@@ -51,11 +51,17 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 			installPath := entities.GetOS().GetInstallationPath()
 			expectedPath := filepath.Join(installPath, "test-integration-tool-not-installed")
 
+			// Teardown: Clean up the test file when test finishes
+			t.Cleanup(func() {
+				if _, err := os.Stat(expectedPath); err == nil {
+					if removeErr := os.Remove(expectedPath); removeErr != nil {
+						t.Logf("Failed to clean up test binary at %s: %v", expectedPath, removeErr)
+					}
+				}
+			})
+
 			if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
 				t.Errorf("Expected binary to be installed at %s", expectedPath)
-			} else {
-				// Clean up the test file
-				os.Remove(expectedPath)
 			}
 		},
 	)
@@ -90,13 +96,19 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 		installPath := entities.GetOS().GetInstallationPath()
 		expectedPath := filepath.Join(installPath, "test-zip-integration-tool-not-installed")
 
+		// Teardown: Clean up the test file when test finishes
+		t.Cleanup(func() {
+			if _, err := os.Stat(expectedPath); err == nil {
+				if removeErr := os.Remove(expectedPath); removeErr != nil {
+					t.Logf("Failed to clean up test binary at %s: %v", expectedPath, removeErr)
+				}
+			}
+		})
+
 		if _, err := os.Stat(expectedPath); os.IsNotExist(err) {
 			// This might fail because our mock zip isn't a real zip file
 			// That's expected - we're testing the flow, not the zip extraction
 			t.Logf("Note: Binary not found at %s - this is expected with mock zip", expectedPath)
-		} else {
-			// Clean up the test file if it was created
-			os.Remove(expectedPath)
 		}
 	})
 
@@ -137,15 +149,21 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 
 			// Check for terraform installation
 			terraformPath := filepath.Join(installPath, "test-terraform-unique-name")
-			if _, err := os.Stat(terraformPath); err == nil {
-				os.Remove(terraformPath)
-			}
-
-			// Check for terragrunt installation
 			terragruntPath := filepath.Join(installPath, "test-terragrunt-unique-name")
-			if _, err := os.Stat(terragruntPath); err == nil {
-				os.Remove(terragruntPath)
-			}
+
+			// Teardown: Clean up test files when test finishes
+			t.Cleanup(func() {
+				if _, err := os.Stat(terraformPath); err == nil {
+					if removeErr := os.Remove(terraformPath); removeErr != nil {
+						t.Logf("Failed to clean up test binary at %s: %v", terraformPath, removeErr)
+					}
+				}
+				if _, err := os.Stat(terragruntPath); err == nil {
+					if removeErr := os.Remove(terragruntPath); removeErr != nil {
+						t.Logf("Failed to clean up test binary at %s: %v", terragruntPath, removeErr)
+					}
+				}
+			})
 		},
 	)
 

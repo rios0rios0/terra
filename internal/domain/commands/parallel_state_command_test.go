@@ -81,7 +81,7 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should return error when command is not state manipulation", func(t *testing.T) {
-		// GIVEN: A parallel state command and non-state arguments
+		// GIVEN: A parallel state command and non-state arguments without --parallel=N flag
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
 		targetPath := "/tmp/test-terraform"
@@ -93,7 +93,7 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 
 		// THEN: Should return error
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "not a parallel state manipulation command")
+		assert.Contains(t, err.Error(), "not a parallel command")
 	})
 
 	t.Run("should return error when no modules found", func(t *testing.T) {
