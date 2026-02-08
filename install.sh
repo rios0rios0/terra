@@ -2,77 +2,62 @@
 #
 # Terra Installation Script
 #
-# This script installs the latest terra binary from GitHub releases.
-# It automatically detects your operating system and architecture.
+# Downloads and installs terra from GitHub releases.
+# Automatically detects your operating system and architecture.
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh
 #   wget -qO- https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh
 #
-# Or download and run locally:
-#   wget https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh
-#   chmod +x install.sh
-#   ./install.sh
+# Options:
+#   --help              Show this help message
+#   --version VERSION   Install specific version (e.g. v1.0.0)
+#   --install-dir DIR   Custom installation directory (default: ~/.local/bin)
+#   --force             Force reinstallation
+#   --dry-run           Show what would be done without installing
 #
 # Environment variables:
-#   TERRA_INSTALL_DIR - installation directory (default: ~/.local/bin)
-#   TERRA_VERSION     - specific version to install (default: latest)
-#   TERRA_FORCE       - force installation even if already installed (default: false)
-#   TERRA_DRY_RUN     - show what would be done without installing (default: false)
-#
-# Command line options:
-#   --help            - show this help message
-#   --version VER     - install specific version
-#   --force           - force installation
-#   --dry-run         - show what would be done without installing
-#   --install-dir DIR - custom installation directory
+#   TERRA_INSTALL_DIR   Installation directory (default: ~/.local/bin)
+#   TERRA_VERSION       Specific version to install (default: latest)
+#   TERRA_FORCE         Force installation (true/false, default: false)
+#   TERRA_DRY_RUN       Dry run mode (true/false, default: false)
 #
 
 set -e
 
-# Script constants
-TERRA_REPO_OWNER="rios0rios0"
-TERRA_REPO_NAME="terra"
+# Project configuration
+REPO_OWNER="rios0rios0"
+REPO_NAME="terra"
+BINARY_NAME="terra"
+
+# Defaults
+DEFAULT_INSTALL_DIR="$HOME/.local/bin"
+INSTALL_DIR="${TERRA_INSTALL_DIR:-$DEFAULT_INSTALL_DIR}"
+VERSION="${TERRA_VERSION:-latest}"
+FORCE="${TERRA_FORCE:-false}"
+DRY_RUN="${TERRA_DRY_RUN:-false}"
+
+# GitHub API
 GITHUB_API_BASE="https://api.github.com"
 GITHUB_RELEASE_BASE="https://github.com"
 
-# Default values
-DEFAULT_INSTALL_DIR="$HOME/.local/bin"
-TERRA_INSTALL_DIR="${TERRA_INSTALL_DIR:-$DEFAULT_INSTALL_DIR}"
-TERRA_VERSION="${TERRA_VERSION:-latest}"
-TERRA_FORCE="${TERRA_FORCE:-false}"
-TERRA_DRY_RUN="${TERRA_DRY_RUN:-false}"
-
-# Colors for output
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-# Utility functions
-info() {
-    printf "${BLUE}INFO:${NC} %s\n" "$1"
-}
+# Logging
+info()    { printf "${BLUE}INFO:${NC} %s\n" "$1"; }
+warn()    { printf "${YELLOW}WARN:${NC} %s\n" "$1"; }
+error()   { printf "${RED}ERROR:${NC} %s\n" "$1" >&2; }
+success() { printf "${GREEN}SUCCESS:${NC} %s\n" "$1"; }
 
-warn() {
-    printf "${YELLOW}WARN:${NC} %s\n" "$1"
-}
-
-error() {
-    printf "${RED}ERROR:${NC} %s\n" "$1" >&2
-}
-
-success() {
-    printf "${GREEN}SUCCESS:${NC} %s\n" "$1"
-}
-
-# Help function
+# Help
 show_help() {
     cat << EOF
-Terra Installation Script
-
-This script installs the latest terra binary from GitHub releases.
+${BINARY_NAME} Installation Script
 
 USAGE:
     $0 [OPTIONS]
@@ -80,72 +65,36 @@ USAGE:
 OPTIONS:
     --help              Show this help message
     --version VERSION   Install specific version (e.g. v1.0.0 or 1.0.0)
-    --force             Force installation even if already installed
-    --dry-run           Show what would be done without installing
     --install-dir DIR   Custom installation directory (default: ~/.local/bin)
+    --force             Force reinstallation
+    --dry-run           Show what would be done without installing
 
 ENVIRONMENT VARIABLES:
-    TERRA_INSTALL_DIR   Installation directory (default: ~/.local/bin)
+    TERRA_INSTALL_DIR   Installation directory
     TERRA_VERSION       Specific version to install (default: latest)
-    TERRA_FORCE         Force installation (true/false, default: false)
-    TERRA_DRY_RUN       Dry run mode (true/false, default: false)
+    TERRA_FORCE         Force installation (true/false)
+    TERRA_DRY_RUN       Dry run mode (true/false)
 
 EXAMPLES:
-    # Install latest version
     $0
-
-    # Install specific version
     $0 --version v1.0.0
-
-    # Install to custom directory
     $0 --install-dir /usr/local/bin
-
-    # Dry run to see what would happen
     $0 --dry-run
-
-    # Force reinstallation
     $0 --force
 
 EOF
 }
 
-# Parse command line arguments
+# Parse arguments
 parse_args() {
     while [ $# -gt 0 ]; do
         case $1 in
-            --help|-h)
-                show_help
-                exit 0
-                ;;
-            --version)
-                if [ -z "$2" ]; then
-                    error "Version argument required"
-                    exit 1
-                fi
-                TERRA_VERSION="$2"
-                shift 2
-                ;;
-            --force)
-                TERRA_FORCE="true"
-                shift
-                ;;
-            --dry-run)
-                TERRA_DRY_RUN="true"
-                shift
-                ;;
-            --install-dir)
-                if [ -z "$2" ]; then
-                    error "Install directory argument required"
-                    exit 1
-                fi
-                TERRA_INSTALL_DIR="$2"
-                shift 2
-                ;;
-            *)
-                error "Unknown option: $1"
-                error "Use --help to see available options"
-                exit 1
-                ;;
+            --help|-h)   show_help; exit 0 ;;
+            --version)   [ -z "$2" ] && { error "Version argument required"; exit 1; }; VERSION="$2"; shift 2 ;;
+            --force)     FORCE="true"; shift ;;
+            --dry-run)   DRY_RUN="true"; shift ;;
+            --install-dir) [ -z "$2" ] && { error "Install directory argument required"; exit 1; }; INSTALL_DIR="$2"; shift 2 ;;
+            *)           error "Unknown option: $1"; error "Use --help to see available options"; exit 1 ;;
         esac
     done
 }
@@ -153,35 +102,29 @@ parse_args() {
 # Detect operating system
 detect_os() {
     case "$(uname -s)" in
-        Linux*)     echo "linux" ;;
-        Darwin*)    echo "darwin" ;;
-        CYGWIN*|MINGW*|MSYS*)
-                    echo "windows" ;;
-        *)          error "Unsupported operating system: $(uname -s)"
-                    exit 1 ;;
+        Linux*)                   echo "linux" ;;
+        Darwin*)                  echo "darwin" ;;
+        CYGWIN*|MINGW*|MSYS*)    echo "windows" ;;
+        *)  error "Unsupported operating system: $(uname -s)"; exit 1 ;;
     esac
 }
 
 # Detect architecture
 detect_arch() {
     case "$(uname -m)" in
-        x86_64|amd64)   echo "amd64" ;;
-        i386|i686)      echo "386" ;;
-        arm64|aarch64)  echo "arm64" ;;
-        armv7l)         echo "arm" ;;
-        armv6l)         echo "arm" ;;
-        *)              error "Unsupported architecture: $(uname -m)"
-                        exit 1 ;;
+        x86_64|amd64)    echo "amd64" ;;
+        i386|i686)       echo "386" ;;
+        arm64|aarch64)   echo "arm64" ;;
+        armv7l|armv6l)   echo "arm" ;;
+        *)  error "Unsupported architecture: $(uname -m)"; exit 1 ;;
     esac
 }
 
 # Check if a command exists
-command_exists() {
-    command -v "$1" >/dev/null 2>&1
-}
+command_exists() { command -v "$1" >/dev/null 2>&1; }
 
-# Check if curl or wget is available
-check_download_tools() {
+# Ensure curl or wget is available
+check_download_tool() {
     if command_exists curl; then
         DOWNLOAD_CMD="curl"
     elif command_exists wget; then
@@ -192,11 +135,9 @@ check_download_tools() {
     fi
 }
 
-# Download file using available tool
+# Download a URL to a local file
 download_file() {
-    local url="$1"
-    local output="$2"
-    
+    local url="$1" output="$2"
     if [ "$DOWNLOAD_CMD" = "curl" ]; then
         curl -fsSL -o "$output" "$url"
     else
@@ -204,343 +145,172 @@ download_file() {
     fi
 }
 
-# Get latest release information from GitHub API
-get_latest_release() {
-    local api_url="${GITHUB_API_BASE}/repos/${TERRA_REPO_OWNER}/${TERRA_REPO_NAME}/releases/latest"
-    local temp_file
-    
-    temp_file=$(mktemp)
-    
-    if ! download_file "$api_url" "$temp_file"; then
-        rm -f "$temp_file"
-        error "Failed to fetch release information from GitHub API"
+# Resolve the tag name for the latest release
+get_latest_tag() {
+    local api_url="${GITHUB_API_BASE}/repos/${REPO_OWNER}/${REPO_NAME}/releases/latest"
+    local tmp
+    tmp=$(mktemp)
+
+    if ! download_file "$api_url" "$tmp"; then
+        rm -f "$tmp"
+        error "Failed to fetch latest release from GitHub API"
         exit 1
     fi
-    
-    # Extract tag_name from JSON (simple parsing without jq)
-    local tag_name
-    tag_name=$(grep -o '"tag_name"[[:space:]]*:[[:space:]]*"[^"]*"' "$temp_file" | cut -d'"' -f4)
-    
-    if [ -z "$tag_name" ]; then
-        rm -f "$temp_file"
-        error "Could not parse release information"
+
+    local tag
+    tag=$(grep -o '"tag_name"[[:space:]]*:[[:space:]]*"[^"]*"' "$tmp" | cut -d'"' -f4)
+    rm -f "$tmp"
+
+    if [ -z "$tag" ]; then
+        error "Could not parse release tag from GitHub API response"
         exit 1
     fi
-    
-    rm -f "$temp_file"
-    echo "$tag_name"
+    echo "$tag"
 }
 
-# Parse JSON to extract download URL (with jq fallback for reliability)
-parse_download_url() {
-    local temp_file="$1"
-    local asset_name="$2"
-    
-    # Try with jq first (if available) for robust JSON parsing
-    if command_exists jq; then
-        local download_url
-        download_url=$(jq -r --arg name "$asset_name" '.assets[] | select(.name == $name) | .browser_download_url' "$temp_file" 2>/dev/null)
-        
-        if [ -n "$download_url" ] && [ "$download_url" != "null" ]; then
-            echo "$download_url"
-            return 0
-        fi
-    fi
-    
-    # Fallback to manual parsing - simpler and more reliable approach
-    # Find lines containing both the asset name and the download URL in the same JSON object
-    local download_url
-    
-    # First, try to extract the JSON object containing our asset name
-    # Use Python if available for more reliable JSON parsing
-    if command_exists python3; then
-        download_url=$(python3 -c "
-import json, sys
-try:
-    with open('$temp_file', 'r') as f:
-        data = json.load(f)
-    for asset in data.get('assets', []):
-        if asset.get('name') == '$asset_name':
-            print(asset.get('browser_download_url', ''))
-            break
-except:
-    pass
-" 2>/dev/null)
-    elif command_exists python; then
-        download_url=$(python -c "
-import json, sys
-try:
-    with open('$temp_file', 'r') as f:
-        data = json.load(f)
-    for asset in data.get('assets', []):
-        if asset.get('name') == '$asset_name':
-            print(asset.get('browser_download_url', ''))
-            break
-except:
-    pass
-" 2>/dev/null)
-    fi
-    
-    # If Python parsing worked, use it
-    if [ -n "$download_url" ]; then
-        echo "$download_url"
-        return 0
-    fi
-    
-    # Ultimate fallback: use sed and awk more carefully
-    download_url=$(awk -v RS='}' -v asset="$asset_name" '
-        {
-            if ($0 ~ "\"name\"[[:space:]]*:[[:space:]]*\"" asset "\"") {
-                if (match($0, /"browser_download_url"[[:space:]]*:[[:space:]]*"([^"]*)"/, arr)) {
-                    print arr[1]
-                    exit
-                }
-            }
-        }
-    ' "$temp_file" 2>/dev/null)
-    
-    if [ -n "$download_url" ]; then
-        echo "$download_url"
-        return 0
-    fi
-    
-    # Last resort: try the original method but with better error handling
-    download_url=$(grep -A 3 "\"name\"[[:space:]]*:[[:space:]]*\"${asset_name}\"" "$temp_file" | \
-                   grep "browser_download_url" | \
-                   sed 's/.*"browser_download_url"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/')
-    
-    if [ -n "$download_url" ]; then
-        echo "$download_url"
-        return 0
-    fi
-    
-    return 1
+# Build the download URL for a given version, OS, and architecture.
+# GoReleaser naming: {project}-{version}-{os}-{arch}.tar.gz (.zip on Windows)
+build_download_url() {
+    local tag="$1" os="$2" arch="$3"
+    local ver
+    ver=$(echo "$tag" | sed 's/^v//')
+
+    local ext="tar.gz"
+    [ "$os" = "windows" ] && ext="zip"
+
+    echo "${GITHUB_RELEASE_BASE}/${REPO_OWNER}/${REPO_NAME}/releases/download/${tag}/${BINARY_NAME}-${ver}-${os}-${arch}.${ext}"
 }
 
-# List available assets for error reporting
-list_available_assets() {
-    local temp_file="$1"
-    
-    # Try with jq first for clean output
-    if command_exists jq; then
-        jq -r '.assets[].name' "$temp_file" 2>/dev/null | sed 's/^/  /' && return 0
-    fi
-    
-    # Fallback to manual parsing
-    grep '"name"[[:space:]]*:[[:space:]]*"' "$temp_file" | \
-        sed 's/.*"name"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/  \1/' 2>/dev/null
-}
-
-# Get download URL for specific version and platform
-get_download_url() {
-    local version="$1"
-    local os="$2"
-    local arch="$3"
-    
-    # Remove 'v' prefix if present for consistency
-    version=$(echo "$version" | sed 's/^v//')
-    
-    # Construct expected asset name (matches terra's self-update logic)
-    local asset_name="terra_${os}_${arch}"
-    
-    # For latest version, use the releases/latest API endpoint
-    if [ "$version" = "latest" ]; then
-        local api_url="${GITHUB_API_BASE}/repos/${TERRA_REPO_OWNER}/${TERRA_REPO_NAME}/releases/latest"
-    else
-        local api_url="${GITHUB_API_BASE}/repos/${TERRA_REPO_OWNER}/${TERRA_REPO_NAME}/releases/tags/v${version}"
-    fi
-    
-    local temp_file
-    temp_file=$(mktemp)
-    
-    if ! download_file "$api_url" "$temp_file"; then
-        rm -f "$temp_file"
-        error "Failed to fetch release information for version $version"
-        exit 1
-    fi
-    
-    # Extract download URL for the specific asset using improved parsing
-    local download_url
-    download_url=$(parse_download_url "$temp_file" "$asset_name")
-    
-    if [ -z "$download_url" ]; then
-        rm -f "$temp_file"
-        error "No binary found for platform ${os}_${arch} in version $version"
-        error "Available assets:"
-        list_available_assets "$temp_file"
-        exit 1
-    fi
-    
-    rm -f "$temp_file"
-    echo "$download_url"
-}
-
-# Check if terra is already installed
+# Check if the binary is already installed
 check_existing_installation() {
-    if [ -f "$TERRA_INSTALL_DIR/terra" ]; then
-        if [ "$TERRA_FORCE" = "false" ]; then
-            local current_version
-            current_version=$("$TERRA_INSTALL_DIR/terra" version 2>&1 | head -n1 | sed 's/.*Terra version: *\([^ ]*\).*/\1/' || echo "unknown")
-            warn "terra is already installed at $TERRA_INSTALL_DIR/terra (version: $current_version)"
+    if [ -f "${INSTALL_DIR}/${BINARY_NAME}" ]; then
+        if [ "$FORCE" = "false" ]; then
+            warn "${BINARY_NAME} is already installed at ${INSTALL_DIR}/${BINARY_NAME}"
             warn "Use --force to reinstall"
             return 1
-        else
-            info "Forcing reinstallation (--force specified)"
         fi
+        info "Forcing reinstallation (--force specified)"
     fi
     return 0
 }
 
-# Create installation directory
-create_install_dir() {
-    if [ ! -d "$TERRA_INSTALL_DIR" ]; then
-        if [ "$TERRA_DRY_RUN" = "true" ]; then
-            info "[DRY RUN] Would create directory: $TERRA_INSTALL_DIR"
-        else
-            info "Creating installation directory: $TERRA_INSTALL_DIR"
-            mkdir -p "$TERRA_INSTALL_DIR"
-        fi
-    fi
-}
+# Main installation logic
+install_binary() {
+    local download_url="$1" os="$2" tag="$3"
 
-# Install terra binary
-install_terra() {
-    local download_url="$1"
-    local os="$2"
-    local arch="$3"
-    local version="$4"
-    
-    info "Installing terra for ${os}/${arch} (version: $version)"
-    info "Installation directory: $TERRA_INSTALL_DIR"
-    
-    if [ "$TERRA_DRY_RUN" = "true" ]; then
-        info "[DRY RUN] Would download from: $download_url"
-        info "[DRY RUN] Would install to: $TERRA_INSTALL_DIR/terra"
+    if [ "$DRY_RUN" = "true" ]; then
+        info "[DRY RUN] Would download: $download_url"
+        info "[DRY RUN] Would install to: ${INSTALL_DIR}/${BINARY_NAME}"
         return 0
     fi
-    
-    # Create temporary file for download
-    local temp_file
-    temp_file=$(mktemp)
-    
-    info "Downloading terra binary..."
-    if ! download_file "$download_url" "$temp_file"; then
-        rm -f "$temp_file"
-        error "Failed to download terra binary"
+
+    # Prepare temp workspace
+    local tmp_archive tmp_dir
+    tmp_archive=$(mktemp)
+    tmp_dir=$(mktemp -d)
+
+    info "Downloading ${BINARY_NAME} ${tag}..."
+    if ! download_file "$download_url" "$tmp_archive"; then
+        rm -f "$tmp_archive"; rm -rf "$tmp_dir"
+        error "Failed to download archive from: $download_url"
         exit 1
     fi
-    
-    # Verify download
-    if [ ! -s "$temp_file" ]; then
-        rm -f "$temp_file"
+
+    if [ ! -s "$tmp_archive" ]; then
+        rm -f "$tmp_archive"; rm -rf "$tmp_dir"
         error "Downloaded file is empty"
         exit 1
     fi
-    
-    # Move to installation directory and make executable
-    info "Installing binary to $TERRA_INSTALL_DIR/terra"
-    mv "$temp_file" "$TERRA_INSTALL_DIR/terra"
-    chmod +x "$TERRA_INSTALL_DIR/terra"
-    
-    success "terra has been successfully installed!"
+
+    # Extract archive
+    info "Extracting archive..."
+    if [ "$os" = "windows" ]; then
+        unzip -q -o "$tmp_archive" -d "$tmp_dir"
+    else
+        tar -xzf "$tmp_archive" -C "$tmp_dir"
+    fi
+
+    # Locate binary inside the extracted directory
+    local src_binary="${tmp_dir}/${BINARY_NAME}"
+    [ "$os" = "windows" ] && src_binary="${src_binary}.exe"
+
+    if [ ! -f "$src_binary" ]; then
+        rm -f "$tmp_archive"; rm -rf "$tmp_dir"
+        error "Binary '${BINARY_NAME}' not found inside the archive"
+        exit 1
+    fi
+
+    # Install
+    mkdir -p "$INSTALL_DIR"
+    mv "$src_binary" "${INSTALL_DIR}/${BINARY_NAME}"
+    chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
+
+    # Cleanup
+    rm -f "$tmp_archive"
+    rm -rf "$tmp_dir"
+
+    success "${BINARY_NAME} has been installed to ${INSTALL_DIR}/${BINARY_NAME}"
 }
 
-# Verify installation
+# Post-install verification
 verify_installation() {
-    if [ "$TERRA_DRY_RUN" = "true" ]; then
-        info "[DRY RUN] Would verify installation at: $TERRA_INSTALL_DIR/terra"
+    if [ "$DRY_RUN" = "true" ]; then
+        info "[DRY RUN] Would verify installation at: ${INSTALL_DIR}/${BINARY_NAME}"
         return 0
     fi
-    
-    if [ -x "$TERRA_INSTALL_DIR/terra" ]; then
-        local installed_version
-        installed_version=$("$TERRA_INSTALL_DIR/terra" version 2>&1 | head -n1 | sed 's/.*Terra version: *\([^ ]*\).*/\1/' || echo "unknown")
-        success "Installation verified: $installed_version"
-        
-        # Check if install directory is in PATH
-        case ":$PATH:" in
-            *":$TERRA_INSTALL_DIR:"*) ;;
-            *)
-                warn "Installation directory $TERRA_INSTALL_DIR is not in your PATH"
-                info "Add the following line to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
-                info "  export PATH=\"\$PATH:$TERRA_INSTALL_DIR\""
-                info ""
-                info "Or run terra with the full path:"
-                info "  $TERRA_INSTALL_DIR/terra --help"
-                ;;
-        esac
+
+    if [ -x "${INSTALL_DIR}/${BINARY_NAME}" ]; then
+        success "Installation verified"
     else
         error "Installation verification failed"
         exit 1
     fi
+
+    # Warn if the install directory is not in PATH
+    case ":$PATH:" in
+        *":${INSTALL_DIR}:"*) ;;
+        *)
+            warn "${INSTALL_DIR} is not in your PATH"
+            info "Add to your shell profile (~/.bashrc, ~/.zshrc, etc.):"
+            info "  export PATH=\"\$PATH:${INSTALL_DIR}\""
+            ;;
+    esac
 }
 
-# Main installation function
+# Entry point
 main() {
-    info "Terra Installation Script"
+    info "${BINARY_NAME} Installation Script"
     info "========================="
-    
-    # Parse command line arguments
+
     parse_args "$@"
-    
-    # Check prerequisites
-    check_download_tools
-    
-    # Detect platform
+    check_download_tool
+
     local os arch
     os=$(detect_os)
     arch=$(detect_arch)
     info "Detected platform: ${os}/${arch}"
-    
-    # Get version to install
-    local version="$TERRA_VERSION"
-    local download_url=""
-    
-    if [ "$TERRA_DRY_RUN" = "true" ]; then
-        # In dry run mode, use mock data
-        if [ "$version" = "latest" ]; then
-            version="v1.0.0"
-            info "[DRY RUN] Would fetch latest release information..."
-            info "[DRY RUN] Mock latest version: $version"
-        else
-            info "[DRY RUN] Would install version: $version"
-        fi
-        download_url="https://github.com/${TERRA_REPO_OWNER}/${TERRA_REPO_NAME}/releases/download/${version}/terra_${os}_${arch}"
-        info "[DRY RUN] Mock download URL: $download_url"
+
+    # Resolve version
+    local tag="$VERSION"
+    if [ "$tag" = "latest" ]; then
+        info "Fetching latest release..."
+        tag=$(get_latest_tag)
     else
-        if [ "$version" = "latest" ]; then
-            info "Fetching latest release information..."
-            version=$(get_latest_release)
-            info "Latest version: $version"
-        else
-            info "Installing version: $version"
-        fi
-        
-        # Get download URL
-        info "Getting download URL..."
-        download_url=$(get_download_url "$version" "$os" "$arch")
+        # Ensure tag has v prefix
+        case "$tag" in v*) ;; *) tag="v${tag}" ;; esac
     fi
-    
-    # Check existing installation
-    if ! check_existing_installation; then
-        exit 0
-    fi
-    
-    # Create installation directory
-    create_install_dir
-    
-    # Install terra
-    install_terra "$download_url" "$os" "$arch" "$version"
-    
-    # Verify installation
+    info "Version: ${tag}"
+
+    local download_url
+    download_url=$(build_download_url "$tag" "$os" "$arch")
+
+    check_existing_installation || exit 0
+
+    install_binary "$download_url" "$os" "$tag"
     verify_installation
-    
+
     info ""
-    success "Installation complete!"
-    if [ "$TERRA_DRY_RUN" = "false" ]; then
-        info "Run 'terra --help' to get started"
-    fi
+    success "Installation complete! Run '${BINARY_NAME} --help' to get started."
 }
 
-# Run the main function with all arguments
 main "$@"
