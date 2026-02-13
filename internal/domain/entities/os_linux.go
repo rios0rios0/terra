@@ -55,6 +55,7 @@ func (it *OSLinux) Remove(tempFilePath string) error {
 }
 
 func (it *OSLinux) MakeExecutable(filePath string) error {
+	// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 	err := os.Chmod(filePath, osOrwxGrxUx)
 	if err != nil {
 		err = fmt.Errorf("failed to perform change binary permissions using 'chmod': %w", err)
@@ -67,6 +68,11 @@ func (it *OSLinux) GetTempDir() string {
 }
 
 func (it *OSLinux) GetInstallationPath() string {
+	// Allow override via environment variable (used by tests to avoid
+	// overwriting real binaries like terraform in ~/.local/bin).
+	if envPath := os.Getenv("TERRA_INSTALL_PATH"); envPath != "" {
+		return envPath
+	}
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
 		return "~/.local/bin" // Fallback to original path
