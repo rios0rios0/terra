@@ -17,36 +17,23 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ## [Unreleased]
 
 ### Added
-- Enhanced `--auto-answer` feature to support configurable responses (`--auto-answer=y` or `--auto-answer=n`)
-- Installation shell script (`install.sh`) for automated terra installation from GitHub releases
-  - Platform detection (Linux, macOS, Windows) with architecture support (amd64, arm64, 386, arm)
-  - One-liner installation command: `curl -fsSL https://raw.githubusercontent.com/rios0rios0/terra/main/install.sh | sh`
-  - Support for installation options: `--version`, `--force`, `--dry-run`, `--install-dir`
-  - Environment variable support: `TERRA_INSTALL_DIR`, `TERRA_VERSION`, `TERRA_FORCE`, `TERRA_DRY_RUN`
-  - Comprehensive error handling and user-friendly output with colors
-  - Installation to `~/.local/bin` by default (follows existing terra pattern)
-  - Verification of installation and PATH guidance
-- Support for short form syntax (`-a=y` or `-a=n`) for auto-answer configuration
-- Backward compatibility maintained - boolean `--auto-answer` and `-a` flags default to "n"
-- Comprehensive unit and integration tests for auto-answer functionality
 
-### Changed
-
-- added parallel execution support for state manipulation commands (`import`, `state rm`, `state mv`, `state pull`, `state push`, `state show`) when using the `--all` flag
-- added automatic discovery of Terraform/Terragrunt modules in subdirectories for parallel execution
-- added configurable concurrency control (default: 5 parallel jobs) for state operations
-- added error aggregation and reporting for parallel operations with detailed logging
-- added "update" command as an alias for "install" command
-- added `--auto-answer` flag to automatically handle Terragrunt prompts
+- added cross-platform file locking via `gofrs/flock` to prevent race conditions when multiple terra processes run concurrently from the same repository
+- added centralized Terragrunt module and provider caching (`TG_DOWNLOAD_DIR`, `TF_PLUGIN_CACHE_DIR`) configured automatically before every invocation, with override via `TERRA_MODULE_CACHE_DIR` and `TERRA_PROVIDER_CACHE_DIR`
+- added Terragrunt CAS (Content Addressable Store) enabled by default for Git clone deduplication via hard links; disabled with `TERRA_NO_CAS=true`
+- added `--global` flag to the `clear` command to also remove centralized cache directories
+- added `--auto-answer` flag (`-a`) to automatically handle Terragrunt prompts, with configurable responses (`--auto-answer=y` or `-a=n`; defaults to "n" for backward compatibility)
+- added parallel execution for any command via `--parallel=N`, including state manipulation commands (`import`, `state rm`, `state mv`, `state pull`, `state push`, `state show`) with `--all`, automatic module discovery, configurable concurrency (default: 5 jobs), and error aggregation
+- added installation shell script (`install.sh`) for automated terra installation from GitHub releases with platform detection, `--version`, `--force`, `--dry-run`, and `--install-dir` options
 - added `version` command to display Terra, Terraform, and Terragrunt versions
-- added a self-update feature to update the CLI without any additional step
-- added an interactive shell repository for auto-answering functionality
-- added dependency injection with Wire and inverted all dependencies
-- created validation on the `settings` entity
+- added `update` command as an alias for `install`
+- added self-update feature to update the CLI without any additional step
+- added dependency injection (first Wire, then DIG) and inverted all dependencies
+- added validation on the `settings` entity
 
 ### Changed
 
-- **BREAKING CHANGE**: Replaced deprecated `run-all` command syntax with `--all` flag to align with Terragrunt's new syntax
+- **BREAKING CHANGE**: replaced deprecated `run-all` command syntax with `--all` flag to align with Terragrunt's new syntax
 - changed the documentation with pipelines and minor change to template files
 - corrected controllers responsibilities mapping the external to internal entities
 - corrected dependency injection architecture
@@ -58,7 +45,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - updated Copilot instructions to use rios0rios0/pipelines project for linting and CI tools instead of direct tool installation
 - updated `.editorconfig` to enforce LF line endings across all file types instead of just Go files
 - updated documentation to require `CHANGELOG.md` updates for new features and bug fixes (not required for documentation-only changes)
-- upgraded the project to Go `1.23` and all the dependencies
+- upgraded the project to Go `1.26` and all the dependencies
 
 ### Fixed
 

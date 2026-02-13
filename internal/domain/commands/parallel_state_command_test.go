@@ -137,6 +137,80 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
 		assert.NotContains(t, lastCall.Arguments, "--all", "Should remove --all flag from individual module execution")
 	})
+
+	t.Run("should execute with --parallel=2 for any command", func(t *testing.T) {
+		// GIVEN: A parallel state command with --parallel=2 flag
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"plan", "--parallel=2"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1", "mod2"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should execute successfully
+		require.NoError(t, err)
+		assert.GreaterOrEqual(t, repository.ExecuteCallCount, 2)
+	})
+
+	t.Run("should execute with --filter inclusion when filter flag present", func(t *testing.T) {
+		// GIVEN: A parallel state command with --filter flag
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"import", "--all", "--filter=mod1,mod2", "null_resource.test", "id"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1", "mod2", "mod3"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should execute only for filtered modules (mod1 and mod2, not mod3)
+		require.NoError(t, err)
+		assert.Equal(t, 2, repository.ExecuteCallCount, "Should execute exactly 2 commands for filtered modules")
+	})
+
+	t.Run("should execute with --filter exclusion when exclusion filter present", func(t *testing.T) {
+		// GIVEN: A parallel state command with exclusion filter
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"import", "--all", "--filter=!mod3", "null_resource.test", "id"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1", "mod2", "mod3"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should execute only for non-excluded modules (mod1 and mod2)
+		require.NoError(t, err)
+		assert.Equal(t, 2, repository.ExecuteCallCount, "Should execute 2 commands excluding mod3")
+	})
+
+	t.Run("should return error when filter matches no valid paths", func(t *testing.T) {
+		// GIVEN: A parallel state command with filter pointing to nonexistent dirs
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"import", "--all", "--filter=nonexistent", "null_resource.test", "id"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should return error about no valid filter paths
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "no valid filter paths found")
+	})
 }
 
 // testDirectoryHelper helps create test directories for parallel state tests

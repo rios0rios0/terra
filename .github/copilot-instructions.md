@@ -72,6 +72,13 @@ TERRA_AZURE_SUBSCRIPTION_ID=12345678-1234-1234-1234-123456789012
 # Optional
 TERRA_WORKSPACE=dev
 
+# Optional: Centralized cache directories (defaults shown below)
+# TERRA_MODULE_CACHE_DIR=~/.cache/terra/modules
+# TERRA_PROVIDER_CACHE_DIR=~/.cache/terra/providers
+
+# Optional: Disable Terragrunt CAS (Content Addressable Store) experiment
+# TERRA_NO_CAS=true
+
 # Terraform variables (optional)
 TF_VAR_environment=development
 TF_VAR_region=us-west-2
@@ -104,8 +111,11 @@ make all     # All quality checks
 
 ### Standalone Commands (work without Terraform/Terragrunt installed)
 ```bash
-# Clear cache directories
+# Clear local cache directories (.terraform, .terragrunt-cache)
 terra clear
+
+# Clear local AND centralized cache directories (~/.cache/terra/modules, ~/.cache/terra/providers)
+terra clear --global
 
 # Format code files (warns if terraform/terragrunt not in PATH)
 terra format
@@ -369,12 +379,21 @@ internal/infrastructure/ # Controllers and repositories
 - `.golangci.yml` - Linting configuration
 - `go.mod` - Go module dependencies (includes testify for testing)
 - `internal/domain/entities/settings.go` - Environment variable configuration
+- `internal/domain/commands/file_lock.go` - Cross-platform file locking via `gofrs/flock`
+- `internal/domain/commands/run_from_root_command.go` - Main command orchestration (locking, caching, execution)
 - `internal/infrastructure/helpers/arguments_helper.go` - Command argument parsing (has known bugs)
 
 ### DIG Dependency Injection
 - Uses Uber's DIG for runtime dependency injection
 - Providers are registered in container.go files in each layer
 - No code generation required
+
+### Concurrency and Caching
+- **File locking**: `RunFromRootCommand.Execute` acquires a per-repository exclusive lock via `gofrs/flock` to prevent concurrent terra processes from corrupting shared caches. The lock file is at `$TMPDIR/terra-{hash}.lock` (SHA256 hash derived from the working directory). This works cross-platform (Unix and Windows).
+- **Centralized module cache**: Terra sets `TG_DOWNLOAD_DIR` before invoking Terragrunt so all stacks share a single module download directory (default `~/.cache/terra/modules`). Override with `TERRA_MODULE_CACHE_DIR`.
+- **Centralized provider cache**: Terra sets `TF_PLUGIN_CACHE_DIR` so Terraform/OpenTofu provider plugins are downloaded once and reused (default `~/.cache/terra/providers`). Override with `TERRA_PROVIDER_CACHE_DIR`.
+- **CAS (Content Addressable Store)**: Terra enables the Terragrunt CAS experiment by default (`TG_EXPERIMENT=cas`), which deduplicates Git clones via hard links. This reduces disk usage and speeds up subsequent clones. Disable with `TERRA_NO_CAS=true`.
+- **Clearing caches**: `terra clear` removes local `.terraform` and `.terragrunt-cache` directories. Use `terra clear --global` to also remove the centralized cache directories.
 
 ## Common Tasks
 
@@ -401,6 +420,17 @@ TERRA_AZURE_SUBSCRIPTION_ID=subscription-id
 
 # Terraform workspace (optional)
 TERRA_WORKSPACE=workspace-name
+
+# Centralized module cache directory (optional, default: ~/.cache/terra/modules)
+# Sets TG_DOWNLOAD_DIR so Terragrunt reuses downloaded modules across stacks
+TERRA_MODULE_CACHE_DIR=/custom/path/to/modules
+
+# Centralized provider cache directory (optional, default: ~/.cache/terra/providers)
+# Sets TF_PLUGIN_CACHE_DIR so Terraform/OpenTofu reuses provider plugins across stacks
+TERRA_PROVIDER_CACHE_DIR=/custom/path/to/providers
+
+# Disable CAS experiment (optional, default: false = CAS enabled)
+TERRA_NO_CAS=true
 
 # Terraform variables (optional, any TF_VAR_* variables)
 TF_VAR_*=value

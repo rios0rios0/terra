@@ -50,6 +50,11 @@ func addSubcommands(rootCmd *cobra.Command, appContext entities.AppContext) {
 			subCmd.Flags().Bool("force", false, "Skip confirmation prompts")
 		}
 
+		// Add flags for clear command
+		if bind.Use == "clear" {
+			subCmd.Flags().Bool("global", false, "Also remove centralized module and provider cache directories")
+		}
+
 		rootCmd.AddCommand(subCmd)
 	}
 }

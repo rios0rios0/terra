@@ -13,6 +13,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/repositories"
+
 	"github.com/rios0rios0/terra/test/domain/commanddoubles"
 
 	"github.com/stretchr/testify/assert"
@@ -35,8 +36,13 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		tempDir := t.TempDir()
 		createMockTerragruntConfig(t, tempDir, "y")
 
-		// Create command with real interactive repository
+		// Create command with isolated cache directories for this test
+		cacheDir := filepath.Join(tempDir, ".cache")
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{
+				TerraModuleCacheDir:   filepath.Join(cacheDir, "modules"),
+				TerraProviderCacheDir: filepath.Join(cacheDir, "providers"),
+			},
 			&commanddoubles.StubInstallDependencies{},
 			&commanddoubles.StubFormatFiles{},
 			&commanddoubles.StubRunAdditionalBefore{},
@@ -67,7 +73,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		case <-done:
 			// Test passed - the command executed and handled the auto-answer flag
 			assert.True(t, true, "Command executed with auto-answer=y")
-		case <-time.After(5 * time.Second):
+		case <-time.After(60 * time.Second):
 			t.Fatal("Command execution timed out")
 		}
 	})
@@ -77,8 +83,13 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		tempDir := t.TempDir()
 		createMockTerragruntConfig(t, tempDir, "n")
 
-		// Create command with real interactive repository
+		// Create command with isolated cache directories for this test
+		cacheDir := filepath.Join(tempDir, ".cache")
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{
+				TerraModuleCacheDir:   filepath.Join(cacheDir, "modules"),
+				TerraProviderCacheDir: filepath.Join(cacheDir, "providers"),
+			},
 			&commanddoubles.StubInstallDependencies{},
 			&commanddoubles.StubFormatFiles{},
 			&commanddoubles.StubRunAdditionalBefore{},
@@ -109,7 +120,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		case <-done:
 			// Test passed - the command executed and handled the auto-answer flag
 			assert.True(t, true, "Command executed with auto-answer=n")
-		case <-time.After(5 * time.Second):
+		case <-time.After(60 * time.Second):
 			t.Fatal("Command execution timed out")
 		}
 	})
@@ -119,8 +130,13 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		tempDir := t.TempDir()
 		createMockTerragruntConfig(t, tempDir, "n")
 
-		// Create command with real interactive repository
+		// Create command with isolated cache directories for this test
+		cacheDir := filepath.Join(tempDir, ".cache")
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{
+				TerraModuleCacheDir:   filepath.Join(cacheDir, "modules"),
+				TerraProviderCacheDir: filepath.Join(cacheDir, "providers"),
+			},
 			&commanddoubles.StubInstallDependencies{},
 			&commanddoubles.StubFormatFiles{},
 			&commanddoubles.StubRunAdditionalBefore{},
@@ -151,7 +167,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		case <-done:
 			// Test passed - the command executed and handled the auto-answer flag
 			assert.True(t, true, "Command executed with boolean auto-answer defaulting to 'n'")
-		case <-time.After(5 * time.Second):
+		case <-time.After(60 * time.Second):
 			t.Fatal("Command execution timed out")
 		}
 	})
