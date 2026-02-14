@@ -40,7 +40,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
 			WithVersionURL(versionServer.URL + "/terraform").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// Mock stdin to simulate "no" response to update prompt
 		oldStdin := os.Stdin
@@ -86,7 +86,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
 			WithVersionURL(versionServer.URL + "/terraform").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -118,7 +118,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
 			WithVersionURL(versionServer.URL + "/terraform").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -157,7 +157,7 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
 			WithVersionURL(versionServer.URL + "/terraform").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// Mock stdin to simulate "yes" response to update prompt
 		oldStdin := os.Stdin

@@ -8,10 +8,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	testkit "github.com/rios0rios0/testkit/pkg/test"
 )
 
 // GitHubAPIServerBuilder helps create mock GitHub API servers for testing.
 type GitHubAPIServerBuilder struct {
+	*testkit.BaseBuilder
 	t              *testing.T
 	releaseVersion string
 	assetName      string
@@ -24,8 +27,9 @@ type GitHubAPIServerBuilder struct {
 func NewGitHubAPIServerBuilder(t *testing.T) *GitHubAPIServerBuilder {
 	t.Helper()
 	return &GitHubAPIServerBuilder{
-		t:          t,
-		statusCode: http.StatusOK,
+		BaseBuilder: testkit.NewBaseBuilder(),
+		t:           t,
+		statusCode:  http.StatusOK,
 	}
 }
 
@@ -47,6 +51,35 @@ func (b *GitHubAPIServerBuilder) WithStatusCode(code int) *GitHubAPIServerBuilde
 func (b *GitHubAPIServerBuilder) WithErrorResponse(errorMsg string) *GitHubAPIServerBuilder {
 	b.errorResponse = errorMsg
 	return b
+}
+
+// Build satisfies the testkit.Builder interface.
+func (b *GitHubAPIServerBuilder) Build() interface{} {
+	return b.BuildServer()
+}
+
+// Reset clears the builder state, allowing it to be reused.
+func (b *GitHubAPIServerBuilder) Reset() testkit.Builder {
+	b.BaseBuilder.Reset()
+	b.releaseVersion = ""
+	b.assetName = ""
+	b.assetURL = ""
+	b.statusCode = http.StatusOK
+	b.errorResponse = ""
+	return b
+}
+
+// Clone creates a deep copy of the GitHubAPIServerBuilder.
+func (b *GitHubAPIServerBuilder) Clone() testkit.Builder {
+	return &GitHubAPIServerBuilder{
+		BaseBuilder:    b.BaseBuilder.Clone().(*testkit.BaseBuilder),
+		t:              b.t,
+		releaseVersion: b.releaseVersion,
+		assetName:      b.assetName,
+		assetURL:       b.assetURL,
+		statusCode:     b.statusCode,
+		errorResponse:  b.errorResponse,
+	}
 }
 
 // BuildServer creates and returns a test server.

@@ -29,6 +29,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 			additionalBefore,
 			parallelState,
 			repository,
+			&repositorydoubles.StubUpgradeShellRepository{},
 			interactiveRepository,
 		)
 
@@ -69,6 +70,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 			additionalBefore,
 			parallelState,
 			repository,
+			&repositorydoubles.StubUpgradeShellRepository{},
 			interactiveRepository,
 		)
 
@@ -96,6 +98,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
 		parallelState := &commanddoubles.StubParallelState{}
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			&entities.Settings{},
@@ -104,6 +107,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 			additionalBefore,
 			parallelState,
 			repository,
+			upgradeRepository,
 			interactiveRepository,
 		)
 
@@ -117,7 +121,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 		// THEN: Should NOT execute format command (state commands skip formatting)
 		assert.False(t, formatCommand.ExecuteCalled, "Should not execute format command for state commands")
 		assert.True(t, additionalBefore.ExecuteCalled, "Should execute additional before command")
-		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute normal terragrunt command")
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should execute normal terragrunt command")
 
 		// Should NOT execute parallel state command
 		assert.False(t, parallelState.ExecuteCalled, "Should not execute parallel state command for normal import")
@@ -130,6 +134,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
 		parallelState := &commanddoubles.StubParallelState{}
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			&entities.Settings{},
@@ -138,6 +143,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 			additionalBefore,
 			parallelState,
 			repository,
+			upgradeRepository,
 			interactiveRepository,
 		)
 
@@ -151,7 +157,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 		// THEN: Should execute normal flow
 		assert.True(t, formatCommand.ExecuteCalled, "Should execute format command")
 		assert.True(t, additionalBefore.ExecuteCalled, "Should execute additional before command")
-		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute normal terragrunt command")
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should execute normal terragrunt command")
 
 		// Should NOT execute parallel state command
 		assert.False(t, parallelState.ExecuteCalled, "Should not execute parallel state command for plan")

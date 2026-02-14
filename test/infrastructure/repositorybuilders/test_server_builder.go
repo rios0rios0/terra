@@ -6,10 +6,13 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+
+	testkit "github.com/rios0rios0/testkit/pkg/test"
 )
 
 // TestServerBuilder helps create mock servers with a fluent interface.
 type TestServerBuilder struct {
+	*testkit.BaseBuilder
 	versionResponses map[string]string
 	binaryResponse   []byte
 	binaryStatus     int
@@ -20,6 +23,7 @@ type TestServerBuilder struct {
 // NewTestServerBuilder creates a new test server builder.
 func NewTestServerBuilder() *TestServerBuilder {
 	return &TestServerBuilder{
+		BaseBuilder:      testkit.NewBaseBuilder(),
 		versionResponses: make(map[string]string),
 		binaryResponse:   []byte("#!/bin/bash\necho 'mock binary'\n"),
 		binaryStatus:     http.StatusOK,
@@ -70,6 +74,50 @@ func (b *TestServerBuilder) WithDownloadFailure() *TestServerBuilder {
 	b.shouldFail = true
 	b.binaryStatus = http.StatusInternalServerError
 	return b
+}
+
+// TestServers holds the version and binary servers created by TestServerBuilder.
+type TestServers struct {
+	VersionServer *httptest.Server
+	BinaryServer  *httptest.Server
+}
+
+// Build satisfies the testkit.Builder interface and returns the servers.
+func (b *TestServerBuilder) Build() interface{} {
+	versionServer, binaryServer := b.BuildServers()
+	return &TestServers{
+		VersionServer: versionServer,
+		BinaryServer:  binaryServer,
+	}
+}
+
+// Reset clears the builder state, allowing it to be reused.
+func (b *TestServerBuilder) Reset() testkit.Builder {
+	b.BaseBuilder.Reset()
+	b.versionResponses = make(map[string]string)
+	b.binaryResponse = []byte("#!/bin/bash\necho 'mock binary'\n")
+	b.binaryStatus = http.StatusOK
+	b.contentType = "application/octet-stream"
+	b.shouldFail = false
+	return b
+}
+
+// Clone creates a deep copy of the TestServerBuilder.
+func (b *TestServerBuilder) Clone() testkit.Builder {
+	responses := make(map[string]string)
+	for k, v := range b.versionResponses {
+		responses[k] = v
+	}
+	binaryResp := make([]byte, len(b.binaryResponse))
+	copy(binaryResp, b.binaryResponse)
+	return &TestServerBuilder{
+		BaseBuilder:      b.BaseBuilder.Clone().(*testkit.BaseBuilder),
+		versionResponses: responses,
+		binaryResponse:   binaryResp,
+		binaryStatus:     b.binaryStatus,
+		contentType:      b.contentType,
+		shouldFail:       b.shouldFail,
+	}
 }
 
 // BuildServers creates and returns the version and binary servers.
