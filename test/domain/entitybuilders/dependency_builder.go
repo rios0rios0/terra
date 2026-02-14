@@ -4,10 +4,12 @@ package entitybuilders //nolint:revive,staticcheck // Test package naming follow
 
 import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	testkit "github.com/rios0rios0/testkit/pkg/test"
 )
 
 // DependencyBuilder helps create test dependencies with a fluent interface.
 type DependencyBuilder struct {
+	*testkit.BaseBuilder
 	name              string
 	cli               string
 	binaryURL         string
@@ -19,6 +21,7 @@ type DependencyBuilder struct {
 // NewDependencyBuilder creates a new dependency builder.
 func NewDependencyBuilder() *DependencyBuilder {
 	return &DependencyBuilder{
+		BaseBuilder:       testkit.NewBaseBuilder(),
 		name:              "TestDependency",
 		cli:               "test-dependency",
 		regexVersion:      `"version":"([^"]+)"`,
@@ -66,8 +69,13 @@ func (b *DependencyBuilder) WithTerragruntPattern() *DependencyBuilder {
 	return b.WithRegexVersion(`"tag_name":"v([^"]+)"`)
 }
 
-// Build creates the dependency.
-func (b *DependencyBuilder) Build() entities.Dependency {
+// Build creates the dependency (satisfies testkit.Builder interface).
+func (b *DependencyBuilder) Build() interface{} {
+	return b.BuildDependency()
+}
+
+// BuildDependency creates the dependency with a concrete return type for convenience.
+func (b *DependencyBuilder) BuildDependency() entities.Dependency {
 	return entities.Dependency{
 		Name:              b.name,
 		CLI:               b.cli,
@@ -75,5 +83,32 @@ func (b *DependencyBuilder) Build() entities.Dependency {
 		VersionURL:        b.versionURL,
 		RegexVersion:      b.regexVersion,
 		FormattingCommand: b.formattingCommand,
+	}
+}
+
+// Reset clears the builder state, allowing it to be reused.
+func (b *DependencyBuilder) Reset() testkit.Builder {
+	b.BaseBuilder.Reset()
+	b.name = "TestDependency"
+	b.cli = "test-dependency"
+	b.binaryURL = ""
+	b.versionURL = ""
+	b.regexVersion = `"version":"([^"]+)"`
+	b.formattingCommand = []string{"format"}
+	return b
+}
+
+// Clone creates a deep copy of the DependencyBuilder.
+func (b *DependencyBuilder) Clone() testkit.Builder {
+	fmtCmd := make([]string, len(b.formattingCommand))
+	copy(fmtCmd, b.formattingCommand)
+	return &DependencyBuilder{
+		BaseBuilder:       b.BaseBuilder.Clone().(*testkit.BaseBuilder),
+		name:              b.name,
+		cli:               b.cli,
+		binaryURL:         b.binaryURL,
+		versionURL:        b.versionURL,
+		regexVersion:      b.regexVersion,
+		formattingCommand: fmtCmd,
 	}
 }

@@ -393,6 +393,7 @@ internal/infrastructure/ # Controllers and repositories
 - **Centralized module cache**: Terra sets `TG_DOWNLOAD_DIR` before invoking Terragrunt so all stacks share a single module download directory (default `~/.cache/terra/modules`). Override with `TERRA_MODULE_CACHE_DIR`.
 - **Centralized provider cache**: Terra sets `TF_PLUGIN_CACHE_DIR` so Terraform/OpenTofu provider plugins are downloaded once and reused (default `~/.cache/terra/providers`). Override with `TERRA_PROVIDER_CACHE_DIR`.
 - **CAS (Content Addressable Store)**: Terra enables the Terragrunt CAS experiment by default (`TG_EXPERIMENT=cas`), which deduplicates Git clones via hard links. This reduces disk usage and speeds up subsequent clones. Disable with `TERRA_NO_CAS=true`.
+- **Auto-initialization with upgrade**: `UpgradeAwareShellRepository` wraps command execution. When a terragrunt command fails with output matching upgrade-needed patterns (backend changed, provider conflicts, uninitialized modules), it automatically runs `init --upgrade` and retries the original command. This is used in the normal (non-interactive) execution path of `RunFromRootCommand`.
 - **Clearing caches**: `terra clear` removes local `.terraform` and `.terragrunt-cache` directories. Use `terra clear --global` to also remove the centralized cache directories.
 
 ## Common Tasks
