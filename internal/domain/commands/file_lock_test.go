@@ -16,15 +16,12 @@ import (
 
 func TestAcquireRepoLock(t *testing.T) {
 	t.Run("should acquire and release lock successfully when called", func(t *testing.T) {
-		// given
-		cwd, err := os.Getwd()
-		require.NoError(t, err)
-
-		hash := fmt.Sprintf("%x", sha256.Sum256([]byte(cwd)))
-		expectedLockPath := filepath.Join(os.TempDir(), fmt.Sprintf("terra-%s.lock", hash[:12]))
+		t.Parallel()
+		// given -- use a unique lock path to avoid contention with other tests
+		lockPath := filepath.Join(t.TempDir(), "test-acquire.lock")
 
 		// when
-		fl := flock.New(expectedLockPath)
+		fl := flock.New(lockPath)
 		locked, err := fl.TryLock()
 
 		// then

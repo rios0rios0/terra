@@ -41,7 +41,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 				WithBinaryURL(binaryServer.URL + "/testtool_%s").
 				WithVersionURL(versionServer.URL + "/terraform").
 				WithTerraformPattern().
-				Build()
+				BuildDependency()
 
 			// WHEN: Executing the install command
 			cmd := commands.NewInstallDependenciesCommand()
@@ -86,7 +86,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/testziptool_%s.zip").
 			WithVersionURL(versionServer.URL + "/terraform").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the install command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -130,7 +130,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 				WithBinaryURL(binaryServer.URL + "/terraform_%s").
 				WithVersionURL(versionServer.URL + "/terraform").
 				WithTerraformPattern().
-				Build()
+				BuildDependency()
 
 			terragruntDep := entitybuilders.NewDependencyBuilder().
 				WithName("TestTerragrunt").
@@ -138,7 +138,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 				WithBinaryURL(binaryServer.URL + "/terragrunt_%s").
 				WithVersionURL(versionServer.URL + "/terragrunt").
 				WithTerragruntPattern().
-				Build()
+				BuildDependency()
 
 			// WHEN: Executing with mixed dependencies
 			cmd := commands.NewInstallDependenciesCommand()

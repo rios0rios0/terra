@@ -38,7 +38,7 @@ func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 			WithBinaryURL(zipServer.URL + "/test_%s.zip").
 			WithVersionURL(versionServer.URL + "/version").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -69,7 +69,7 @@ func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 			WithBinaryURL(zipServer.URL + "/myapp_%s.zip").
 			WithVersionURL(versionServer.URL + "/version").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -100,7 +100,7 @@ func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 			WithBinaryURL(zipServer.URL + "/terraform_%s.zip").
 			WithVersionURL(versionServer.URL + "/version").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -127,7 +127,7 @@ func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 			WithBinaryURL(zipServer.URL + "/terraform_%s.zip").
 			WithVersionURL(versionServer.URL + "/version").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
