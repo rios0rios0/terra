@@ -16,42 +16,43 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-02-13
+
 ### Added
 
-- added cross-platform file locking via `gofrs/flock` to prevent race conditions when multiple terra processes run concurrently from the same repository
-- added centralized Terragrunt module and provider caching (`TG_DOWNLOAD_DIR`, `TF_PLUGIN_CACHE_DIR`) configured automatically before every invocation, with override via `TERRA_MODULE_CACHE_DIR` and `TERRA_PROVIDER_CACHE_DIR`
 - added Terragrunt CAS (Content Addressable Store) enabled by default for Git clone deduplication via hard links; disabled with `TERRA_NO_CAS=true`
-- added `--global` flag to the `clear` command to also remove centralized cache directories
 - added `--auto-answer` flag (`-a`) to automatically handle Terragrunt prompts, with configurable responses (`--auto-answer=y` or `-a=n`; defaults to "n" for backward compatibility)
-- added parallel execution for any command via `--parallel=N`, including state manipulation commands (`import`, `state rm`, `state mv`, `state pull`, `state push`, `state show`) with `--all`, automatic module discovery, configurable concurrency (default: 5 jobs), and error aggregation
-- added installation shell script (`install.sh`) for automated terra installation from GitHub releases with platform detection, `--version`, `--force`, `--dry-run`, and `--install-dir` options
-- added `version` command to display Terra, Terraform, and Terragrunt versions
+- added `--global` flag to the `clear` command to also remove centralized cache directories
 - added `update` command as an alias for `install`
-- added self-update feature to update the CLI without any additional step
+- added `version` command to display Terra, Terraform, and Terragrunt versions
+- added centralized Terragrunt module and provider caching (`TG_DOWNLOAD_DIR`, `TF_PLUGIN_CACHE_DIR`) configured automatically before every invocation, with override via `TERRA_MODULE_CACHE_DIR` and `TERRA_PROVIDER_CACHE_DIR`
+- added cross-platform file locking via `gofrs/flock` to prevent race conditions when multiple terra processes run concurrently from the same repository
 - added dependency injection (first Wire, then DIG) and inverted all dependencies
+- added installation shell script (`install.sh`) for automated terra installation from GitHub releases with platform detection, `--version`, `--force`, `--dry-run`, and `--install-dir` options
+- added parallel execution for any command via `--parallel=N`, including state manipulation commands (`import`, `state rm`, `state mv`, `state pull`, `state push`, `state show`) with `--all`, automatic module discovery, configurable concurrency (default: 5 jobs), and error aggregation
+- added self-update feature to update the CLI without any additional step
 - added validation on the `settings` entity
 
 ### Changed
 
-- **BREAKING CHANGE**: replaced deprecated `run-all` command syntax with `--all` flag to align with Terragrunt's new syntax
 - changed the documentation with pipelines and minor change to template files
 - corrected controllers responsibilities mapping the external to internal entities
-- corrected dependency injection architecture
 - corrected the structure to follow best practices using DDD
 - decoupled responsibilities from just one command to other layers
 - moved all business logic to the domain structure
 - replaced Wire with DIG for dependency injection to support Go `1.25.1` and active maintenance
-- updated Copilot instructions and contributing guide to enforce LF (Unix) line endings for all new and edited files
-- updated Copilot instructions to use rios0rios0/pipelines project for linting and CI tools instead of direct tool installation
+- replaced deprecated `run-all` command syntax with `--all` flag to align with Terragrunt's new syntax
+- updated Copilot instructions and contributing guide to enforce `LF` (Unix) line endings for all new and edited files
+- updated Copilot instructions to use `rios0rios0/pipelines` project for linting and CI tools instead of direct tool installation
 - updated `.editorconfig` to enforce LF line endings across all file types instead of just Go files
 - updated documentation to require `CHANGELOG.md` updates for new features and bug fixes (not required for documentation-only changes)
 - upgraded the project to Go `1.26` and all the dependencies
 
 ### Fixed
 
-- fixed optional environment variables validation for TERRA_CLOUD to allow empty values while still enforcing valid values when provided
+- fixed optional environment variables validation for `TERRA_CLOUD` to allow empty values while still enforcing valid values when provided
 - fixed permission denied errors when normal users try to download dependencies via `terra install` or `terra update` by using unique temporary file creation instead of predictable file names
-- fixed slice bounds error in ArgumentsHelper when no arguments are provided
+- fixed slice bounds error in `ArgumentsHelper` when no arguments are provided
 - fixed the issue where version checks for Terraform and Terragrunt were triggered on every command execution, causing unnecessary network calls and slowdowns
 - fixed version checks to only occur when explicitly running "install" or "update" commands
 
