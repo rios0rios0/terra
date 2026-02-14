@@ -17,6 +17,9 @@ Our motivation: "Have you ever wondered about applying Terraform code like Kuber
 - Automatic dependency installation and management.
 - Support for AWS and Azure cloud provider switching.
 - **Parallel execution for any command** - Run any Terragrunt command across multiple modules simultaneously using the `--parallel=N` flag, where N is the number of concurrent threads. State commands also support the legacy `--all` flag for backward compatibility.
+- **Cross-platform file locking** - Prevents race conditions when multiple terra processes run concurrently from the same repository.
+- **Centralized module and provider caching** - Automatically configures `TG_DOWNLOAD_DIR` and `TF_PLUGIN_CACHE_DIR` so Terragrunt modules and providers are downloaded once and reused across all stacks. Override defaults with `TERRA_MODULE_CACHE_DIR` and `TERRA_PROVIDER_CACHE_DIR` environment variables.
+- **CAS (Content Addressable Store)** - Enables Terragrunt's experimental CAS by default (`TG_EXPERIMENT=cas`), which deduplicates Git clones via hard links for faster subsequent clones and reduced disk usage. Disable with `TERRA_NO_CAS=true`.
 
 ## Installation
 
@@ -363,6 +366,13 @@ TERRA_WORKSPACE=dev
 # Optional: Terraform variables (any TF_VAR_* variables)
 TF_VAR_environment=development
 TF_VAR_region=us-west-2
+
+# Optional: Centralized cache directories (defaults shown below)
+# TERRA_MODULE_CACHE_DIR=~/.cache/terra/modules
+# TERRA_PROVIDER_CACHE_DIR=~/.cache/terra/providers
+
+# Optional: Disable Terragrunt CAS (Content Addressable Store) experiment
+# TERRA_NO_CAS=true
 ```
 
 **Note**: If `TERRA_CLOUD` is specified, it must be set to either "aws" or "azure". This enables cloud-specific features like role switching for AWS or subscription switching for Azure.

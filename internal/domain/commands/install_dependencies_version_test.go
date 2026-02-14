@@ -135,6 +135,10 @@ func TestInstallDependenciesCommand_Execute_VersionScenarios(t *testing.T) {
 		// Use test-friendly temp directory for os.TempDir() to avoid permission issues
 		t.Setenv("TMPDIR", t.TempDir())
 
+		// Redirect installation path to a temp directory to avoid overwriting
+		// real binaries (e.g. ~/.local/bin/terraform) with test mock binaries.
+		t.Setenv("TERRA_INSTALL_PATH", t.TempDir())
+
 		// Prepend mock binary directory to PATH
 		originalPath := os.Getenv("PATH")
 		newPath := mockBinaryDir + string(os.PathListSeparator) + originalPath

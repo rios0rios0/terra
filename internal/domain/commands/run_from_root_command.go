@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"os"
 	"strings"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
@@ -16,6 +17,7 @@ const (
 )
 
 type RunFromRootCommand struct {
+	settings              *entities.Settings
 	installCommand        InstallDependencies
 	formatCommand         FormatFiles
 	additionalBefore      RunAdditionalBefore
@@ -25,6 +27,7 @@ type RunFromRootCommand struct {
 }
 
 func NewRunFromRootCommand(
+	settings *entities.Settings,
 	installCommand InstallDependencies,
 	formatCommand FormatFiles,
 	additionalBefore RunAdditionalBefore,
@@ -33,6 +36,7 @@ func NewRunFromRootCommand(
 	interactiveRepository repositories.InteractiveShellRepository,
 ) *RunFromRootCommand {
 	return &RunFromRootCommand{
+		settings:              settings,
 		installCommand:        installCommand,
 		formatCommand:         formatCommand,
 		additionalBefore:      additionalBefore,
@@ -47,7 +51,23 @@ func (it *RunFromRootCommand) Execute(
 	arguments []string,
 	dependencies []entities.Dependency,
 ) {
-	it.formatCommand.Execute(dependencies)
+	// Acquire a repository-level lock to prevent concurrent terra processes
+	// from corrupting shared .terragrunt-cache directories.
+	lock, lockErr := acquireRepoLock()
+	if lockErr != nil {
+		logger.Warnf("Could not acquire repo lock: %s (continuing without lock)", lockErr)
+	}
+	defer releaseRepoLock(lock)
+
+	// Configure centralized cache directories before any Terragrunt invocation
+	it.configureCacheEnvironment()
+
+	// Skip formatting for state commands: state operations (mv, rm, etc.) don't modify
+	// source code, so formatting is unnecessary. Skipping it also avoids file contention
+	// when multiple terra processes run concurrently from the same repository.
+	if !IsStateManipulationCommand(arguments) {
+		it.formatCommand.Execute(dependencies)
+	}
 
 	// Validate flag combinations before execution
 	it.validateFlagCombinations(arguments)
@@ -70,7 +90,7 @@ func (it *RunFromRootCommand) Execute(
 	useInteractive := it.hasAutoAnswerFlag(arguments)
 	autoAnswerValue := it.getAutoAnswerValue(arguments)
 	filteredArguments := it.removeAutoAnswerFlag(arguments)
-	
+
 	// Remove --no-parallel-bypass flag before passing to terragrunt
 	filteredArguments = RemoveNoParallelBypassFlag(filteredArguments)
 
@@ -140,8 +160,10 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 	if hasParallelFlag && !hasNoParallelBypass {
 		// Error if --auto-answer is used (intended for terragrunt, not terra's parallel execution)
 		if hasAutoAnswerFlag {
-			logger.Fatalf("Error: --auto-answer flag is intended for terragrunt and should only be used with --no-parallel-bypass. " +
-				"When using --parallel without --no-parallel-bypass, terra handles parallel execution and --auto-answer is not applicable.")
+			logger.Fatalf(
+				"Error: --auto-answer flag is intended for terragrunt and should only be used with --no-parallel-bypass. " +
+					"When using --parallel without --no-parallel-bypass, terra handles parallel execution and --auto-answer is not applicable.",
+			)
 		}
 
 		// Error if --all is used with --parallel (redundant, since --parallel already implies --all behavior)
@@ -171,17 +193,62 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 // Returns true if:
 // 1. It's a state command with --all flag (backward compatibility)
 // 2. It has --parallel=N flag (new functionality for any command), UNLESS --no-parallel-bypass is present
-// If --no-parallel-bypass is present, --parallel flag will be forwarded to terragrunt instead
+// If --no-parallel-bypass is present, --parallel flag will be forwarded to terragrunt instead.
 func (it *RunFromRootCommand) isParallelCommand(arguments []string) bool {
 	// Check if --no-parallel-bypass is present
 	hasNoParallelBypass := HasNoParallelBypassFlag(arguments)
-	
+
 	// New: support parallel=N for any command, but only if --no-parallel-bypass is NOT present
 	if HasParallelFlag(arguments) && !hasNoParallelBypass {
 		return true
 	}
 	// Backward compatibility: state commands with --all flag (always handled by terra, regardless of --no-parallel-bypass)
 	return HasAllFlag(arguments) && IsStateManipulationCommand(arguments)
+}
+
+// configureCacheEnvironment sets environment variables for centralized Terragrunt module
+// and provider caching. This ensures all stacks share a single download directory and
+// provider cache, avoiding redundant downloads. It also enables the Terragrunt CAS
+// (Content Addressable Store) experiment by default for Git clone deduplication.
+func (it *RunFromRootCommand) configureCacheEnvironment() {
+	const dirPermissions = 0o755
+
+	moduleDir, moduleDirErr := it.settings.GetModuleCacheDir()
+	if moduleDirErr != nil {
+		logger.Warnf("Could not determine module cache directory: %s", moduleDirErr)
+	} else if mkdirErr := os.MkdirAll(moduleDir, dirPermissions); mkdirErr != nil { // nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+		logger.Warnf("Could not create module cache directory %s: %s", moduleDir, mkdirErr)
+	} else if setenvErr := os.Setenv("TG_DOWNLOAD_DIR", moduleDir); setenvErr != nil {
+		logger.Warnf("Could not set TG_DOWNLOAD_DIR: %s", setenvErr)
+	} else {
+		logger.Debugf("Module cache directory set to %s", moduleDir)
+	}
+
+	providerDir, providerDirErr := it.settings.GetProviderCacheDir()
+	if providerDirErr != nil {
+		logger.Warnf("Could not determine provider cache directory: %s", providerDirErr)
+	} else if mkdirErr := os.MkdirAll(providerDir, dirPermissions); mkdirErr != nil { // nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+		logger.Warnf("Could not create provider cache directory %s: %s", providerDir, mkdirErr)
+	} else if setenvErr := os.Setenv("TF_PLUGIN_CACHE_DIR", providerDir); setenvErr != nil {
+		logger.Warnf("Could not set TF_PLUGIN_CACHE_DIR: %s", setenvErr)
+	} else {
+		logger.Debugf("Provider cache directory set to %s", providerDir)
+	}
+
+	// Enable Terragrunt CAS (Content Addressable Store) experiment by default.
+	// CAS deduplicates Git clones via hard links, reducing disk usage and clone times.
+	if !it.settings.TerraNoCAS {
+		if setenvErr := os.Setenv("TG_EXPERIMENT", "cas"); setenvErr != nil {
+			logger.Warnf("Could not set TG_EXPERIMENT: %s", setenvErr)
+		} else {
+			logger.Debugf("Terragrunt CAS experiment enabled")
+		}
+	}
+}
+
+// ConfigureCacheEnvironmentPublic is a public wrapper for testing the private configureCacheEnvironment method.
+func (it *RunFromRootCommand) ConfigureCacheEnvironmentPublic() {
+	it.configureCacheEnvironment()
 }
 
 // HasAutoAnswerFlagPublic is a public wrapper for testing the private hasAutoAnswerFlag method.

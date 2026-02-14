@@ -73,5 +73,12 @@ func shouldInitEnvironment(arguments []string) bool {
 		}
 	}
 
+	// Don't init for state manipulation commands: terragrunt handles its own
+	// initialization for state operations, and an explicit init triggers full
+	// dependency resolution (which can fail on unrelated dependency outputs).
+	if IsStateManipulationCommand(arguments) {
+		return false
+	}
+
 	return true
 }

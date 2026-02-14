@@ -1,5 +1,5 @@
 package commands
 
 type DeleteCache interface {
-	Execute(toBeDeleted []string)
+	Execute(toBeDeleted []string, global bool)
 }

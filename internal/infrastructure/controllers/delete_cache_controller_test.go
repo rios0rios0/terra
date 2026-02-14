@@ -44,11 +44,8 @@ func TestDeleteCacheController_GetBind(t *testing.T) {
 		// THEN: Should return correct bind configuration
 		assert.Equal(t, "clear", bind.Use)
 		assert.Equal(t, "Clear all cache and modules directories", bind.Short)
-		assert.Equal(
-			t,
-			"Clear all temporary directories and cache folders created during the Terraform and Terragrunt execution.",
-			bind.Long,
-		)
+		assert.Contains(t, bind.Long, "Clear all temporary directories")
+		assert.Contains(t, bind.Long, "--global")
 	})
 }
 
@@ -60,16 +57,38 @@ func TestDeleteCacheController_Execute(t *testing.T) {
 		// GIVEN: A delete cache controller with mock command
 		mockCommand := &commanddoubles.StubDeleteCacheCommand{}
 		controller := controllers.NewDeleteCacheController(mockCommand)
-		cmd := &cobra.Command{}
+		cmd := &cobra.Command{} //nolint:exhaustruct // minimal test setup
+		cmd.Flags().Bool("global", false, "")
 		args := []string{}
 
 		// WHEN: Executing the controller
 		controller.Execute(cmd, args)
 
-		// THEN: Should execute the command with correct directories
+		// THEN: Should execute the command with correct directories and global=false
 		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
 		expectedDirs := []string{".terraform", ".terragrunt-cache"}
 		assert.Equal(t, expectedDirs, mockCommand.LastToBeDeleted)
+		assert.False(t, mockCommand.LastGlobal)
+	})
+
+	t.Run("should pass global flag as true when set", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A delete cache controller with mock command and global flag set to true
+		mockCommand := &commanddoubles.StubDeleteCacheCommand{}
+		controller := controllers.NewDeleteCacheController(mockCommand)
+		cmd := &cobra.Command{} //nolint:exhaustruct // minimal test setup
+		cmd.Flags().Bool("global", false, "")
+		require.NoError(t, cmd.Flags().Set("global", "true"))
+		args := []string{}
+
+		// WHEN: Executing the controller
+		controller.Execute(cmd, args)
+
+		// THEN: Should execute the command with correct directories and global=true
+		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
+		expectedDirs := []string{".terraform", ".terragrunt-cache"}
+		assert.Equal(t, expectedDirs, mockCommand.LastToBeDeleted)
+		assert.True(t, mockCommand.LastGlobal)
 	})
 
 	t.Run("should execute command multiple times when called repeatedly", func(t *testing.T) {
@@ -77,7 +96,8 @@ func TestDeleteCacheController_Execute(t *testing.T) {
 		// GIVEN: A delete cache controller with mock command
 		mockCommand := &commanddoubles.StubDeleteCacheCommand{}
 		controller := controllers.NewDeleteCacheController(mockCommand)
-		cmd := &cobra.Command{}
+		cmd := &cobra.Command{} //nolint:exhaustruct // minimal test setup
+		cmd.Flags().Bool("global", false, "")
 		args := []string{}
 
 		// WHEN: Executing the controller multiple times
