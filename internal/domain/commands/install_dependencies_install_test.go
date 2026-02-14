@@ -36,7 +36,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/binary_%s").
 			WithVersionURL(versionServer.URL + "/version").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -63,7 +63,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/binary_%s").
 			WithVersionURL(versionServer.URL + "/version").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -90,7 +90,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/binary_%s").
 			WithVersionURL(versionServer.URL + "/version").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -117,7 +117,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 			WithBinaryURL(zipServer.URL + "/temp_%s.zip").
 			WithVersionURL(versionServer.URL + "/version").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -144,7 +144,7 @@ func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/binary_%s").
 			WithVersionURL(versionServer.URL + "/version").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()

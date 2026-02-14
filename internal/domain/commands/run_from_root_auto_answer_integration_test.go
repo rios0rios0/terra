@@ -48,6 +48,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
 			repositories.NewStdShellRepository(),
+			repositories.NewUpgradeAwareShellRepository(),
 			repositories.NewInteractiveShellRepository(),
 		)
 
@@ -95,6 +96,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
 			repositories.NewStdShellRepository(),
+			repositories.NewUpgradeAwareShellRepository(),
 			repositories.NewInteractiveShellRepository(),
 		)
 
@@ -142,6 +144,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
 			repositories.NewStdShellRepository(),
+			repositories.NewUpgradeAwareShellRepository(),
 			repositories.NewInteractiveShellRepository(),
 		)
 

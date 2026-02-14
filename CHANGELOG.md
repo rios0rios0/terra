@@ -16,6 +16,15 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added auto-initialization with upgrade detection: when Terragrunt commands fail due to uninitialized modules, backend changes, or provider version conflicts, terra automatically runs `init --upgrade` and retries the original command
+- migrated test builders to use the `testkit` library (`github.com/rios0rios0/testkit`) for standardized builder patterns
+
+### Changed
+
+- renamed `cmd/terra/wire.go` to `cmd/terra/dig.go` to reflect the actual DI tool in use (Uber DIG, not Google Wire)
+
 ## [1.5.0] - 2026-02-13
 
 ### Added

@@ -20,6 +20,7 @@ Our motivation: "Have you ever wondered about applying Terraform code like Kuber
 - **Cross-platform file locking** - Prevents race conditions when multiple terra processes run concurrently from the same repository.
 - **Centralized module and provider caching** - Automatically configures `TG_DOWNLOAD_DIR` and `TF_PLUGIN_CACHE_DIR` so Terragrunt modules and providers are downloaded once and reused across all stacks. Override defaults with `TERRA_MODULE_CACHE_DIR` and `TERRA_PROVIDER_CACHE_DIR` environment variables.
 - **CAS (Content Addressable Store)** - Enables Terragrunt's experimental CAS by default (`TG_EXPERIMENT=cas`), which deduplicates Git clones via hard links for faster subsequent clones and reduced disk usage. Disable with `TERRA_NO_CAS=true`.
+- **Auto-initialization with upgrade detection** - Automatically detects when terraform/terragrunt needs `init --upgrade` (backend changes, provider conflicts, uninitialized modules) and runs it transparently before retrying the original command.
 
 ## Installation
 

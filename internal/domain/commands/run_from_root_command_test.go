@@ -37,6 +37,7 @@ func TestNewRunFromRootCommand(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
+			&repositorydoubles.StubUpgradeShellRepository{},
 			interactiveRepository,
 		)
 
@@ -55,6 +56,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		formatCommand := &commanddoubles.StubFormatFiles{}
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			&entities.Settings{},
@@ -63,6 +65,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
+			upgradeRepository,
 			interactiveRepository,
 		)
 
@@ -93,11 +96,11 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		assert.Equal(t, targetPath, additionalBefore.LastTargetPath)
 		assert.Equal(t, arguments, additionalBefore.LastArguments)
 
-		// Should execute terragrunt with normal repository (not interactive)
-		assert.Equal(t, 1, repository.ExecuteCallCount)
-		assert.Equal(t, "terragrunt", repository.LastCommand)
-		assert.Equal(t, arguments, repository.LastArguments)
-		assert.Equal(t, targetPath, repository.LastDirectory)
+		// Should execute terragrunt with upgrade-aware repository (not interactive)
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount)
+		assert.Equal(t, "terragrunt", upgradeRepository.LastCommand)
+		assert.Equal(t, arguments, upgradeRepository.LastArguments)
+		assert.Equal(t, targetPath, upgradeRepository.LastDirectory)
 	})
 
 	t.Run("should handle empty arguments when no arguments provided", func(t *testing.T) {
@@ -107,6 +110,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		formatCommand := &commanddoubles.StubFormatFiles{}
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			&entities.Settings{},
@@ -115,6 +119,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
+			upgradeRepository,
 			interactiveRepository,
 		)
 
@@ -129,10 +134,10 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		assert.False(t, installCommand.ExecuteCalled, "Should not execute install command automatically")
 		assert.True(t, formatCommand.ExecuteCalled, "Should execute format command")
 		assert.True(t, additionalBefore.ExecuteCalled, "Should execute additional before command")
-		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute terragrunt command")
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should execute terragrunt command")
 		assert.Len(
 			t,
-			repository.LastArguments,
+			upgradeRepository.LastArguments,
 			len(arguments),
 			"Should pass arguments with same length",
 		)
@@ -145,6 +150,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		formatCommand := &commanddoubles.StubFormatFiles{}
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			&entities.Settings{},
@@ -153,6 +159,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
+			upgradeRepository,
 			interactiveRepository,
 		)
 
@@ -170,7 +177,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		assert.True(t, formatCommand.ExecuteCalled, "Should execute format command")
 		assert.Equal(t, dependencies, formatCommand.LastDependencies)
 
-		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute terragrunt command")
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should execute terragrunt command")
 	})
 
 	t.Run("should pass correct target path when different paths used", func(t *testing.T) {
@@ -180,6 +187,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		formatCommand := &commanddoubles.StubFormatFiles{}
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			&entities.Settings{},
@@ -188,6 +196,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
+			upgradeRepository,
 			interactiveRepository,
 		)
 
@@ -200,7 +209,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 
 		// THEN: Should pass correct target path to all components
 		assert.Equal(t, targetPath, additionalBefore.LastTargetPath)
-		assert.Equal(t, targetPath, repository.LastDirectory)
+		assert.Equal(t, targetPath, upgradeRepository.LastDirectory)
 	})
 
 	t.Run("should not use interactive mode when no auto answer flag", func(t *testing.T) {
@@ -210,6 +219,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		formatCommand := &commanddoubles.StubFormatFiles{}
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
 			&entities.Settings{},
@@ -218,6 +228,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
+			upgradeRepository,
 			interactiveRepository,
 		)
 
@@ -229,8 +240,8 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		cmd.Execute(targetPath, arguments, dependencies)
 
 		// THEN: Should use normal repository (indirectly tests hasAutoAnswerFlag)
-		assert.Equal(t, 1, repository.ExecuteCallCount, "Should use normal repository")
-		assert.Equal(t, arguments, repository.LastArguments, "Should pass arguments unchanged")
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should use normal repository")
+		assert.Equal(t, arguments, upgradeRepository.LastArguments, "Should pass arguments unchanged")
 	})
 
 	t.Run("should use interactive mode with default 'n' when boolean auto-answer flag", func(t *testing.T) {
@@ -248,6 +259,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
+			&repositorydoubles.StubUpgradeShellRepository{},
 			interactiveRepository,
 		)
 
@@ -280,6 +292,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
+			&repositorydoubles.StubUpgradeShellRepository{},
 			interactiveRepository,
 		)
 
@@ -312,6 +325,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
+			&repositorydoubles.StubUpgradeShellRepository{},
 			interactiveRepository,
 		)
 
@@ -344,6 +358,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
+			&repositorydoubles.StubUpgradeShellRepository{},
 			interactiveRepository,
 		)
 
@@ -373,6 +388,7 @@ func TestRunFromRootCommand_hasAutoAnswerFlag(t *testing.T) {
 		&commanddoubles.StubRunAdditionalBefore{},
 		&commanddoubles.StubParallelState{},
 		&repositorydoubles.StubShellRepositoryForRoot{},
+		&repositorydoubles.StubUpgradeShellRepository{},
 		&repositorydoubles.StubInteractiveShellRepository{},
 	)
 
@@ -433,6 +449,7 @@ func TestRunFromRootCommand_getAutoAnswerValue(t *testing.T) {
 		&commanddoubles.StubRunAdditionalBefore{},
 		&commanddoubles.StubParallelState{},
 		&repositorydoubles.StubShellRepositoryForRoot{},
+		&repositorydoubles.StubUpgradeShellRepository{},
 		&repositorydoubles.StubInteractiveShellRepository{},
 	)
 
@@ -493,6 +510,7 @@ func TestRunFromRootCommand_removeAutoAnswerFlag(t *testing.T) {
 		&commanddoubles.StubRunAdditionalBefore{},
 		&commanddoubles.StubParallelState{},
 		&repositorydoubles.StubShellRepositoryForRoot{},
+		&repositorydoubles.StubUpgradeShellRepository{},
 		&repositorydoubles.StubInteractiveShellRepository{},
 	)
 
@@ -560,6 +578,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
 			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
 			&repositorydoubles.StubInteractiveShellRepository{},
 		)
 
@@ -587,6 +606,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
 			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
 			&repositorydoubles.StubInteractiveShellRepository{},
 		)
 
@@ -614,6 +634,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
 			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
 			&repositorydoubles.StubInteractiveShellRepository{},
 		)
 
@@ -639,6 +660,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
 			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
 			&repositorydoubles.StubInteractiveShellRepository{},
 		)
 

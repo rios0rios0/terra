@@ -58,7 +58,7 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/testtool_%s").
 			WithVersionURL(versionServer.URL + "/terraform").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command
 		cmd := commands.NewInstallDependenciesCommand()
@@ -83,7 +83,7 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 			WithBinaryURL(binaryServer.URL + "/terraform_%s").
 			WithVersionURL(versionServer.URL + "/terraform").
 			WithTerraformPattern().
-			Build()
+			BuildDependency()
 
 		// WHEN: Executing the command with terraform (if installed)
 		cmd := commands.NewInstallDependenciesCommand()
@@ -110,14 +110,14 @@ func TestInstallDependenciesCommand_Execute(t *testing.T) {
 				WithBinaryURL(binaryServer.URL + "/terraform_%s").
 				WithVersionURL(versionServer.URL + "/terraform").
 				WithTerraformPattern().
-				Build(),
+				BuildDependency(),
 			entitybuilders.NewDependencyBuilder().
 				WithName("Terragrunt").
 				WithCLI("terragrunt").
 				WithBinaryURL(binaryServer.URL + "/terragrunt_%s").
 				WithVersionURL(versionServer.URL + "/terragrunt").
 				WithTerragruntPattern().
-				Build(),
+				BuildDependency(),
 		}
 
 		// WHEN: Executing the command

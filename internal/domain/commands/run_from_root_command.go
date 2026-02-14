@@ -23,6 +23,7 @@ type RunFromRootCommand struct {
 	additionalBefore      RunAdditionalBefore
 	parallelState         ParallelState
 	repository            repositories.ShellRepository
+	upgradeRepository     repositories.UpgradeShellRepository
 	interactiveRepository repositories.InteractiveShellRepository
 }
 
@@ -33,6 +34,7 @@ func NewRunFromRootCommand(
 	additionalBefore RunAdditionalBefore,
 	parallelState ParallelState,
 	repository repositories.ShellRepository,
+	upgradeRepository repositories.UpgradeShellRepository,
 	interactiveRepository repositories.InteractiveShellRepository,
 ) *RunFromRootCommand {
 	return &RunFromRootCommand{
@@ -42,6 +44,7 @@ func NewRunFromRootCommand(
 		additionalBefore:      additionalBefore,
 		parallelState:         parallelState,
 		repository:            repository,
+		upgradeRepository:     upgradeRepository,
 		interactiveRepository: interactiveRepository,
 	}
 }
@@ -100,7 +103,10 @@ func (it *RunFromRootCommand) Execute(
 		err = it.interactiveRepository.ExecuteCommandWithAnswer(
 			"terragrunt", filteredArguments, targetPath, autoAnswerValue)
 	} else {
-		err = it.repository.ExecuteCommand("terragrunt", filteredArguments, targetPath)
+		// Use upgrade-aware repository: automatically detects when init --upgrade
+		// is needed, runs it, and retries the original command.
+		err = it.upgradeRepository.ExecuteCommandWithUpgrade(
+			"terragrunt", filteredArguments, targetPath)
 	}
 
 	if err != nil {
