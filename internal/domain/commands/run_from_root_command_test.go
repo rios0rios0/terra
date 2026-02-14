@@ -3,6 +3,7 @@
 package commands_test
 
 import (
+	"os"
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
@@ -30,6 +31,7 @@ func TestNewRunFromRootCommand(t *testing.T) {
 
 		// WHEN: Creating a new RunFromRootCommand
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{},
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -55,6 +57,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{},
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -106,6 +109,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{},
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -143,6 +147,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{},
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -177,6 +182,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{},
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -206,6 +212,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{},
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -235,6 +242,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{},
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -266,6 +274,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{},
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -297,6 +306,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{},
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -328,6 +338,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
 		cmd := commands.NewRunFromRootCommand(
+			&entities.Settings{},
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -356,6 +367,7 @@ func TestRunFromRootCommand_hasAutoAnswerFlag(t *testing.T) {
 
 	// Create command instance for testing
 	cmd := commands.NewRunFromRootCommand(
+		&entities.Settings{},
 		&commanddoubles.StubInstallDependencies{},
 		&commanddoubles.StubFormatFiles{},
 		&commanddoubles.StubRunAdditionalBefore{},
@@ -415,6 +427,7 @@ func TestRunFromRootCommand_getAutoAnswerValue(t *testing.T) {
 
 	// Create command instance for testing
 	cmd := commands.NewRunFromRootCommand(
+		&entities.Settings{},
 		&commanddoubles.StubInstallDependencies{},
 		&commanddoubles.StubFormatFiles{},
 		&commanddoubles.StubRunAdditionalBefore{},
@@ -474,6 +487,7 @@ func TestRunFromRootCommand_removeAutoAnswerFlag(t *testing.T) {
 
 	// Create command instance for testing
 	cmd := commands.NewRunFromRootCommand(
+		&entities.Settings{},
 		&commanddoubles.StubInstallDependencies{},
 		&commanddoubles.StubFormatFiles{},
 		&commanddoubles.StubRunAdditionalBefore{},
@@ -526,4 +540,172 @@ func TestRunFromRootCommand_removeAutoAnswerFlag(t *testing.T) {
 			assert.Equal(t, tt.expected, result)
 		})
 	}
+}
+
+func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
+	t.Run("should set TG_DOWNLOAD_DIR and TF_PLUGIN_CACHE_DIR when custom paths provided", func(t *testing.T) {
+		// given
+		tempDir := t.TempDir()
+		moduleDir := tempDir + "/modules"
+		providerDir := tempDir + "/providers"
+
+		settings := &entities.Settings{
+			TerraModuleCacheDir:   moduleDir,
+			TerraProviderCacheDir: providerDir,
+		}
+		cmd := commands.NewRunFromRootCommand(
+			settings,
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+
+		// when
+		cmd.ConfigureCacheEnvironmentPublic()
+
+		// then
+		assert.Equal(t, moduleDir, os.Getenv("TG_DOWNLOAD_DIR"))
+		assert.Equal(t, providerDir, os.Getenv("TF_PLUGIN_CACHE_DIR"))
+
+		// Verify directories were created
+		_, err := os.Stat(moduleDir)
+		assert.False(t, os.IsNotExist(err), "Module cache directory should be created")
+		_, err = os.Stat(providerDir)
+		assert.False(t, os.IsNotExist(err), "Provider cache directory should be created")
+	})
+
+	t.Run("should set default cache paths when settings are empty", func(t *testing.T) {
+		// given
+		settings := &entities.Settings{}
+		cmd := commands.NewRunFromRootCommand(
+			settings,
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+
+		// when
+		cmd.ConfigureCacheEnvironmentPublic()
+
+		// then
+		tgDir := os.Getenv("TG_DOWNLOAD_DIR")
+		tfDir := os.Getenv("TF_PLUGIN_CACHE_DIR")
+		assert.Contains(t, tgDir, ".cache/terra/modules")
+		assert.Contains(t, tfDir, ".cache/terra/providers")
+	})
+
+	t.Run("should enable CAS experiment by default when TerraNoCAS is false", func(t *testing.T) {
+		// given
+		settings := &entities.Settings{
+			TerraModuleCacheDir:   t.TempDir(),
+			TerraProviderCacheDir: t.TempDir(),
+			TerraNoCAS:            false,
+		}
+		cmd := commands.NewRunFromRootCommand(
+			settings,
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+
+		// when
+		cmd.ConfigureCacheEnvironmentPublic()
+
+		// then
+		assert.Equal(t, "cas", os.Getenv("TG_EXPERIMENT"))
+	})
+
+	t.Run("should not enable CAS experiment when TerraNoCAS is true", func(t *testing.T) {
+		// given
+		t.Setenv("TG_EXPERIMENT", "")
+		settings := &entities.Settings{
+			TerraModuleCacheDir:   t.TempDir(),
+			TerraProviderCacheDir: t.TempDir(),
+			TerraNoCAS:            true,
+		}
+		cmd := commands.NewRunFromRootCommand(
+			settings,
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+
+		// when
+		cmd.ConfigureCacheEnvironmentPublic()
+
+		// then
+		assert.Empty(t, os.Getenv("TG_EXPERIMENT"), "TG_EXPERIMENT should not be set when CAS is disabled")
+	})
+}
+
+func TestSettings_GetModuleCacheDir(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return custom path when TerraModuleCacheDir is set", func(t *testing.T) {
+		t.Parallel()
+		// given
+		settings := &entities.Settings{TerraModuleCacheDir: "/custom/modules"}
+
+		// when
+		dir, err := settings.GetModuleCacheDir()
+
+		// then
+		require.NoError(t, err)
+		assert.Equal(t, "/custom/modules", dir)
+	})
+
+	t.Run("should return default path when TerraModuleCacheDir is empty", func(t *testing.T) {
+		t.Parallel()
+		// given
+		settings := &entities.Settings{}
+
+		// when
+		dir, err := settings.GetModuleCacheDir()
+
+		// then
+		require.NoError(t, err)
+		assert.Contains(t, dir, ".cache/terra/modules")
+	})
+}
+
+func TestSettings_GetProviderCacheDir(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return custom path when TerraProviderCacheDir is set", func(t *testing.T) {
+		t.Parallel()
+		// given
+		settings := &entities.Settings{TerraProviderCacheDir: "/custom/providers"}
+
+		// when
+		dir, err := settings.GetProviderCacheDir()
+
+		// then
+		require.NoError(t, err)
+		assert.Equal(t, "/custom/providers", dir)
+	})
+
+	t.Run("should return default path when TerraProviderCacheDir is empty", func(t *testing.T) {
+		t.Parallel()
+		// given
+		settings := &entities.Settings{}
+
+		// when
+		dir, err := settings.GetProviderCacheDir()
+
+		// then
+		require.NoError(t, err)
+		assert.Contains(t, dir, ".cache/terra/providers")
+	})
 }

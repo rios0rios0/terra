@@ -58,6 +58,11 @@ func (it *OSWindows) GetTempDir() string {
 }
 
 func (it *OSWindows) GetInstallationPath() string {
+	// Allow override via environment variable (used by tests to avoid
+	// overwriting real binaries).
+	if envPath := os.Getenv("TERRA_INSTALL_PATH"); envPath != "" {
+		return envPath
+	}
 	return os.Getenv("ProgramFiles")
 }
 

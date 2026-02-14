@@ -55,7 +55,12 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 			case comparison == 0:
 				logger.Infof("%s is already up to date (version %s)", dependency.Name, currentVersion)
 			default:
-				logger.Infof("%s version %s is newer than latest available %s", dependency.Name, currentVersion, latestVersion)
+				logger.Infof(
+					"%s version %s is newer than latest available %s",
+					dependency.Name,
+					currentVersion,
+					latestVersion,
+				)
 			}
 		}
 	}
@@ -361,4 +366,14 @@ func install(url, name string) {
 	} else {
 		installBinary(tempFilePath, destPath, name, currentOS)
 	}
+}
+
+// CompareVersionsPublic is a public wrapper for testing the private compareVersions function.
+func CompareVersionsPublic(v1, v2 string) int {
+	return compareVersions(v1, v2)
+}
+
+// FindBinaryInArchivePublic is a public wrapper for testing the private findBinaryInArchive function.
+func FindBinaryInArchivePublic(extractDir, binaryName string) (string, error) {
+	return findBinaryInArchive(extractDir, binaryName)
 }

@@ -30,7 +30,7 @@ func NewParallelStateCommand(repository repositories.ShellRepository) *ParallelS
 // shouldExecuteInParallel determines if the command should be executed in parallel.
 // It returns true if either:
 // 1. It's a state command with --all flag (backward compatibility)
-// 2. It has --parallel=N flag (new functionality for any command)
+// 2. It has --parallel=N flag (new functionality for any command).
 func (it *ParallelStateCommand) shouldExecuteInParallel(arguments []string) bool {
 	// New: support parallel=N for any command
 	if HasParallelFlag(arguments) {
@@ -126,113 +126,134 @@ func (it *ParallelStateCommand) containsTerraformFiles(dirPath string) bool {
 	return false
 }
 
-// buildFilteredPaths builds full paths by concatenating filter values with the target path.
-// Handles both inclusions and exclusions (values starting with !).
-func (it *ParallelStateCommand) buildFilteredPaths(targetPath string, filterValues []string) []string {
-	parsed := ParseFilterValues(filterValues)
+// buildInclusionPaths validates and returns full paths for the given inclusion filter values.
+func (it *ParallelStateCommand) buildInclusionPaths(
+	targetPath string,
+	inclusions []string,
+) []string {
 	var paths []string
 
-	// If there are inclusions, use only those
-	if len(parsed.Inclusions) > 0 {
-		for _, inclusion := range parsed.Inclusions {
-			fullPath := filepath.Join(targetPath, inclusion)
-			if info, err := os.Stat(fullPath); err == nil && info.IsDir() {
-				paths = append(paths, fullPath)
-			} else {
-				logger.Warnf("Filter path does not exist or is not a directory: %s", fullPath)
-			}
-		}
-	} else {
-		// No inclusions, find all subdirectories
-		allModules, err := it.findSubdirectories(targetPath)
-		if err != nil {
-			logger.Warnf("Failed to find subdirectories for exclusion filter: %s", err)
-			return paths
-		}
-		paths = allModules
-	}
+	for _, inclusion := range inclusions {
+		fullPath := filepath.Join(targetPath, inclusion)
 
-	// Remove exclusions from the paths
-	if len(parsed.Exclusions) > 0 {
-		var filteredPaths []string
-		for _, path := range paths {
-			// Get the relative path from targetPath to check if it matches any exclusion
-			relPath, err := filepath.Rel(targetPath, path)
-			if err != nil {
-				// If we can't get relative path, use the last component
-				relPath = filepath.Base(path)
-			}
-			
-			// Check if this path should be excluded
-			shouldExclude := false
-			for _, exclusion := range parsed.Exclusions {
-				// Check if the relative path or its base name matches the exclusion
-				if relPath == exclusion || filepath.Base(relPath) == exclusion {
-					shouldExclude = true
-					break
-				}
-			}
-			
-			if !shouldExclude {
-				filteredPaths = append(filteredPaths, path)
-			}
+		info, err := os.Stat(fullPath)
+		if err == nil && info.IsDir() {
+			paths = append(paths, fullPath)
+		} else {
+			logger.Warnf("Filter path does not exist or is not a directory: %s", fullPath)
 		}
-		paths = filteredPaths
 	}
 
 	return paths
 }
 
-// executeInParallel executes the command in parallel across multiple directories.
-func (it *ParallelStateCommand) executeInParallel(
+// applyExclusions removes paths matching any exclusion from the given path list.
+func (it *ParallelStateCommand) applyExclusions(
+	targetPath string,
+	paths []string,
+	exclusions []string,
+) []string {
+	var filteredPaths []string
+
+	for _, currentPath := range paths {
+		relPath, err := filepath.Rel(targetPath, currentPath)
+		if err != nil {
+			relPath = filepath.Base(currentPath)
+		}
+
+		if !it.isExcluded(relPath, exclusions) {
+			filteredPaths = append(filteredPaths, currentPath)
+		}
+	}
+
+	return filteredPaths
+}
+
+// isExcluded checks whether a relative path matches any exclusion entry.
+func (it *ParallelStateCommand) isExcluded(relPath string, exclusions []string) bool {
+	for _, exclusion := range exclusions {
+		if relPath == exclusion || filepath.Base(relPath) == exclusion {
+			return true
+		}
+	}
+
+	return false
+}
+
+// buildFilteredPaths builds full paths by concatenating filter values with the target path.
+// Handles both inclusions and exclusions (values starting with !).
+func (it *ParallelStateCommand) buildFilteredPaths(
+	targetPath string,
+	filterValues []string,
+) []string {
+	parsed := ParseFilterValues(filterValues)
+	var paths []string
+
+	if len(parsed.Inclusions) > 0 {
+		paths = it.buildInclusionPaths(targetPath, parsed.Inclusions)
+	} else {
+		allModules, err := it.findSubdirectories(targetPath)
+		if err != nil {
+			logger.Warnf("Failed to find subdirectories for exclusion filter: %s", err)
+			return paths
+		}
+
+		paths = allModules
+	}
+
+	if len(parsed.Exclusions) > 0 {
+		paths = it.applyExclusions(targetPath, paths, parsed.Exclusions)
+	}
+
+	return paths
+}
+
+// resolveModules discovers which module directories to process based on arguments and filters.
+func (it *ParallelStateCommand) resolveModules(
 	targetPath string,
 	arguments []string,
-	maxJobs int,
-) error {
-	// Record start time for execution duration
-	startTime := time.Now()
-
-	var modules []string
-	var err error
-
-	// Check if --filter flag is present
+) ([]string, error) {
 	if filterValues, hasFilter := GetFilterValue(arguments); hasFilter {
-		// Use filtered directories
-		modules = it.buildFilteredPaths(targetPath, filterValues)
+		modules := it.buildFilteredPaths(targetPath, filterValues)
 		if len(modules) == 0 {
-			return fmt.Errorf("no valid filter paths found")
+			return nil, errors.New("no valid filter paths found")
 		}
+
 		logger.Infof("Using filter: %d modules to process", len(modules))
-	} else {
-		// Find all subdirectories with terraform files
-		modules, err = it.findSubdirectories(targetPath)
-		if err != nil {
-			return err
-		}
-		logger.Infof("Found %d modules to process", len(modules))
+
+		return modules, nil
 	}
 
-	// Adjust maxJobs to not exceed the number of modules
-	if maxJobs > len(modules) {
-		maxJobs = len(modules)
-		logger.Infof("Reducing thread count to %d (number of modules)", maxJobs)
+	modules, err := it.findSubdirectories(targetPath)
+	if err != nil {
+		return nil, err
 	}
 
-	// Remove --all and --parallel=N flags from arguments for individual module execution
-	filteredArguments := it.removeParallelFlags(arguments)
+	logger.Infof("Found %d modules to process", len(modules))
 
-	// Create channels for parallel execution
+	return modules, nil
+}
+
+// runWorkers spawns goroutine workers that execute the command across modules and collects errors.
+func (it *ParallelStateCommand) runWorkers(
+	modules []string,
+	filteredArguments []string,
+	maxJobs int,
+) []error {
 	jobs := make(chan string, len(modules))
 	results := make(chan error, len(modules))
 
-	// Start worker goroutines
 	var wg sync.WaitGroup
+
 	for range maxJobs {
 		wg.Add(1)
+
 		go func() {
 			defer wg.Done()
+
 			for modulePath := range jobs {
 				logger.Infof("==> Processing %s", modulePath)
+
 				executeErr := it.repository.ExecuteCommand("terragrunt", filteredArguments, modulePath)
 				if executeErr != nil {
 					logger.Errorf("✗ %s: %s", modulePath, executeErr)
@@ -245,7 +266,6 @@ func (it *ParallelStateCommand) executeInParallel(
 		}()
 	}
 
-	// Send jobs to workers
 	go func() {
 		defer close(jobs)
 		for _, module := range modules {
@@ -253,13 +273,11 @@ func (it *ParallelStateCommand) executeInParallel(
 		}
 	}()
 
-	// Wait for all workers to finish
 	go func() {
 		wg.Wait()
 		close(results)
 	}()
 
-	// Collect results
 	var executeErrors []error
 	for err := range results {
 		if err != nil {
@@ -267,19 +285,42 @@ func (it *ParallelStateCommand) executeInParallel(
 		}
 	}
 
-	// Calculate execution duration
+	return executeErrors
+}
+
+// executeInParallel executes the command in parallel across multiple directories.
+func (it *ParallelStateCommand) executeInParallel(
+	targetPath string,
+	arguments []string,
+	maxJobs int,
+) error {
+	startTime := time.Now()
+
+	modules, err := it.resolveModules(targetPath, arguments)
+	if err != nil {
+		return err
+	}
+
+	if maxJobs > len(modules) {
+		maxJobs = len(modules)
+		logger.Infof("Reducing thread count to %d (number of modules)", maxJobs)
+	}
+
+	filteredArguments := it.removeParallelFlags(arguments)
+	executeErrors := it.runWorkers(modules, filteredArguments, maxJobs)
 	duration := time.Since(startTime)
 
-	// Report summary with threads and duration
 	successful := len(modules) - len(executeErrors)
-	logger.Infof("Parallel execution completed: %d successful, %d failed (threads: %d, duration: %s)", 
-		successful, len(executeErrors), maxJobs, duration.Round(time.Millisecond))
+	logger.Infof(
+		"Parallel execution completed: %d successful, %d failed (threads: %d, duration: %s)",
+		successful, len(executeErrors), maxJobs, duration.Round(time.Millisecond),
+	)
 
 	if len(executeErrors) > 0 {
-		// Return first error for simplicity, but log all errors
-		for _, err := range executeErrors {
-			logger.Error(err)
+		for _, workerErr := range executeErrors {
+			logger.Error(workerErr)
 		}
+
 		return fmt.Errorf("parallel execution failed with %d errors", len(executeErrors))
 	}
 
