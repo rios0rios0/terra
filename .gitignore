@@ -2,7 +2,9 @@
 *coverage*
 .env
 .go
+.semgrepignore
 bin
+build
 cobertura*
 junit*
 
