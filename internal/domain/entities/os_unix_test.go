@@ -1,4 +1,4 @@
-//go:build unit
+//go:build unit && !windows
 
 package entities_test
 
@@ -26,7 +26,7 @@ func TestGetOS(t *testing.T) {
 	})
 }
 
-func TestOSLinux_GetTempDir(t *testing.T) {
+func TestOSUnix_GetTempDir(t *testing.T) {
 	t.Run("should return valid temp dir when called", func(t *testing.T) {
 		// GIVEN: An OS instance
 		osInstance := entities.GetOS()
@@ -43,7 +43,7 @@ func TestOSLinux_GetTempDir(t *testing.T) {
 	})
 }
 
-func TestOSLinux_GetInstallationPath(t *testing.T) {
+func TestOSUnix_GetInstallationPath(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should return valid installation path when called", func(t *testing.T) {
@@ -59,7 +59,7 @@ func TestOSLinux_GetInstallationPath(t *testing.T) {
 	})
 }
 
-func TestOSLinux_MakeExecutable(t *testing.T) {
+func TestOSUnix_MakeExecutable(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should make file executable when valid file provided", func(t *testing.T) {
@@ -97,7 +97,7 @@ func TestOSLinux_MakeExecutable(t *testing.T) {
 	})
 }
 
-func TestOSLinux_Remove(t *testing.T) {
+func TestOSUnix_Remove(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should handle remove when non-existent file provided", func(t *testing.T) {
