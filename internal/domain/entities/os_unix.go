@@ -1,3 +1,5 @@
+//go:build !windows
+
 package entities
 
 import (
@@ -13,13 +15,13 @@ const (
 	operationTimeout = 30 * time.Second
 )
 
-type OSLinux struct{}
+type OSUnix struct{}
 
-func (it *OSLinux) Download(url, tempFilePath string) error {
+func (it *OSUnix) Download(url, tempFilePath string) error {
 	return downloadFile(url, tempFilePath)
 }
 
-func (it *OSLinux) Extract(tempFilePath, destPath string) error {
+func (it *OSUnix) Extract(tempFilePath, destPath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), operationTimeout)
 	defer cancel()
 	unzipCmd := exec.CommandContext(ctx, "unzip", "-o", tempFilePath, "-d", destPath)
@@ -32,7 +34,7 @@ func (it *OSLinux) Extract(tempFilePath, destPath string) error {
 	return err
 }
 
-func (it *OSLinux) Move(tempFilePath, destPath string) error {
+func (it *OSUnix) Move(tempFilePath, destPath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), operationTimeout)
 	defer cancel()
 	mvCmd := exec.CommandContext(ctx, "mv", tempFilePath, destPath)
@@ -43,7 +45,7 @@ func (it *OSLinux) Move(tempFilePath, destPath string) error {
 	return err
 }
 
-func (it *OSLinux) Remove(tempFilePath string) error {
+func (it *OSUnix) Remove(tempFilePath string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), operationTimeout)
 	defer cancel()
 	rmCmd := exec.CommandContext(ctx, "rm", tempFilePath)
@@ -54,7 +56,7 @@ func (it *OSLinux) Remove(tempFilePath string) error {
 	return err
 }
 
-func (it *OSLinux) MakeExecutable(filePath string) error {
+func (it *OSUnix) MakeExecutable(filePath string) error {
 	// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 	err := os.Chmod(filePath, osOrwxGrxUx)
 	if err != nil {
@@ -63,11 +65,11 @@ func (it *OSLinux) MakeExecutable(filePath string) error {
 	return err
 }
 
-func (it *OSLinux) GetTempDir() string {
+func (it *OSUnix) GetTempDir() string {
 	return os.TempDir()
 }
 
-func (it *OSLinux) GetInstallationPath() string {
+func (it *OSUnix) GetInstallationPath() string {
 	// Allow override via environment variable (used by tests to avoid
 	// overwriting real binaries like terraform in ~/.local/bin).
 	if envPath := os.Getenv("TERRA_INSTALL_PATH"); envPath != "" {
@@ -80,6 +82,6 @@ func (it *OSLinux) GetInstallationPath() string {
 	return fmt.Sprintf("%s/.local/bin", homeDir)
 }
 
-func GetOS() *OSLinux {
-	return &OSLinux{}
+func GetOS() *OSUnix {
+	return &OSUnix{}
 }

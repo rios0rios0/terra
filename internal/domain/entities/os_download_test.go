@@ -1,4 +1,4 @@
-//go:build unit
+//go:build unit && !windows
 
 package entities_test
 
@@ -14,7 +14,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOSLinux_Download(t *testing.T) {
+func TestOSUnix_Download(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should download file successfully when valid URL provided", func(t *testing.T) {
@@ -29,7 +29,7 @@ func TestOSLinux_Download(t *testing.T) {
 
 		tempDir := t.TempDir()
 		destPath := filepath.Join(tempDir, "downloaded_file")
-		osImpl := &entities.OSLinux{}
+		osImpl := &entities.OSUnix{}
 
 		// when
 		err := osImpl.Download(server.URL, destPath)
@@ -51,7 +51,7 @@ func TestOSLinux_Download(t *testing.T) {
 
 		tempDir := t.TempDir()
 		destPath := filepath.Join(tempDir, "downloaded_file")
-		osImpl := &entities.OSLinux{}
+		osImpl := &entities.OSUnix{}
 
 		// when
 		err := osImpl.Download(server.URL, destPath)
@@ -66,7 +66,7 @@ func TestOSLinux_Download(t *testing.T) {
 		// given
 		tempDir := t.TempDir()
 		destPath := filepath.Join(tempDir, "downloaded_file")
-		osImpl := &entities.OSLinux{}
+		osImpl := &entities.OSUnix{}
 
 		// when
 		err := osImpl.Download("http://127.0.0.1:1/unreachable", destPath)

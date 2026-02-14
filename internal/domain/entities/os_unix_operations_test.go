@@ -1,4 +1,4 @@
-//go:build unit
+//go:build unit && !windows
 
 package entities_test
 
@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestOSLinux_Move(t *testing.T) {
+func TestOSUnix_Move(t *testing.T) {
 	t.Parallel()
 
 	t.Run("should move file successfully when valid paths provided", func(t *testing.T) {
@@ -22,7 +22,7 @@ func TestOSLinux_Move(t *testing.T) {
 		srcPath := filepath.Join(tempDir, "source.txt")
 		destPath := filepath.Join(tempDir, "dest.txt")
 		require.NoError(t, os.WriteFile(srcPath, []byte("content"), 0o644))
-		osImpl := &entities.OSLinux{}
+		osImpl := &entities.OSUnix{}
 
 		// when
 		err := osImpl.Move(srcPath, destPath)
@@ -39,7 +39,7 @@ func TestOSLinux_Move(t *testing.T) {
 		t.Parallel()
 		// given
 		tempDir := t.TempDir()
-		osImpl := &entities.OSLinux{}
+		osImpl := &entities.OSUnix{}
 
 		// when
 		err := osImpl.Move(filepath.Join(tempDir, "nonexistent"), filepath.Join(tempDir, "dest"))
