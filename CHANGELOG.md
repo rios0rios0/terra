@@ -16,6 +16,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.6.1] - 2026-02-14
+
 ### Fixed
 
 - fixed cross-compilation failure for darwin (macOS) targets by replacing platform-specific `os_linux.go` with `os_unix.go` using `//go:build !windows` constraint, and renamed `OSLinux` to `OSUnix`
