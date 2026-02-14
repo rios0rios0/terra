@@ -20,7 +20,7 @@ const (
 // TerraVersion will be set at build time via ldflags
 //
 //nolint:gochecknoglobals // Version set at build time via ldflags
-var TerraVersion = "1.6.0"
+var TerraVersion = "1.6.1"
 
 type VersionCommand struct {
 	dependencies []entities.Dependency
