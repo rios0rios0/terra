@@ -270,8 +270,7 @@ More about it in:
 
 ## Contributing
 
-Contributions to `terra` are welcome! Whether it's bug reports, feature requests, or code contributions, please feel free to contribute.
-Check out our [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on how to contribute.
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
