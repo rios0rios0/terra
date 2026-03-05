@@ -7,7 +7,7 @@ Always reference these instructions first and fallback to search or bash command
 ## Working Effectively
 
 ### Prerequisites and Environment Setup
-- Ensure Go 1.23+ is installed and `go` is in PATH
+- Ensure Go 1.26+ is installed and `go` is in PATH
 - For linting and CI tools, use the pipelines project (https://github.com/rios0rios0/pipelines)
 - NEVER CANCEL: Build takes 15-20 seconds. NEVER CANCEL. Set timeout to 60+ minutes for safety.
 
@@ -18,7 +18,7 @@ Bootstrap and build the repository:
 make build
 ```
 
-Install system-wide (requires sudo):
+Install to `~/.local/bin/terra`:
 ```bash
 make install
 ```
@@ -41,8 +41,8 @@ go vet ./...
 # Full pipeline using Makefile targets (automatically clones pipelines project via HTTPS)
 make lint    # Runs golangci-lint via pipelines project
 make test    # Runs tests via pipelines project
-make horusec # Runs security scanning via pipelines project
-make all     # Runs lint + horusec + test
+make sast    # Runs security scanning via pipelines project
+make all     # Runs lint + sast + test
 ```
 
 **File Standards:**
@@ -54,7 +54,7 @@ make all     # Runs lint + horusec + test
 - **All new tests must use testify framework** and follow BDD structure (Given/When/Then)
 - **Bug fixes require unit tests** that reproduce the issue before fixing it
 - **Never test private methods directly** - test through public interfaces with sufficient coverage
-- The CI pipeline uses rios0rios0/pipelines project and runs golangci-lint, horusec security scanning, semgrep, and gitleaks
+- The CI pipeline uses rios0rios0/pipelines project and runs golangci-lint, SAST security scanning (horusec/semgrep), and gitleaks
 - Makefile automatically clones pipelines project using HTTPS (no SSH keys required)
 
 ### Environment Configuration
@@ -84,7 +84,7 @@ TF_VAR_environment=development
 TF_VAR_region=us-west-2
 ```
 
-**CRITICAL**: TERRA_CLOUD must be either "aws" or "azure" - the application will fail validation if empty or invalid.
+**Note**: TERRA_CLOUD is optional. When set, it must be either "aws" or "azure". Cloud-specific features (account/subscription switching) require it to be set, but terra will run without it for commands like `clear`, `format`, `install`, `version`, and `self-update`.
 
 ## Pipelines Integration
 
@@ -94,8 +94,8 @@ This repository uses the [rios0rios0/pipelines](https://github.com/rios0rios0/pi
 - **Local Development**: Use Makefile targets which automatically handle pipelines integration
 - **Linting**: Run `make lint` instead of manual script execution
 - **Testing**: Run `make test` to execute all tests with coverage reporting
-- **Security Scanning**: Run `make horusec` for security analysis
-- **All Checks**: Run `make all` to execute lint + horusec + test
+- **Security Scanning**: Run `make sast` for security analysis
+- **All Checks**: Run `make all` to execute lint + sast + test
 
 ### Automatic Pipelines Setup
 The Makefile automatically handles pipelines project setup using HTTPS (no SSH configuration required):
@@ -103,7 +103,7 @@ The Makefile automatically handles pipelines project setup using HTTPS (no SSH c
 # All these targets automatically clone/update pipelines project as needed
 make lint    # Linting via pipelines/global/scripts/golangci-lint/run.sh
 make test    # Testing via pipelines/global/scripts/golang/test/run.sh
-make horusec # Security via pipelines/global/scripts/horusec/run.sh
+make sast    # Security scanning via pipelines project
 make all     # All quality checks
 ```
 
@@ -122,6 +122,20 @@ terra format
 
 # Install terraform and terragrunt dependencies
 terra install
+
+# Update/install terraform and terragrunt to latest versions (alias for install)
+terra update
+
+# Show terra, terraform, and terragrunt versions
+terra version
+
+# Also accessible via flags:
+terra --version  # or terra -v
+
+# Self-update terra to the latest version from GitHub releases
+terra self-update
+terra self-update --dry-run   # Show what would be updated without performing it
+terra self-update --force     # Skip confirmation prompts
 ```
 
 ### Main Terra Commands (require terraform/terragrunt)
@@ -137,6 +151,22 @@ terra plan /path/to/infrastructure/module
 
 # Apply specific module
 terra apply /path/to/infrastructure/module
+
+# Execute command in parallel across N modules (default: 5)
+terra plan --parallel=5 /path/to/infrastructure
+
+# Filter modules to include specific ones (comma-separated subdirectory names)
+terra apply --parallel=3 --filter=module1,module2 /path/to/infrastructure
+
+# Exclude specific modules from parallel execution (prefix with !)
+terra apply --parallel=3 --filter=!excluded_module /path/to/infrastructure
+
+# Auto-answer interactive prompts (backward-compat: -a defaults to "n")
+terra apply --auto-answer=yes /path/to/infrastructure/module
+terra apply -a=yes /path/to/infrastructure/module
+
+# Forward --parallel to terragrunt instead of terra (pass-through mode)
+terra apply --parallel=5 --all --no-parallel-bypass /path/to/infrastructure
 ```
 
 ## Validation and Testing
@@ -334,7 +364,7 @@ Always test terra functionality after making changes:
    ```bash
    make test    # Run all tests with coverage
    make lint    # Run linting checks
-   make horusec # Run security scanning
+   make sast    # Run security scanning
    make all     # Run all quality checks
    ```
 
@@ -359,32 +389,44 @@ Always test terra functionality after making changes:
    ```
 
 ### Known Limitations and Issues
-- **Network Restrictions**: `terra install` fails in environments with restricted internet access due to HashiCorp API calls
+- **Network Restrictions**: `terra install` and `terra self-update` fail in environments with restricted internet access due to HashiCorp API calls and GitHub API calls respectively
 - **Dependencies**: terraform and terragrunt must be manually installed if `terra install` fails
-- **Argument Parsing Bug**: Commands like `--help` cause runtime panic due to slice bounds error in argument parser
-- **Validation Requirements**: Application requires TERRA_CLOUD to be set to "aws" or "azure" - cannot run without this
+- **Validation Requirements**: Application requires TERRA_CLOUD to be set to "aws" or "azure" for cloud-specific features; commands that don't need cloud access (clear, format, install, version, self-update) work without it
 
 ## Project Structure
 
 ### Key Directories
 ```
-cmd/terra/           # Main application entry point
-internal/domain/     # Business logic and entities
-internal/infrastructure/ # Controllers and repositories
+cmd/terra/               # Main application entry point (main.go, dig.go)
+internal/                # Application bootstrap (app.go, container.go)
+internal/domain/         # Business logic: commands, entities, repositories (interfaces)
+internal/infrastructure/ # Controllers and repository implementations
+test/                    # Test helpers organized by domain/infrastructure layer
 ```
 
 ### Important Files
 - `Makefile` - Build and install targets
 - `CONTRIBUTING.md` - Comprehensive contributing guidelines including mandatory testing requirements
 - `.golangci.yml` - Linting configuration
-- `go.mod` - Go module dependencies (includes testify for testing)
+- `go.mod` - Go module dependencies (includes testify, cobra, and testkit for testing)
 - `internal/domain/entities/settings.go` - Environment variable configuration
+- `internal/domain/entities/app_context.go` - AppContext interface for DIG container
+- `internal/domain/entities/controller.go` - Controller interface for all CLI controllers (uses cobra)
+- `internal/domain/entities/controller_bind.go` - ControllerBind struct for cobra command bindings
+- `internal/domain/entities/platform.go` - Cross-platform OS/arch detection utilities
 - `internal/domain/commands/file_lock.go` - Cross-platform file locking via `gofrs/flock`
 - `internal/domain/commands/run_from_root_command.go` - Main command orchestration (locking, caching, execution)
-- `internal/infrastructure/helpers/arguments_helper.go` - Command argument parsing (has known bugs)
+- `internal/domain/commands/run_additional_before_command.go` - Pre-execution setup (account switching, workspace selection)
+- `internal/domain/commands/parallel_state_command.go` - Parallel execution of terragrunt commands across modules
+- `internal/domain/commands/state_utils.go` - Flag utilities for state manipulation and parallel flags
+- `internal/domain/commands/version_command.go` - Version display command
+- `internal/domain/commands/self_update_command.go` - Self-update from GitHub releases
+- `internal/infrastructure/controllers/helpers/arguments_helper.go` - Command argument parsing
 
-### DIG Dependency Injection
+### DIG Dependency Injection and Cobra CLI
 - Uses Uber's DIG for runtime dependency injection
+- Uses `github.com/spf13/cobra` for CLI command management
+- Uses `github.com/rios0rios0/testkit` as a shared test utilities library
 - Providers are registered in container.go files in each layer
 - No code generation required
 
@@ -394,6 +436,9 @@ internal/infrastructure/ # Controllers and repositories
 - **Centralized provider cache**: Terra sets `TF_PLUGIN_CACHE_DIR` so Terraform/OpenTofu provider plugins are downloaded once and reused (default `~/.cache/terra/providers`). Override with `TERRA_PROVIDER_CACHE_DIR`.
 - **CAS (Content Addressable Store)**: Terra enables the Terragrunt CAS experiment by default (`TG_EXPERIMENT=cas`), which deduplicates Git clones via hard links. This reduces disk usage and speeds up subsequent clones. Disable with `TERRA_NO_CAS=true`.
 - **Auto-initialization with upgrade**: `UpgradeAwareShellRepository` wraps command execution. When a terragrunt command fails with output matching upgrade-needed patterns (backend changed, provider conflicts, uninitialized modules), it automatically runs `init --upgrade` and retries the original command. This is used in the normal (non-interactive) execution path of `RunFromRootCommand`.
+- **Parallel execution**: Use `--parallel=N` to run terragrunt commands across multiple modules simultaneously (default: 5 workers). Use `--filter=mod1,mod2` to include specific modules, or `--filter=!mod3` to exclude. Use `--no-parallel-bypass` to forward `--parallel` to terragrunt instead of terra handling it.
+- **Auto-answer mode**: Use `--auto-answer=<value>` (or `-a=<value>`) to automatically answer interactive prompts from terragrunt. Uses `creack/pty` for PTY-based interaction.
+- **Pre-execution steps**: `RunAdditionalBeforeCommand` runs before the main terragrunt command: switches cloud account (if `TERRA_CLOUD` is set), initializes terraform (if not already done), and selects the workspace (if `TERRA_WORKSPACE` is set).
 - **Clearing caches**: `terra clear` removes local `.terraform` and `.terragrunt-cache` directories. Use `terra clear --global` to also remove the centralized cache directories.
 
 ## Common Tasks
@@ -410,7 +455,7 @@ internal/infrastructure/ # Controllers and repositories
 
 ### Environment Variables Reference
 ```bash
-# Cloud provider (required)
+# Cloud provider (optional - required for account/subscription switching features)
 TERRA_CLOUD=aws|azure
 
 # AWS specific (required if TERRA_CLOUD=aws and role switching needed)
@@ -441,8 +486,8 @@ TF_VAR_*=value
 - **Build Time**: 15-20 seconds typical, NEVER CANCEL builds
 - **Linting Time**: 2-5 minutes with `make lint`, NEVER CANCEL
 - **Testing Time**: 1-2 minutes with `make test`, includes coverage reporting
-- **Dependencies**: DIG-based dependency injection, no code generation needed
+- **Dependencies**: DIG-based dependency injection with cobra CLI, no code generation needed
 - **Pipelines**: Use Makefile targets which automatically handle pipelines project via HTTPS
-- **Install Failures**: `terra install` will fail in restricted network environments - this is expected behavior
+- **Install Failures**: `terra install` and `terra self-update` will fail in restricted network environments - this is expected behavior
 
 Always validate changes by building, testing, and running the basic terra commands to ensure functionality is preserved.
