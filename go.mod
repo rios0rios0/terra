@@ -1,6 +1,6 @@
 module github.com/rios0rios0/terra
 
-go 1.26.0
+go 1.26.1
 
 require (
 	github.com/creack/pty v1.1.24
@@ -8,7 +8,7 @@ require (
 	github.com/gofrs/flock v0.13.0
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/rios0rios0/testkit v0.0.0-20260305013341-7c23bf17b0cc
+	github.com/rios0rios0/testkit v0.0.0-20260305180843-b9f8b6913b11
 	github.com/sirupsen/logrus v1.9.4
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
