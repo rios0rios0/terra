@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
-	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -21,7 +21,7 @@ func TestNewDeleteCacheCommand(t *testing.T) {
 		// GIVEN: The NewDeleteCacheCommand constructor is available
 
 		// WHEN: Creating a new delete cache command
-		cmd := commands.NewDeleteCacheCommand(&entities.Settings{})
+		cmd := commands.NewDeleteCacheCommand(entitybuilders.NewSettingsBuilder().BuildSettings())
 
 		// THEN: Should return a valid command instance
 		require.NotNil(t, cmd)
@@ -32,7 +32,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 	// Note: Cannot use t.Parallel() when using t.Chdir()
 	t.Run("should delete target directories when called with valid paths", func(t *testing.T) {
 		// GIVEN: A delete cache command and test directory structure with cache directories
-		cmd := commands.NewDeleteCacheCommand(&entities.Settings{})
+		cmd := commands.NewDeleteCacheCommand(entitybuilders.NewSettingsBuilder().BuildSettings())
 		tempDir := t.TempDir()
 		t.Chdir(tempDir)
 
@@ -83,7 +83,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 
 	t.Run("should complete without error when empty list provided", func(t *testing.T) {
 		// GIVEN: A delete cache command and temporary directory with test directories
-		cmd := commands.NewDeleteCacheCommand(&entities.Settings{})
+		cmd := commands.NewDeleteCacheCommand(entitybuilders.NewSettingsBuilder().BuildSettings())
 		tempDir := t.TempDir()
 		t.Chdir(tempDir)
 
@@ -107,7 +107,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		"should complete without error when non-existent directories provided",
 		func(t *testing.T) {
 			// GIVEN: A delete cache command and temporary directory
-			cmd := commands.NewDeleteCacheCommand(&entities.Settings{})
+			cmd := commands.NewDeleteCacheCommand(entitybuilders.NewSettingsBuilder().BuildSettings())
 			tempDir := t.TempDir()
 			t.Chdir(tempDir)
 
@@ -121,7 +121,7 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		"should delete only specified directories when selective execution requested",
 		func(t *testing.T) {
 			// GIVEN: A delete cache command and temporary directory with multiple cache types
-			cmd := commands.NewDeleteCacheCommand(&entities.Settings{})
+			cmd := commands.NewDeleteCacheCommand(entitybuilders.NewSettingsBuilder().BuildSettings())
 			tempDir := t.TempDir()
 			t.Chdir(tempDir)
 
@@ -158,10 +158,10 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(providerCache, 0755))
 
-		settings := &entities.Settings{
-			TerraModuleCacheDir:   moduleCache,
-			TerraProviderCacheDir: providerCache,
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraModuleCacheDir(moduleCache).
+			WithTerraProviderCacheDir(providerCache).
+			BuildSettings()
 		cmd := commands.NewDeleteCacheCommand(settings)
 
 		// WHEN: Executing with global=true
@@ -180,10 +180,10 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		tempDir := t.TempDir()
 		t.Chdir(tempDir)
 
-		settings := &entities.Settings{
-			TerraModuleCacheDir:   filepath.Join(tempDir, "nonexistent-modules"),
-			TerraProviderCacheDir: filepath.Join(tempDir, "nonexistent-providers"),
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraModuleCacheDir(filepath.Join(tempDir, "nonexistent-modules")).
+			WithTerraProviderCacheDir(filepath.Join(tempDir, "nonexistent-providers")).
+			BuildSettings()
 		cmd := commands.NewDeleteCacheCommand(settings)
 
 		// WHEN: Executing with global=true
@@ -203,10 +203,10 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(moduleCache, 0755))
 
-		settings := &entities.Settings{
-			TerraModuleCacheDir:   moduleCache,
-			TerraProviderCacheDir: providerCache,
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraModuleCacheDir(moduleCache).
+			WithTerraProviderCacheDir(providerCache).
+			BuildSettings()
 		cmd := commands.NewDeleteCacheCommand(settings)
 
 		// WHEN: Executing with global=true
@@ -230,10 +230,10 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(providerCache, 0755))
 
-		settings := &entities.Settings{
-			TerraModuleCacheDir:   moduleCache,
-			TerraProviderCacheDir: providerCache,
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraModuleCacheDir(moduleCache).
+			WithTerraProviderCacheDir(providerCache).
+			BuildSettings()
 		cmd := commands.NewDeleteCacheCommand(settings)
 
 		// WHEN: Executing with global=false

@@ -5,9 +5,10 @@ package entities_test
 import (
 	"testing"
 
-	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 )
 
 func TestSettings_GetModuleCacheDir(t *testing.T) {
@@ -16,7 +17,7 @@ func TestSettings_GetModuleCacheDir(t *testing.T) {
 	t.Run("should return custom path when TerraModuleCacheDir is set", func(t *testing.T) {
 		t.Parallel()
 		// given
-		settings := &entities.Settings{TerraModuleCacheDir: "/custom/modules"}
+		settings := entitybuilders.NewSettingsBuilder().WithTerraModuleCacheDir("/custom/modules").BuildSettings()
 
 		// when
 		dir, err := settings.GetModuleCacheDir()
@@ -29,7 +30,7 @@ func TestSettings_GetModuleCacheDir(t *testing.T) {
 	t.Run("should return default path when TerraModuleCacheDir is empty", func(t *testing.T) {
 		t.Parallel()
 		// given
-		settings := &entities.Settings{}
+		settings := entitybuilders.NewSettingsBuilder().BuildSettings()
 
 		// when
 		dir, err := settings.GetModuleCacheDir()
@@ -46,7 +47,7 @@ func TestSettings_GetProviderCacheDir(t *testing.T) {
 	t.Run("should return custom path when TerraProviderCacheDir is set", func(t *testing.T) {
 		t.Parallel()
 		// given
-		settings := &entities.Settings{TerraProviderCacheDir: "/custom/providers"}
+		settings := entitybuilders.NewSettingsBuilder().WithTerraProviderCacheDir("/custom/providers").BuildSettings()
 
 		// when
 		dir, err := settings.GetProviderCacheDir()
@@ -59,7 +60,7 @@ func TestSettings_GetProviderCacheDir(t *testing.T) {
 	t.Run("should return default path when TerraProviderCacheDir is empty", func(t *testing.T) {
 		t.Parallel()
 		// given
-		settings := &entities.Settings{}
+		settings := entitybuilders.NewSettingsBuilder().BuildSettings()
 
 		// when
 		dir, err := settings.GetProviderCacheDir()
