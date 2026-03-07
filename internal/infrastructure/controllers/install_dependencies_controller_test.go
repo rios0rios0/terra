@@ -8,6 +8,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
 	"github.com/rios0rios0/terra/test/domain/commanddoubles"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -22,14 +23,12 @@ func TestNewInstallDependenciesController(t *testing.T) {
 		// GIVEN: A mock command and test dependencies
 		mockCommand := &commanddoubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{
-			{
-				Name:              "Test Dependency",
-				CLI:               "test",
-				BinaryURL:         "https://example.com/test",
-				VersionURL:        "https://example.com/version",
-				RegexVersion:      `"version":"([^"]+)"`,
-				FormattingCommand: []string{"format"},
-			},
+			entitybuilders.NewDependencyBuilder().
+				WithName("Test Dependency").
+				WithCLI("test").
+				WithBinaryURL("https://example.com/test").
+				WithVersionURL("https://example.com/version").
+				BuildDependency(),
 		}
 
 		// WHEN: Creating a new install dependencies controller
@@ -76,14 +75,14 @@ func TestInstallDependenciesController_Execute(t *testing.T) {
 		// GIVEN: An install dependencies controller with mock command and test dependencies
 		mockCommand := &commanddoubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{
-			{
-				Name: "Test Dependency",
-				CLI:  "test",
-			},
-			{
-				Name: "Another Dependency",
-				CLI:  "another",
-			},
+			entitybuilders.NewDependencyBuilder().
+				WithName("Test Dependency").
+				WithCLI("test").
+				BuildDependency(),
+			entitybuilders.NewDependencyBuilder().
+				WithName("Another Dependency").
+				WithCLI("another").
+				BuildDependency(),
 		}
 		controller := controllers.NewInstallDependenciesController(mockCommand, dependencies)
 		cmd := &cobra.Command{}
@@ -104,7 +103,10 @@ func TestInstallDependenciesController_Execute(t *testing.T) {
 		// GIVEN: An install dependencies controller with mock command and test dependencies
 		mockCommand := &commanddoubles.StubInstallDependenciesCommand{}
 		dependencies := []entities.Dependency{
-			{Name: "Test", CLI: "test"},
+			entitybuilders.NewDependencyBuilder().
+				WithName("Test").
+				WithCLI("test").
+				BuildDependency(),
 		}
 		controller := controllers.NewInstallDependenciesController(mockCommand, dependencies)
 		cmd := &cobra.Command{}

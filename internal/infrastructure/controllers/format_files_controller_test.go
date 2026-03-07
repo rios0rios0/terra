@@ -8,6 +8,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
 	"github.com/rios0rios0/terra/test/domain/commanddoubles"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -22,11 +23,11 @@ func TestNewFormatFilesController(t *testing.T) {
 		// GIVEN: A mock command and test dependencies
 		mockCommand := &commanddoubles.StubFormatFilesCommand{}
 		dependencies := []entities.Dependency{
-			{
-				Name:              "Test Tool",
-				CLI:               "test",
-				FormattingCommand: []string{"format", "-recursive"},
-			},
+			entitybuilders.NewDependencyBuilder().
+				WithName("Test Tool").
+				WithCLI("test").
+				WithFormattingCommand([]string{"format", "-recursive"}).
+				BuildDependency(),
 		}
 
 		// WHEN: Creating a new format files controller
@@ -68,14 +69,14 @@ func TestFormatFilesController_Execute(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A format files controller with mock command and test dependencies
 		mockCommand := &commanddoubles.StubFormatFilesCommand{}
-		terraformDep := entities.Dependency{
-			Name: "Terraform",
-			CLI:  "terraform",
-		}
-		terragruntDep := entities.Dependency{
-			Name: "Terragrunt",
-			CLI:  "terragrunt",
-		}
+		terraformDep := entitybuilders.NewDependencyBuilder().
+			WithName("Terraform").
+			WithCLI("terraform").
+			BuildDependency()
+		terragruntDep := entitybuilders.NewDependencyBuilder().
+			WithName("Terragrunt").
+			WithCLI("terragrunt").
+			BuildDependency()
 		dependencies := []entities.Dependency{terraformDep, terragruntDep}
 		controller := controllers.NewFormatFilesController(mockCommand, dependencies)
 		cmd := &cobra.Command{}
