@@ -15,6 +15,7 @@ import (
 	"github.com/rios0rios0/terra/internal/infrastructure/repositories"
 
 	"github.com/rios0rios0/terra/test/domain/commanddoubles"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -39,10 +40,10 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		// Create command with isolated cache directories for this test
 		cacheDir := filepath.Join(tempDir, ".cache")
 		cmd := commands.NewRunFromRootCommand(
-			&entities.Settings{
-				TerraModuleCacheDir:   filepath.Join(cacheDir, "modules"),
-				TerraProviderCacheDir: filepath.Join(cacheDir, "providers"),
-			},
+			entitybuilders.NewSettingsBuilder().
+				WithTerraModuleCacheDir(filepath.Join(cacheDir, "modules")).
+				WithTerraProviderCacheDir(filepath.Join(cacheDir, "providers")).
+				BuildSettings(),
 			&commanddoubles.StubInstallDependencies{},
 			&commanddoubles.StubFormatFiles{},
 			&commanddoubles.StubRunAdditionalBefore{},
@@ -87,10 +88,10 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		// Create command with isolated cache directories for this test
 		cacheDir := filepath.Join(tempDir, ".cache")
 		cmd := commands.NewRunFromRootCommand(
-			&entities.Settings{
-				TerraModuleCacheDir:   filepath.Join(cacheDir, "modules"),
-				TerraProviderCacheDir: filepath.Join(cacheDir, "providers"),
-			},
+			entitybuilders.NewSettingsBuilder().
+				WithTerraModuleCacheDir(filepath.Join(cacheDir, "modules")).
+				WithTerraProviderCacheDir(filepath.Join(cacheDir, "providers")).
+				BuildSettings(),
 			&commanddoubles.StubInstallDependencies{},
 			&commanddoubles.StubFormatFiles{},
 			&commanddoubles.StubRunAdditionalBefore{},
@@ -135,10 +136,10 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		// Create command with isolated cache directories for this test
 		cacheDir := filepath.Join(tempDir, ".cache")
 		cmd := commands.NewRunFromRootCommand(
-			&entities.Settings{
-				TerraModuleCacheDir:   filepath.Join(cacheDir, "modules"),
-				TerraProviderCacheDir: filepath.Join(cacheDir, "providers"),
-			},
+			entitybuilders.NewSettingsBuilder().
+				WithTerraModuleCacheDir(filepath.Join(cacheDir, "modules")).
+				WithTerraProviderCacheDir(filepath.Join(cacheDir, "providers")).
+				BuildSettings(),
 			&commanddoubles.StubInstallDependencies{},
 			&commanddoubles.StubFormatFiles{},
 			&commanddoubles.StubRunAdditionalBefore{},

@@ -59,6 +59,14 @@ func (b *DependencyBuilder) WithRegexVersion(regex string) *DependencyBuilder {
 	return b
 }
 
+// WithFormattingCommand sets the formatting command.
+func (b *DependencyBuilder) WithFormattingCommand(cmd []string) *DependencyBuilder {
+	fmtCmd := make([]string, len(cmd))
+	copy(fmtCmd, cmd)
+	b.formattingCommand = fmtCmd
+	return b
+}
+
 // WithTerraformPattern sets up Terraform-like patterns.
 func (b *DependencyBuilder) WithTerraformPattern() *DependencyBuilder {
 	return b.WithRegexVersion(`"current_version":"([^"]+)"`)

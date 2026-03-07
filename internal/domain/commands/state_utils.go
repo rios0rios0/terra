@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -29,10 +30,8 @@ func IsStateManipulationCommand(arguments []string) bool {
 	}
 
 	firstArg := arguments[0]
-	for _, cmd := range stateCommands {
-		if firstArg == cmd {
-			return true
-		}
+	if slices.Contains(stateCommands, firstArg) {
+		return true
 	}
 
 	// Check for state subcommands (e.g., "state rm", "state mv").
@@ -41,10 +40,8 @@ func IsStateManipulationCommand(arguments []string) bool {
 			"rm", "mv", "pull", "push", "show",
 		}
 		secondArg := arguments[1]
-		for _, subcmd := range stateSubcommands {
-			if secondArg == subcmd {
-				return true
-			}
+		if slices.Contains(stateSubcommands, secondArg) {
+			return true
 		}
 	}
 
@@ -53,12 +50,7 @@ func IsStateManipulationCommand(arguments []string) bool {
 
 // HasAllFlag checks if the --all flag is present in arguments.
 func HasAllFlag(arguments []string) bool {
-	for _, arg := range arguments {
-		if arg == AllFlag {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(arguments, AllFlag)
 }
 
 // HasParallelFlag checks if the --parallel=N flag is present in arguments.
@@ -75,8 +67,8 @@ func HasParallelFlag(arguments []string) bool {
 // Returns the value and true if found, or 0 and false if not found or invalid.
 func GetParallelValue(arguments []string) (int, bool) {
 	for _, arg := range arguments {
-		if strings.HasPrefix(arg, ParallelFlagPrefix) {
-			valueStr := strings.TrimPrefix(arg, ParallelFlagPrefix)
+		if after, ok := strings.CutPrefix(arg, ParallelFlagPrefix); ok {
+			valueStr := after
 			value, err := strconv.Atoi(valueStr)
 			if err != nil || value <= 0 {
 				return 0, false
@@ -100,12 +92,7 @@ func RemoveParallelFlag(arguments []string) []string {
 
 // HasNoParallelBypassFlag checks if the --no-parallel-bypass flag is present in arguments.
 func HasNoParallelBypassFlag(arguments []string) bool {
-	for _, arg := range arguments {
-		if arg == NoParallelBypassFlag {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(arguments, NoParallelBypassFlag)
 }
 
 // RemoveNoParallelBypassFlag removes --no-parallel-bypass flag from arguments.
@@ -139,8 +126,8 @@ type FilterValues struct {
 // Returns the separated inclusions and exclusions, and true if found, or nil and false if not found.
 func GetFilterValue(arguments []string) ([]string, bool) {
 	for _, arg := range arguments {
-		if strings.HasPrefix(arg, FilterFlagPrefix) {
-			valueStr := strings.TrimPrefix(arg, FilterFlagPrefix)
+		if after, ok := strings.CutPrefix(arg, FilterFlagPrefix); ok {
+			valueStr := after
 			if valueStr == "" {
 				return nil, false
 			}
@@ -166,9 +153,9 @@ func GetFilterValue(arguments []string) ([]string, bool) {
 func ParseFilterValues(filterValues []string) FilterValues {
 	var result FilterValues
 	for _, value := range filterValues {
-		if strings.HasPrefix(value, "!") {
+		if after, ok := strings.CutPrefix(value, "!"); ok {
 			// Exclusion: remove the ! prefix
-			exclusion := strings.TrimPrefix(value, "!")
+			exclusion := after
 			exclusion = strings.TrimSpace(exclusion)
 			if exclusion != "" {
 				result.Exclusions = append(result.Exclusions, exclusion)

@@ -8,6 +8,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
 	"github.com/rios0rios0/terra/test/domain/commanddoubles"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 
 	"github.com/spf13/cobra"
 	"github.com/stretchr/testify/assert"
@@ -22,10 +23,10 @@ func TestNewRunFromRootController(t *testing.T) {
 		// GIVEN: A mock command and test dependencies
 		mockCommand := &commanddoubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{
-			{
-				Name: "Test Dependency",
-				CLI:  "test",
-			},
+			entitybuilders.NewDependencyBuilder().
+				WithName("Test Dependency").
+				WithCLI("test").
+				BuildDependency(),
 		}
 
 		// WHEN: Creating a new run from root controller
@@ -68,10 +69,10 @@ func TestRunFromRootController_Execute(t *testing.T) {
 		// GIVEN: A run from root controller with mock command and test dependencies
 		mockCommand := &commanddoubles.StubRunFromRootCommand{}
 		dependencies := []entities.Dependency{
-			{
-				Name: "Terraform",
-				CLI:  "terraform",
-			},
+			entitybuilders.NewDependencyBuilder().
+				WithName("Terraform").
+				WithCLI("terraform").
+				BuildDependency(),
 		}
 		controller := controllers.NewRunFromRootController(mockCommand, dependencies)
 		cmd := &cobra.Command{}

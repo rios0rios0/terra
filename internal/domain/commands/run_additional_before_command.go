@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"slices"
+
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/domain/repositories"
 	logger "github.com/sirupsen/logrus"
@@ -67,10 +69,8 @@ func shouldInitEnvironment(arguments []string) bool {
 	}
 
 	// Don't init when using --all flag (equivalent to deprecated run-all)
-	for _, arg := range arguments {
-		if arg == "--all" {
-			return false
-		}
+	if slices.Contains(arguments, "--all") {
+		return false
 	}
 
 	// Don't init for state manipulation commands: terragrunt handles its own

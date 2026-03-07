@@ -8,6 +8,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	"github.com/rios0rios0/terra/internal/infrastructure/controllers"
 	"github.com/rios0rios0/terra/test/domain/commanddoubles"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -19,8 +20,14 @@ func TestNewUpdateDependenciesController(t *testing.T) {
 
 		// GIVEN: Valid dependencies
 		dependencies := []entities.Dependency{
-			{Name: "terraform", CLI: "terraform"},
-			{Name: "terragrunt", CLI: "terragrunt"},
+			entitybuilders.NewDependencyBuilder().
+				WithName("terraform").
+				WithCLI("terraform").
+				BuildDependency(),
+			entitybuilders.NewDependencyBuilder().
+				WithName("terragrunt").
+				WithCLI("terragrunt").
+				BuildDependency(),
 		}
 		installCommand := &commanddoubles.StubInstallDependencies{}
 
@@ -61,8 +68,14 @@ func TestUpdateDependenciesController_Execute(t *testing.T) {
 
 		// GIVEN: An update controller with dependencies
 		dependencies := []entities.Dependency{
-			{Name: "terraform", CLI: "terraform"},
-			{Name: "terragrunt", CLI: "terragrunt"},
+			entitybuilders.NewDependencyBuilder().
+				WithName("terraform").
+				WithCLI("terraform").
+				BuildDependency(),
+			entitybuilders.NewDependencyBuilder().
+				WithName("terragrunt").
+				WithCLI("terragrunt").
+				BuildDependency(),
 		}
 		installCommand := &commanddoubles.StubInstallDependencies{}
 		controller := controllers.NewUpdateDependenciesController(installCommand, dependencies)

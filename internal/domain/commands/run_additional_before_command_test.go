@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
-	"github.com/rios0rios0/terra/internal/domain/entities"
 
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 	"github.com/rios0rios0/terra/test/domain/entitydoubles"
 
 	"github.com/rios0rios0/terra/test/infrastructure/repositorydoubles"
@@ -21,10 +21,10 @@ func TestNewRunAdditionalBeforeCommand(t *testing.T) {
 	t.Run("should create instance when valid dependencies provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Valid dependencies for creating the command
-		settings := &entities.Settings{
-			TerraCloud:              "aws",
-			TerraTerraformWorkspace: "dev",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			WithTerraTerraformWorkspace("dev").
+			BuildSettings()
 		cli := &entitydoubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
@@ -46,9 +46,9 @@ func TestRunAdditionalBeforeCommand_Execute_AccountChange(t *testing.T) {
 	t.Run("should change account when CLI can change account", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with CLI that can change account
-		settings := &entities.Settings{
-			TerraCloud: "aws",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
 		cli := &entitydoubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,
@@ -76,9 +76,9 @@ func TestRunAdditionalBeforeCommand_Execute_AccountChange(t *testing.T) {
 	t.Run("should not change account when CLI cannot change account", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with CLI that cannot change account
-		settings := &entities.Settings{
-			TerraCloud: "aws",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
 		cli := &entitydoubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: false,
@@ -102,9 +102,9 @@ func TestRunAdditionalBeforeCommand_Execute_AccountChange(t *testing.T) {
 	t.Run("should not change account when CLI is nil", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with nil CLI
-		settings := &entities.Settings{
-			TerraCloud: "aws",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
@@ -127,9 +127,9 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 	t.Run("should init environment when arguments require init", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with arguments that require environment initialization
-		settings := &entities.Settings{
-			TerraCloud: "aws",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
@@ -154,9 +154,9 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 	t.Run("should not init environment when arguments are init", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with 'init' argument
-		settings := &entities.Settings{
-			TerraCloud: "aws",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
@@ -177,9 +177,9 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 	t.Run("should not init environment when arguments contain --all flag", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with '--all' flag
-		settings := &entities.Settings{
-			TerraCloud: "aws",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
@@ -200,9 +200,9 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 	t.Run("should not init environment when --all flag is in different position", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with '--all' flag in different position
-		settings := &entities.Settings{
-			TerraCloud: "aws",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
@@ -223,10 +223,10 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 	t.Run("should change workspace when workspace is configured", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with configured workspace
-		settings := &entities.Settings{
-			TerraCloud:              "aws",
-			TerraTerraformWorkspace: "production",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			WithTerraTerraformWorkspace("production").
+			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
@@ -252,10 +252,10 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 	t.Run("should not change workspace when workspace is empty", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with empty workspace
-		settings := &entities.Settings{
-			TerraCloud:              "aws",
-			TerraTerraformWorkspace: "",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			WithTerraTerraformWorkspace("").
+			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := "/test/path"
@@ -276,10 +276,10 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 	t.Run("should execute all steps when all conditions met", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with all conditions met (account change, init, workspace change)
-		settings := &entities.Settings{
-			TerraCloud:              "aws",
-			TerraTerraformWorkspace: "staging",
-		}
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			WithTerraTerraformWorkspace("staging").
+			BuildSettings()
 		cli := &entitydoubles.StubCLI{
 			Name:                  "aws",
 			CanChangeAccountValue: true,

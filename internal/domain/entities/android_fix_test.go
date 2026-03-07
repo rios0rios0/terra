@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 )
 
 func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
@@ -18,7 +19,7 @@ func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
 	t.Run("should return linux OS when android OS provided", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An Android platform
-		platform := entities.PlatformInfo{OS: "android", Arch: "arm64"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("arm64").BuildPlatformInfo()
 
 		// WHEN: GetOSString is called
 		result := platform.GetOSString()
@@ -43,7 +44,7 @@ func TestPlatformInfo_GetOSString_AndroidMapping(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				t.Parallel()
 				// GIVEN: A non-Android platform
-				platform := entities.PlatformInfo{OS: tc.os, Arch: "amd64"}
+				platform := entitybuilders.NewPlatformInfoBuilder().WithOS(tc.os).WithArch("amd64").BuildPlatformInfo()
 
 				// WHEN: GetOSString is called
 				result := platform.GetOSString()
@@ -73,7 +74,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 				name:        "Terraform on Android arm64",
 				cli:         "terraform",
 				binaryURL:   "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
-				platform:    entities.PlatformInfo{OS: "android", Arch: "android_arm64"},
+				platform:    entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("android_arm64").BuildPlatformInfo(),
 				version:     "1.13.3",
 				expectedURL: "https://releases.hashicorp.com/terraform/1.13.3/terraform_1.13.3_linux_arm64.zip",
 			},
@@ -81,7 +82,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 				name:        "Terragrunt on Android arm64",
 				cli:         "terragrunt",
 				binaryURL:   "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s",
-				platform:    entities.PlatformInfo{OS: "android", Arch: "android_arm64"},
+				platform:    entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("android_arm64").BuildPlatformInfo(),
 				version:     "0.50.0",
 				expectedURL: "https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.0/terragrunt_linux_arm64",
 			},
@@ -89,7 +90,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 				name:        "Terraform on Android amd64",
 				cli:         "terraform",
 				binaryURL:   "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
-				platform:    entities.PlatformInfo{OS: "android", Arch: "android_amd64"},
+				platform:    entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("android_amd64").BuildPlatformInfo(),
 				version:     "1.13.3",
 				expectedURL: "https://releases.hashicorp.com/terraform/1.13.3/terraform_1.13.3_linux_amd64.zip",
 			},
@@ -99,10 +100,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				t.Parallel()
 				// GIVEN: A dependency configured for Android platform
-				dependency := entities.Dependency{
-					CLI:       tc.cli,
-					BinaryURL: tc.binaryURL,
-				}
+				dependency := entitybuilders.NewDependencyBuilder().WithCLI(tc.cli).WithBinaryURL(tc.binaryURL).BuildDependency()
 
 				// Create test implementation that simulates GetBinaryURL with our platform
 				testGetBinaryURL := func(version string) string {
@@ -146,7 +144,7 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 	t.Run("should use correct arch method when different dependencies used", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An Android platform with android_arm64 architecture
-		platform := entities.PlatformInfo{OS: "android", Arch: "android_arm64"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("android_arm64").BuildPlatformInfo()
 
 		testCases := []struct {
 			name           string
@@ -178,10 +176,10 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				t.Parallel()
 				// GIVEN: A dependency with specific CLI name
-				dependency := entities.Dependency{
-					CLI:       tc.cli,
-					BinaryURL: "https://example.com/tool_%[1]s_%[2]s_%[3]s",
-				}
+				dependency := entitybuilders.NewDependencyBuilder().
+					WithCLI(tc.cli).
+					WithBinaryURL("https://example.com/tool_%[1]s_%[2]s_%[3]s").
+					BuildDependency()
 
 				// Create test implementation that simulates GetBinaryURL logic
 				testGetBinaryURL := func(version string) string {
