@@ -20,6 +20,22 @@ type Settings struct {
 	TerraNoCAS               bool   `envconfig:"TERRA_NO_CAS"                required:"false"`
 }
 
+func NewSettings() *Settings {
+	var settings Settings
+	err := envconfig.Process("", &settings)
+	if err != nil {
+		logger.Fatalf("Failed to process environment variables: %s", err)
+	}
+
+	validate := validator.New()
+	err = validate.Struct(settings)
+	if err != nil {
+		logger.Fatalf("Environment variables validation error: %v", err)
+	}
+
+	return &settings
+}
+
 // GetModuleCacheDir returns the module cache directory path.
 // It uses the configured value or falls back to ~/.cache/terra/modules.
 func (s *Settings) GetModuleCacheDir() (string, error) {
@@ -48,20 +64,4 @@ func (s *Settings) GetProviderCacheDir() (string, error) {
 	}
 
 	return filepath.Join(home, ".cache", "terra", "providers"), nil
-}
-
-func NewSettings() *Settings {
-	var settings Settings
-	err := envconfig.Process("", &settings)
-	if err != nil {
-		logger.Fatalf("Failed to process environment variables: %s", err)
-	}
-
-	validate := validator.New()
-	err = validate.Struct(settings)
-	if err != nil {
-		logger.Fatalf("Environment variables validation error: %v", err)
-	}
-
-	return &settings
 }
