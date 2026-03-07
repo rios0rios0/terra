@@ -61,7 +61,9 @@ func (b *DependencyBuilder) WithRegexVersion(regex string) *DependencyBuilder {
 
 // WithFormattingCommand sets the formatting command.
 func (b *DependencyBuilder) WithFormattingCommand(cmd []string) *DependencyBuilder {
-	b.formattingCommand = cmd
+	fmtCmd := make([]string, len(cmd))
+	copy(fmtCmd, cmd)
+	b.formattingCommand = fmtCmd
 	return b
 }
 
