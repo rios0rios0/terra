@@ -28,8 +28,8 @@ func (p PlatformInfo) GetPlatformString() string {
 func (p PlatformInfo) GetTerraformArchString() string {
 	// Handle Android architecture which includes "android_" prefix
 	// Terraform expects standard arch names without the prefix
-	if strings.HasPrefix(p.Arch, "android_") {
-		return strings.TrimPrefix(p.Arch, "android_")
+	if after, ok := strings.CutPrefix(p.Arch, "android_"); ok {
+		return after
 	}
 	// Terraform uses standard Go architecture names
 	return p.Arch
@@ -39,8 +39,8 @@ func (p PlatformInfo) GetTerraformArchString() string {
 func (p PlatformInfo) GetTerragruntArchString() string {
 	// Handle Android architecture which includes "android_" prefix
 	// Terragrunt expects standard arch names without the prefix
-	if strings.HasPrefix(p.Arch, "android_") {
-		return strings.TrimPrefix(p.Arch, "android_")
+	if after, ok := strings.CutPrefix(p.Arch, "android_"); ok {
+		return after
 	}
 	// Terragrunt also uses standard Go architecture names
 	return p.Arch
