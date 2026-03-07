@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 )
 
 func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
@@ -20,11 +21,11 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 		func(t *testing.T) {
 			t.Parallel()
 			// GIVEN: A dependency with platform-specific URL template
-			dependency := entities.Dependency{
-				Name:      "Terraform",
-				CLI:       "terraform",
-				BinaryURL: "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
-			}
+			dependency := entitybuilders.NewDependencyBuilder().
+				WithName("Terraform").
+				WithCLI("terraform").
+				WithBinaryURL("https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip").
+				BuildDependency()
 			version := "1.5.0"
 
 			// WHEN: GetBinaryURL is called with a version
@@ -58,11 +59,11 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 	t.Run("should use fallback format when no platform placeholders found", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A dependency with simple version-only URL template (backward compatibility)
-		dependency := entities.Dependency{
-			Name:      "SimpleTool",
-			CLI:       "simple",
-			BinaryURL: "https://example.com/tool_%s.tar.gz",
-		}
+		dependency := entitybuilders.NewDependencyBuilder().
+			WithName("SimpleTool").
+			WithCLI("simple").
+			WithBinaryURL("https://example.com/tool_%s.tar.gz").
+			BuildDependency()
 		version := "2.1.0"
 
 		// WHEN: GetBinaryURL is called
@@ -84,10 +85,10 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 	t.Run("should handle empty version when called with empty string", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A dependency with URL template and empty version
-		dependency := entities.Dependency{
-			Name:      "TestTool",
-			BinaryURL: "https://example.com/tool_%[1]s_%[2]s_%[3]s",
-		}
+		dependency := entitybuilders.NewDependencyBuilder().
+			WithName("TestTool").
+			WithBinaryURL("https://example.com/tool_%[1]s_%[2]s_%[3]s").
+			BuildDependency()
 		emptyVersion := ""
 
 		// WHEN: GetBinaryURL is called with empty version
@@ -130,10 +131,10 @@ func TestDependency_GetBinaryURL_BDDExamples(t *testing.T) {
 				t.Run(tc.name, func(t *testing.T) {
 					t.Parallel()
 					// GIVEN: A dependency with partial platform placeholders
-					dependency := entities.Dependency{
-						Name:      "TestTool",
-						BinaryURL: tc.binaryURL,
-					}
+					dependency := entitybuilders.NewDependencyBuilder().
+						WithName("TestTool").
+						WithBinaryURL(tc.binaryURL).
+						BuildDependency()
 
 					// WHEN: GetBinaryURL is called
 					result := dependency.GetBinaryURL(version)

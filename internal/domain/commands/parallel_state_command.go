@@ -246,11 +246,7 @@ func (it *ParallelStateCommand) runWorkers(
 	var wg sync.WaitGroup
 
 	for range maxJobs {
-		wg.Add(1)
-
-		go func() {
-			defer wg.Done()
-
+		wg.Go(func() {
 			for modulePath := range jobs {
 				logger.Infof("==> Processing %s", modulePath)
 
@@ -263,7 +259,7 @@ func (it *ParallelStateCommand) runWorkers(
 					results <- nil
 				}
 			}
-		}()
+		})
 	}
 
 	go func() {

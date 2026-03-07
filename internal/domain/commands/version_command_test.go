@@ -7,6 +7,7 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,11 +18,11 @@ func TestNewVersionCommand(t *testing.T) {
 		t.Parallel()
 		// GIVEN: Dependencies for version checking
 		dependencies := []entities.Dependency{
-			{
-				Name:         "Terraform",
-				VersionURL:   "https://checkpoint-api.hashicorp.com/v1/check/terraform",
-				RegexVersion: `"current_version":"([^"]+)"`,
-			},
+			entitybuilders.NewDependencyBuilder().
+				WithName("Terraform").
+				WithVersionURL("https://checkpoint-api.hashicorp.com/v1/check/terraform").
+				WithTerraformPattern().
+				BuildDependency(),
 		}
 
 		// WHEN: Creating a new version command
@@ -39,16 +40,16 @@ func TestVersionCommand_Execute(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A version command with dependencies
 		dependencies := []entities.Dependency{
-			{
-				Name:         "Terraform",
-				VersionURL:   "https://checkpoint-api.hashicorp.com/v1/check/terraform",
-				RegexVersion: `"current_version":"([^"]+)"`,
-			},
-			{
-				Name:         "Terragrunt",
-				VersionURL:   "https://api.github.com/repos/gruntwork-io/terragrunt/releases/latest",
-				RegexVersion: `"tag_name":"v([^"]+)"`,
-			},
+			entitybuilders.NewDependencyBuilder().
+				WithName("Terraform").
+				WithVersionURL("https://checkpoint-api.hashicorp.com/v1/check/terraform").
+				WithTerraformPattern().
+				BuildDependency(),
+			entitybuilders.NewDependencyBuilder().
+				WithName("Terragrunt").
+				WithVersionURL("https://api.github.com/repos/gruntwork-io/terragrunt/releases/latest").
+				WithTerragruntPattern().
+				BuildDependency(),
 		}
 		cmd := commands.NewVersionCommand(dependencies)
 

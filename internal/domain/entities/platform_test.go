@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 )
 
 func TestGetPlatformInfo(t *testing.T) {
@@ -39,10 +40,7 @@ func TestPlatformInfo_GetPlatformString(t *testing.T) {
 	t.Run("should return formatted string when called", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with specific OS and architecture
-		platform := entities.PlatformInfo{
-			OS:   "linux",
-			Arch: "amd64",
-		}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithOS("linux").WithArch("amd64").BuildPlatformInfo()
 
 		// WHEN: Getting the platform string
 		result := platform.GetPlatformString()
@@ -60,7 +58,7 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 	t.Run("should return amd64 when called with amd64", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with amd64 architecture
-		platform := entities.PlatformInfo{Arch: "amd64"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("amd64").BuildPlatformInfo()
 
 		// WHEN: Getting Terraform architecture string
 		result := platform.GetTerraformArchString()
@@ -73,7 +71,7 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 	t.Run("should return arm64 when called with arm64", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with arm64 architecture
-		platform := entities.PlatformInfo{Arch: "arm64"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("arm64").BuildPlatformInfo()
 
 		// WHEN: Getting Terraform architecture string
 		result := platform.GetTerraformArchString()
@@ -86,7 +84,7 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 	t.Run("should return 386 when called with 386", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with 386 architecture
-		platform := entities.PlatformInfo{Arch: "386"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("386").BuildPlatformInfo()
 
 		// WHEN: Getting Terraform architecture string
 		result := platform.GetTerraformArchString()
@@ -99,7 +97,7 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 	t.Run("should return arm64 when called with android arm64", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with android_arm64 architecture
-		platform := entities.PlatformInfo{Arch: "android_arm64"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("android_arm64").BuildPlatformInfo()
 
 		// WHEN: Getting Terraform architecture string
 		result := platform.GetTerraformArchString()
@@ -112,7 +110,7 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 	t.Run("should return amd64 when called with android amd64", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with android_amd64 architecture
-		platform := entities.PlatformInfo{Arch: "android_amd64"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("android_amd64").BuildPlatformInfo()
 
 		// WHEN: Getting Terraform architecture string
 		result := platform.GetTerraformArchString()
@@ -125,7 +123,7 @@ func TestPlatformInfo_GetTerraformArchString(t *testing.T) {
 	t.Run("should return 386 when called with android 386", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with android_386 architecture
-		platform := entities.PlatformInfo{Arch: "android_386"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("android_386").BuildPlatformInfo()
 
 		// WHEN: Getting Terraform architecture string
 		result := platform.GetTerraformArchString()
@@ -142,7 +140,7 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 	t.Run("should return amd64 when called with amd64", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with amd64 architecture
-		platform := entities.PlatformInfo{Arch: "amd64"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("amd64").BuildPlatformInfo()
 
 		// WHEN: Getting Terragrunt architecture string
 		result := platform.GetTerragruntArchString()
@@ -155,7 +153,7 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 	t.Run("should return arm64 when called with arm64", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with arm64 architecture
-		platform := entities.PlatformInfo{Arch: "arm64"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("arm64").BuildPlatformInfo()
 
 		// WHEN: Getting Terragrunt architecture string
 		result := platform.GetTerragruntArchString()
@@ -168,7 +166,7 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 	t.Run("should return 386 when called with 386", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with 386 architecture
-		platform := entities.PlatformInfo{Arch: "386"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("386").BuildPlatformInfo()
 
 		// WHEN: Getting Terragrunt architecture string
 		result := platform.GetTerragruntArchString()
@@ -181,7 +179,7 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 	t.Run("should return arm64 when called with android arm64", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with android_arm64 architecture
-		platform := entities.PlatformInfo{Arch: "android_arm64"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("android_arm64").BuildPlatformInfo()
 
 		// WHEN: Getting Terragrunt architecture string
 		result := platform.GetTerragruntArchString()
@@ -194,7 +192,7 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 	t.Run("should return amd64 when called with android amd64", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with android_amd64 architecture
-		platform := entities.PlatformInfo{Arch: "android_amd64"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("android_amd64").BuildPlatformInfo()
 
 		// WHEN: Getting Terragrunt architecture string
 		result := platform.GetTerragruntArchString()
@@ -207,7 +205,7 @@ func TestPlatformInfo_GetTerragruntArchString(t *testing.T) {
 	t.Run("should return 386 when called with android 386", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with android_386 architecture
-		platform := entities.PlatformInfo{Arch: "android_386"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithArch("android_386").BuildPlatformInfo()
 
 		// WHEN: Getting Terragrunt architecture string
 		result := platform.GetTerragruntArchString()
@@ -224,7 +222,7 @@ func TestPlatformInfo_GetOSString(t *testing.T) {
 	t.Run("should return linux when called with linux", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with linux OS
-		platform := entities.PlatformInfo{OS: "linux"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithOS("linux").BuildPlatformInfo()
 
 		// WHEN: Getting OS string
 		result := platform.GetOSString()
@@ -237,7 +235,7 @@ func TestPlatformInfo_GetOSString(t *testing.T) {
 	t.Run("should return windows when called with windows", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with windows OS
-		platform := entities.PlatformInfo{OS: "windows"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithOS("windows").BuildPlatformInfo()
 
 		// WHEN: Getting OS string
 		result := platform.GetOSString()
@@ -250,7 +248,7 @@ func TestPlatformInfo_GetOSString(t *testing.T) {
 	t.Run("should return darwin when called with darwin", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with darwin OS
-		platform := entities.PlatformInfo{OS: "darwin"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithOS("darwin").BuildPlatformInfo()
 
 		// WHEN: Getting OS string
 		result := platform.GetOSString()
@@ -263,7 +261,7 @@ func TestPlatformInfo_GetOSString(t *testing.T) {
 	t.Run("should return linux when called with android", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A platform info with android OS
-		platform := entities.PlatformInfo{OS: "android"}
+		platform := entitybuilders.NewPlatformInfoBuilder().WithOS("android").BuildPlatformInfo()
 
 		// WHEN: Getting OS string
 		result := platform.GetOSString()

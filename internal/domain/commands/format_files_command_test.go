@@ -7,6 +7,7 @@ import (
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 	"github.com/rios0rios0/terra/test/infrastructure/repositorydoubles"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -35,16 +36,16 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A mock repository and dependencies with formatting commands
 		mockRepo := &repositorydoubles.StubShellRepository{}
-		terraformDep := entities.Dependency{
-			Name:              "Terraform",
-			CLI:               "terraform",
-			FormattingCommand: []string{"fmt", "-recursive"},
-		}
-		terragruntDep := entities.Dependency{
-			Name:              "Terragrunt",
-			CLI:               "terragrunt",
-			FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
-		}
+		terraformDep := entitybuilders.NewDependencyBuilder().
+			WithName("Terraform").
+			WithCLI("terraform").
+			WithFormattingCommand([]string{"fmt", "-recursive"}).
+			BuildDependency()
+		terragruntDep := entitybuilders.NewDependencyBuilder().
+			WithName("Terragrunt").
+			WithCLI("terragrunt").
+			WithFormattingCommand([]string{"hcl", "format", "**/*.hcl"}).
+			BuildDependency()
 		dependencies := []entities.Dependency{terraformDep, terragruntDep}
 		cmd := commands.NewFormatFilesCommand(mockRepo)
 
@@ -63,11 +64,11 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 		// GIVEN: A mock repository that returns errors and a single dependency
 		mockRepo := &repositorydoubles.StubShellRepository{ShouldReturnError: true}
 		dependencies := []entities.Dependency{
-			{
-				Name:              "Terraform",
-				CLI:               "terraform",
-				FormattingCommand: []string{"fmt", "-recursive"},
-			},
+			entitybuilders.NewDependencyBuilder().
+				WithName("Terraform").
+				WithCLI("terraform").
+				WithFormattingCommand([]string{"fmt", "-recursive"}).
+				BuildDependency(),
 		}
 		cmd := commands.NewFormatFilesCommand(mockRepo)
 
@@ -99,11 +100,11 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 			// GIVEN: A mock repository and dependency with empty formatting command
 			mockRepo := &repositorydoubles.StubShellRepository{}
 			dependencies := []entities.Dependency{
-				{
-					Name:              "SomeTool",
-					CLI:               "sometool",
-					FormattingCommand: []string{}, // Empty formatting command
-				},
+				entitybuilders.NewDependencyBuilder().
+					WithName("SomeTool").
+					WithCLI("sometool").
+					WithFormattingCommand([]string{}).
+					BuildDependency(),
 			}
 			cmd := commands.NewFormatFilesCommand(mockRepo)
 
@@ -123,21 +124,21 @@ func TestFormatFilesCommand_Execute(t *testing.T) {
 			t.Parallel()
 			// GIVEN: A recording mock repository and multiple dependencies
 			mockRepo := &repositorydoubles.StubShellRepositoryWithRecording{}
-			terraformDep := entities.Dependency{
-				Name:              "Terraform",
-				CLI:               "terraform",
-				FormattingCommand: []string{"fmt", "-recursive"},
-			}
-			terragruntDep := entities.Dependency{
-				Name:              "Terragrunt",
-				CLI:               "terragrunt",
-				FormattingCommand: []string{"hcl", "format", "**/*.hcl"},
-			}
-			customDep := entities.Dependency{
-				Name:              "CustomTool",
-				CLI:               "customtool",
-				FormattingCommand: []string{"format", "--all"},
-			}
+			terraformDep := entitybuilders.NewDependencyBuilder().
+				WithName("Terraform").
+				WithCLI("terraform").
+				WithFormattingCommand([]string{"fmt", "-recursive"}).
+				BuildDependency()
+			terragruntDep := entitybuilders.NewDependencyBuilder().
+				WithName("Terragrunt").
+				WithCLI("terragrunt").
+				WithFormattingCommand([]string{"hcl", "format", "**/*.hcl"}).
+				BuildDependency()
+			customDep := entitybuilders.NewDependencyBuilder().
+				WithName("CustomTool").
+				WithCLI("customtool").
+				WithFormattingCommand([]string{"format", "--all"}).
+				BuildDependency()
 			dependencies := []entities.Dependency{terraformDep, terragruntDep, customDep}
 			cmd := commands.NewFormatFilesCommand(mockRepo)
 

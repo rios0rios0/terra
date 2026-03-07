@@ -9,6 +9,7 @@ import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	infrastructure_repositories "github.com/rios0rios0/terra/internal/infrastructure/repositories"
 	"github.com/rios0rios0/terra/test/domain/commanddoubles"
+	"github.com/rios0rios0/terra/test/domain/entitybuilders"
 	"github.com/rios0rios0/terra/test/infrastructure/repositorydoubles"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,7 +24,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
-			&entities.Settings{},
+			entitybuilders.NewSettingsBuilder().BuildSettings(),
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -64,7 +65,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
-			&entities.Settings{},
+			entitybuilders.NewSettingsBuilder().BuildSettings(),
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -101,7 +102,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
-			&entities.Settings{},
+			entitybuilders.NewSettingsBuilder().BuildSettings(),
 			installCommand,
 			formatCommand,
 			additionalBefore,
@@ -137,7 +138,7 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
 		cmd := commands.NewRunFromRootCommand(
-			&entities.Settings{},
+			entitybuilders.NewSettingsBuilder().BuildSettings(),
 			installCommand,
 			formatCommand,
 			additionalBefore,

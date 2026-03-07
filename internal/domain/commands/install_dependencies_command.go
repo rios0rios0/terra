@@ -165,10 +165,7 @@ func compareVersions(v1, v2 string) int {
 	}
 
 	// Pad versions to same length
-	maxLen := len(parts1)
-	if len(parts2) > maxLen {
-		maxLen = len(parts2)
-	}
+	maxLen := max(len(parts2), len(parts1))
 
 	for len(parts1) < maxLen {
 		parts1 = append(parts1, "0")
