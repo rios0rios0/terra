@@ -235,34 +235,37 @@ func (it *RunFromRootCommand) configureCacheEnvironment() {
 
 	// Enable Terragrunt CAS (Content Addressable Store) experiment by default.
 	// CAS deduplicates Git clones via hard links, reducing disk usage and clone times.
-	if !it.settings.TerraNoCAS {
-		if setenvErr := os.Setenv("TG_EXPERIMENT", "cas"); setenvErr != nil {
-			logger.Warnf("Could not set TG_EXPERIMENT: %s", setenvErr)
-		} else {
-			logger.Debugf("Terragrunt CAS experiment enabled")
-		}
-	}
+	setOrUnsetEnv("TG_EXPERIMENT", "cas", it.settings.TerraNoCAS)
 
 	// Enable Terragrunt Provider Cache Server by default.
 	// The Provider Cache Server starts a localhost proxy that downloads each provider
 	// once and creates symlinks for subsequent modules, reducing download times and disk usage.
-	if !it.settings.TerraNoProviderCache {
-		if setenvErr := os.Setenv("TG_PROVIDER_CACHE", "1"); setenvErr != nil {
-			logger.Warnf("Could not set TG_PROVIDER_CACHE: %s", setenvErr)
-		} else {
-			logger.Debugf("Terragrunt Provider Cache Server enabled")
-		}
-	}
+	setOrUnsetEnv("TG_PROVIDER_CACHE", "1", it.settings.TerraNoProviderCache)
 
 	// Enable Terragrunt Partial Parse Config Cache by default.
 	// Caches parsed HCL configs across modules sharing the same root include,
 	// speeding up config parsing in large codebases.
-	if !it.settings.TerraNoPartialParseCache {
-		if setenvErr := os.Setenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE", "true"); setenvErr != nil {
-			logger.Warnf("Could not set TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE: %s", setenvErr)
-		} else {
-			logger.Debugf("Terragrunt Partial Parse Config Cache enabled")
+	setOrUnsetEnv(
+		"TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE",
+		"true",
+		it.settings.TerraNoPartialParseCache,
+	)
+}
+
+// setOrUnsetEnv sets the environment variable to the given value when disabled is false,
+// or unsets it when disabled is true to ensure the opt-out is deterministic.
+func setOrUnsetEnv(key, value string, disabled bool) {
+	if disabled {
+		if err := os.Unsetenv(key); err != nil {
+			logger.Warnf("Could not unset %s: %s", key, err)
 		}
+		return
+	}
+
+	if err := os.Setenv(key, value); err != nil {
+		logger.Warnf("Could not set %s: %s", key, err)
+	} else {
+		logger.Debugf("%s set to %s", key, value)
 	}
 }
 

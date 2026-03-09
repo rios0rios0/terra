@@ -21,6 +21,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - added Terragrunt Provider Cache Server enabled by default (`TG_PROVIDER_CACHE=1`) for localhost proxy-based provider deduplication via symlinks; disabled with `TERRA_NO_PROVIDER_CACHE=true`
 - added Terragrunt Partial Parse Config Cache enabled by default (`TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE=true`) for faster HCL config parsing across modules sharing the same root include; disabled with `TERRA_NO_PARTIAL_PARSE_CACHE=true`
 
+### Fixed
+
+- fixed opt-out toggles (`TERRA_NO_CAS`, `TERRA_NO_PROVIDER_CACHE`, `TERRA_NO_PARTIAL_PARSE_CACHE`) to explicitly unset the corresponding environment variables, ensuring deterministic behavior when the parent environment has pre-existing values
+
 ### Removed
 
 - removed cross-platform file locking mechanism (`gofrs/flock`) that prevented running multiple terra instances simultaneously from the same repository; CAS and centralized caching make it unnecessary
