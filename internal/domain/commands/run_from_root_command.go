@@ -54,14 +54,6 @@ func (it *RunFromRootCommand) Execute(
 	arguments []string,
 	dependencies []entities.Dependency,
 ) {
-	// Acquire a repository-level lock to prevent concurrent terra processes
-	// from corrupting shared .terragrunt-cache directories.
-	lock, lockErr := acquireRepoLock()
-	if lockErr != nil {
-		logger.Warnf("Could not acquire repo lock: %s (continuing without lock)", lockErr)
-	}
-	defer releaseRepoLock(lock)
-
 	// Configure centralized cache directories before any Terragrunt invocation
 	it.configureCacheEnvironment()
 
@@ -248,6 +240,28 @@ func (it *RunFromRootCommand) configureCacheEnvironment() {
 			logger.Warnf("Could not set TG_EXPERIMENT: %s", setenvErr)
 		} else {
 			logger.Debugf("Terragrunt CAS experiment enabled")
+		}
+	}
+
+	// Enable Terragrunt Provider Cache Server by default.
+	// The Provider Cache Server starts a localhost proxy that downloads each provider
+	// once and creates symlinks for subsequent modules, reducing download times and disk usage.
+	if !it.settings.TerraNoProviderCache {
+		if setenvErr := os.Setenv("TG_PROVIDER_CACHE", "1"); setenvErr != nil {
+			logger.Warnf("Could not set TG_PROVIDER_CACHE: %s", setenvErr)
+		} else {
+			logger.Debugf("Terragrunt Provider Cache Server enabled")
+		}
+	}
+
+	// Enable Terragrunt Partial Parse Config Cache by default.
+	// Caches parsed HCL configs across modules sharing the same root include,
+	// speeding up config parsing in large codebases.
+	if !it.settings.TerraNoPartialParseCache {
+		if setenvErr := os.Setenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE", "true"); setenvErr != nil {
+			logger.Warnf("Could not set TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE: %s", setenvErr)
+		} else {
+			logger.Debugf("Terragrunt Partial Parse Config Cache enabled")
 		}
 	}
 }
