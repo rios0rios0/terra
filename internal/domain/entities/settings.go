@@ -11,13 +11,15 @@ import (
 )
 
 type Settings struct {
-	TerraCloud               string `envconfig:"TERRA_CLOUD"                 required:"false" validate:"omitempty,oneof=aws azure"`
-	TerraTerraformWorkspace  string `envconfig:"TERRA_WORKSPACE"             required:"false"`
-	TerraAwsRoleArn          string `envconfig:"TERRA_AWS_ROLE_ARN"          required:"false"`
-	TerraAzureSubscriptionID string `envconfig:"TERRA_AZURE_SUBSCRIPTION_ID" required:"false"`
-	TerraModuleCacheDir      string `envconfig:"TERRA_MODULE_CACHE_DIR"      required:"false"`
-	TerraProviderCacheDir    string `envconfig:"TERRA_PROVIDER_CACHE_DIR"    required:"false"`
-	TerraNoCAS               bool   `envconfig:"TERRA_NO_CAS"                required:"false"`
+	TerraCloud               string `envconfig:"TERRA_CLOUD"                  required:"false" validate:"omitempty,oneof=aws azure"`
+	TerraTerraformWorkspace  string `envconfig:"TERRA_WORKSPACE"              required:"false"`
+	TerraAwsRoleArn          string `envconfig:"TERRA_AWS_ROLE_ARN"           required:"false"`
+	TerraAzureSubscriptionID string `envconfig:"TERRA_AZURE_SUBSCRIPTION_ID"  required:"false"`
+	TerraModuleCacheDir      string `envconfig:"TERRA_MODULE_CACHE_DIR"       required:"false"`
+	TerraProviderCacheDir    string `envconfig:"TERRA_PROVIDER_CACHE_DIR"     required:"false"`
+	TerraNoCAS               bool   `envconfig:"TERRA_NO_CAS"                 required:"false"`
+	TerraNoProviderCache     bool   `envconfig:"TERRA_NO_PROVIDER_CACHE"      required:"false"`
+	TerraNoPartialParseCache bool   `envconfig:"TERRA_NO_PARTIAL_PARSE_CACHE" required:"false"`
 }
 
 func NewSettings() *Settings {
