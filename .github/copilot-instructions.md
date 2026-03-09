@@ -79,6 +79,12 @@ TERRA_WORKSPACE=dev
 # Optional: Disable Terragrunt CAS (Content Addressable Store) experiment
 # TERRA_NO_CAS=true
 
+# Optional: Disable Terragrunt Provider Cache Server
+# TERRA_NO_PROVIDER_CACHE=true
+
+# Optional: Disable Terragrunt Partial Parse Config Cache
+# TERRA_NO_PARTIAL_PARSE_CACHE=true
+
 # Terraform variables (optional)
 TF_VAR_environment=development
 TF_VAR_region=us-west-2
@@ -414,8 +420,7 @@ test/                    # Test helpers organized by domain/infrastructure layer
 - `internal/domain/entities/controller.go` - Controller interface for all CLI controllers (uses cobra)
 - `internal/domain/entities/controller_bind.go` - ControllerBind struct for cobra command bindings
 - `internal/domain/entities/platform.go` - Cross-platform OS/arch detection utilities
-- `internal/domain/commands/file_lock.go` - Cross-platform file locking via `gofrs/flock`
-- `internal/domain/commands/run_from_root_command.go` - Main command orchestration (locking, caching, execution)
+- `internal/domain/commands/run_from_root_command.go` - Main command orchestration (caching, execution)
 - `internal/domain/commands/run_additional_before_command.go` - Pre-execution setup (account switching, workspace selection)
 - `internal/domain/commands/parallel_state_command.go` - Parallel execution of terragrunt commands across modules
 - `internal/domain/commands/state_utils.go` - Flag utilities for state manipulation and parallel flags
@@ -431,10 +436,11 @@ test/                    # Test helpers organized by domain/infrastructure layer
 - No code generation required
 
 ### Concurrency and Caching
-- **File locking**: `RunFromRootCommand.Execute` acquires a per-repository exclusive lock via `gofrs/flock` to prevent concurrent terra processes from corrupting shared caches. The lock file is at `$TMPDIR/terra-{hash}.lock` (SHA256 hash derived from the working directory). This works cross-platform (Unix and Windows).
 - **Centralized module cache**: Terra sets `TG_DOWNLOAD_DIR` before invoking Terragrunt so all stacks share a single module download directory (default `~/.cache/terra/modules`). Override with `TERRA_MODULE_CACHE_DIR`.
 - **Centralized provider cache**: Terra sets `TF_PLUGIN_CACHE_DIR` so Terraform/OpenTofu provider plugins are downloaded once and reused (default `~/.cache/terra/providers`). Override with `TERRA_PROVIDER_CACHE_DIR`.
 - **CAS (Content Addressable Store)**: Terra enables the Terragrunt CAS experiment by default (`TG_EXPERIMENT=cas`), which deduplicates Git clones via hard links. This reduces disk usage and speeds up subsequent clones. Disable with `TERRA_NO_CAS=true`.
+- **Provider Cache Server**: Terra enables the Terragrunt Provider Cache Server by default (`TG_PROVIDER_CACHE=1`), which starts a localhost proxy that downloads each provider once and creates symlinks for subsequent modules. Disable with `TERRA_NO_PROVIDER_CACHE=true`.
+- **Partial Parse Config Cache**: Terra enables the Terragrunt Partial Parse Config Cache by default (`TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE=true`), which caches parsed HCL configs across modules sharing the same root include. Disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`.
 - **Auto-initialization with upgrade**: `UpgradeAwareShellRepository` wraps command execution. When a terragrunt command fails with output matching upgrade-needed patterns (backend changed, provider conflicts, uninitialized modules), it automatically runs `init --upgrade` and retries the original command. This is used in the normal (non-interactive) execution path of `RunFromRootCommand`.
 - **Parallel execution**: Use `--parallel=N` to run terragrunt commands across multiple modules simultaneously (default: 5 workers). Use `--filter=mod1,mod2` to include specific modules, or `--filter=!mod3` to exclude. Use `--no-parallel-bypass` to forward `--parallel` to terragrunt instead of terra handling it.
 - **Auto-answer mode**: Use `--auto-answer=<value>` (or `-a=<value>`) to automatically answer interactive prompts from terragrunt. Uses `creack/pty` for PTY-based interaction.
@@ -477,6 +483,12 @@ TERRA_PROVIDER_CACHE_DIR=/custom/path/to/providers
 
 # Disable CAS experiment (optional, default: false = CAS enabled)
 TERRA_NO_CAS=true
+
+# Disable Provider Cache Server (optional, default: false = Provider Cache enabled)
+TERRA_NO_PROVIDER_CACHE=true
+
+# Disable Partial Parse Config Cache (optional, default: false = Partial Parse Cache enabled)
+TERRA_NO_PARTIAL_PARSE_CACHE=true
 
 # Terraform variables (optional, any TF_VAR_* variables)
 TF_VAR_*=value

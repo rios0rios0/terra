@@ -29,9 +29,10 @@ A powerful wrapper for Terragrunt and Terraform that revolutionizes infrastructu
 - Automatic dependency installation and management
 - Support for AWS and Azure cloud provider switching
 - **Parallel execution for any command** - Run any Terragrunt command across multiple modules simultaneously using the `--parallel=N` flag, where N is the number of concurrent threads. State commands also support the legacy `--all` flag for backward compatibility.
-- **Cross-platform file locking** - Prevents race conditions when multiple terra processes run concurrently from the same repository
 - **Centralized module and provider caching** - Automatically configures `TG_DOWNLOAD_DIR` and `TF_PLUGIN_CACHE_DIR` so Terragrunt modules and providers are downloaded once and reused across all stacks. Override defaults with `TERRA_MODULE_CACHE_DIR` and `TERRA_PROVIDER_CACHE_DIR` environment variables.
 - **CAS (Content Addressable Store)** - Enables Terragrunt's experimental CAS by default (`TG_EXPERIMENT=cas`), which deduplicates Git clones via hard links for faster subsequent clones and reduced disk usage. Disable with `TERRA_NO_CAS=true`.
+- **Provider Cache Server** - Enables Terragrunt's Provider Cache Server by default (`TG_PROVIDER_CACHE=1`), which starts a localhost proxy that downloads each provider once and creates symlinks for subsequent modules, drastically reducing download times and disk usage. Disable with `TERRA_NO_PROVIDER_CACHE=true`.
+- **Partial Parse Config Cache** - Enables Terragrunt's Partial Parse Config Cache by default (`TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE=true`), which caches parsed HCL configs across modules sharing the same root include for faster config parsing. Disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`.
 - **Auto-initialization with upgrade detection** - Automatically detects when terraform/terragrunt needs `init --upgrade` (backend changes, provider conflicts, uninitialized modules) and runs it transparently before retrying the original command.
 
 ## Installation
@@ -243,6 +244,12 @@ TF_VAR_region=us-west-2
 
 # Optional: Disable Terragrunt CAS (Content Addressable Store) experiment
 # TERRA_NO_CAS=true
+
+# Optional: Disable Terragrunt Provider Cache Server
+# TERRA_NO_PROVIDER_CACHE=true
+
+# Optional: Disable Terragrunt Partial Parse Config Cache
+# TERRA_NO_PARTIAL_PARSE_CACHE=true
 ```
 
 **Note**: If `TERRA_CLOUD` is specified, it must be set to either "aws" or "azure". This enables cloud-specific features like role switching for AWS or subscription switching for Azure.
