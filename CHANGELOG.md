@@ -16,10 +16,17 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-03-12
+
 ### Added
 
-- added Terragrunt Provider Cache Server enabled by default (`TG_PROVIDER_CACHE=1`) for localhost proxy-based provider deduplication via symlinks; disabled with `TERRA_NO_PROVIDER_CACHE=true`
 - added Terragrunt Partial Parse Config Cache enabled by default (`TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE=true`) for faster HCL config parsing across modules sharing the same root include; disabled with `TERRA_NO_PARTIAL_PARSE_CACHE=true`
+- added Terragrunt Provider Cache Server enabled by default (`TG_PROVIDER_CACHE=1`) for localhost proxy-based provider deduplication via symlinks; disabled with `TERRA_NO_PROVIDER_CACHE=true`
+
+### Changed
+
+- changed the Go version to `1.26.1` and updated all module dependencies
+- replaced raw struct literals in tests with testkit builders for consistent test data construction
 
 ### Fixed
 
@@ -28,15 +35,6 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ### Removed
 
 - removed cross-platform file locking mechanism (`gofrs/flock`) that prevented running multiple terra instances simultaneously from the same repository; CAS and centralized caching make it unnecessary
-
-### Changed
-
-- replaced raw struct literals in tests with testkit builders for consistent test data construction
-- changed the Go module dependencies to their latest versions
-- changed the Go module dependencies to their latest versions
-- changed the Go module dependencies to their latest versions
-- changed the Go module dependencies to their latest versions
-- changed the Go version to `1.26.1` and updated all module dependencies
 
 ## [1.6.1] - 2026-02-14
 
