@@ -106,24 +106,9 @@ func (it *UpgradeAwareShellRepository) executeAndCapture(
 	cmd.Stderr = io.MultiWriter(os.Stderr, &outputBuf)
 
 	err := cmd.Run()
-	elapsed := time.Since(start)
+	logCommandDuration(command, arguments, directory, time.Since(start), err)
 	if err != nil {
-		logger.Warnf(
-			"Failed [%s %s] in %s (took %.2fs)",
-			command,
-			strings.Join(arguments, " "),
-			directory,
-			elapsed.Seconds(),
-		)
 		err = fmt.Errorf("failed to perform command execution: %w", err)
-	} else {
-		logger.Infof(
-			"Completed [%s %s] in %s (took %.2fs)",
-			command,
-			strings.Join(arguments, " "),
-			directory,
-			elapsed.Seconds(),
-		)
 	}
 
 	return outputBuf.String(), err
@@ -145,24 +130,9 @@ func (it *UpgradeAwareShellRepository) executePassthrough(
 	cmd.Stdin = os.Stdin
 
 	err := cmd.Run()
-	elapsed := time.Since(start)
+	logCommandDuration(command, arguments, directory, time.Since(start), err)
 	if err != nil {
-		logger.Warnf(
-			"Failed [%s %s] in %s (took %.2fs)",
-			command,
-			strings.Join(arguments, " "),
-			directory,
-			elapsed.Seconds(),
-		)
 		err = fmt.Errorf("failed to perform command execution: %w", err)
-	} else {
-		logger.Infof(
-			"Completed [%s %s] in %s (took %.2fs)",
-			command,
-			strings.Join(arguments, " "),
-			directory,
-			elapsed.Seconds(),
-		)
 	}
 
 	return err
@@ -184,25 +154,11 @@ func (it *UpgradeAwareShellRepository) runInitUpgrade(
 	cmd.Stdin = os.Stdin
 
 	err := cmd.Run()
-	elapsed := time.Since(start)
+	logCommandDuration(command, initArgs, directory, time.Since(start), err)
 	if err != nil {
-		logger.Warnf(
-			"Failed [%s %s] in %s (took %.2fs)",
-			command,
-			strings.Join(initArgs, " "),
-			directory,
-			elapsed.Seconds(),
-		)
 		return fmt.Errorf("failed to perform init --upgrade: %w", err)
 	}
 
-	logger.Infof(
-		"Completed [%s %s] in %s (took %.2fs)",
-		command,
-		strings.Join(initArgs, " "),
-		directory,
-		elapsed.Seconds(),
-	)
 	return nil
 }
 

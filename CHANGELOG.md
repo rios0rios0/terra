@@ -30,7 +30,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Removed
 
-- removed `TERRA_NO_PROVIDER_CACHE` environment variable and `terra cache` command (Provider Cache Server replaced by `TF_PLUGIN_CACHE_DIR`)
+- removed `TERRA_NO_PROVIDER_CACHE` environment variable (Provider Cache Server replaced by `TF_PLUGIN_CACHE_DIR`)
 
 ## [1.7.1] - 2026-03-14
 
