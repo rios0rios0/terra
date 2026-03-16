@@ -567,7 +567,6 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		t.Setenv("TG_DOWNLOAD_DIR", "")
 		t.Setenv("TF_PLUGIN_CACHE_DIR", "")
 		t.Setenv("TG_EXPERIMENT", "")
-		t.Setenv("TG_PROVIDER_CACHE", "")
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		tempDir := t.TempDir()
 		moduleDir := tempDir + "/modules"
@@ -607,7 +606,6 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		t.Setenv("TG_DOWNLOAD_DIR", "")
 		t.Setenv("TF_PLUGIN_CACHE_DIR", "")
 		t.Setenv("TG_EXPERIMENT", "")
-		t.Setenv("TG_PROVIDER_CACHE", "")
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().BuildSettings()
 		cmd := commands.NewRunFromRootCommand(
@@ -634,7 +632,6 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 	t.Run("should enable CAS experiment by default when TerraNoCAS is false", func(t *testing.T) {
 		// given
 		t.Setenv("TG_EXPERIMENT", "")
-		t.Setenv("TG_PROVIDER_CACHE", "")
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
@@ -662,7 +659,6 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 	t.Run("should not enable CAS experiment when TerraNoCAS is true", func(t *testing.T) {
 		// given
 		t.Setenv("TG_EXPERIMENT", "cas")
-		t.Setenv("TG_PROVIDER_CACHE", "")
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
@@ -687,43 +683,14 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		assert.Empty(t, os.Getenv("TG_EXPERIMENT"), "TG_EXPERIMENT should not be set when CAS is disabled")
 	})
 
-	t.Run("should enable Provider Cache Server by default when TerraNoProviderCache is false", func(t *testing.T) {
+	t.Run("should not set TG_PROVIDER_CACHE when configureCacheEnvironment called", func(t *testing.T) {
 		// given
-		t.Setenv("TG_EXPERIMENT", "")
 		t.Setenv("TG_PROVIDER_CACHE", "")
-		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
-		settings := entitybuilders.NewSettingsBuilder().
-			WithTerraModuleCacheDir(t.TempDir()).
-			WithTerraProviderCacheDir(t.TempDir()).
-			WithTerraNoProviderCache(false).
-			BuildSettings()
-		cmd := commands.NewRunFromRootCommand(
-			settings,
-			&commanddoubles.StubInstallDependencies{},
-			&commanddoubles.StubFormatFiles{},
-			&commanddoubles.StubRunAdditionalBefore{},
-			&commanddoubles.StubParallelState{},
-			&repositorydoubles.StubShellRepositoryForRoot{},
-			&repositorydoubles.StubUpgradeShellRepository{},
-			&repositorydoubles.StubInteractiveShellRepository{},
-		)
-
-		// when
-		cmd.ConfigureCacheEnvironmentPublic()
-
-		// then
-		assert.Equal(t, "1", os.Getenv("TG_PROVIDER_CACHE"))
-	})
-
-	t.Run("should not enable Provider Cache Server when TerraNoProviderCache is true", func(t *testing.T) {
-		// given
 		t.Setenv("TG_EXPERIMENT", "")
-		t.Setenv("TG_PROVIDER_CACHE", "1")
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
 			WithTerraProviderCacheDir(t.TempDir()).
-			WithTerraNoProviderCache(true).
 			BuildSettings()
 		cmd := commands.NewRunFromRootCommand(
 			settings,
@@ -740,13 +707,13 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		cmd.ConfigureCacheEnvironmentPublic()
 
 		// then
-		assert.Empty(t, os.Getenv("TG_PROVIDER_CACHE"), "TG_PROVIDER_CACHE should not be set when Provider Cache is disabled")
+		assert.Empty(t, os.Getenv("TG_PROVIDER_CACHE"),
+			"TG_PROVIDER_CACHE should not be set by configureCacheEnvironment")
 	})
 
 	t.Run("should enable Partial Parse Config Cache by default when TerraNoPartialParseCache is false", func(t *testing.T) {
 		// given
 		t.Setenv("TG_EXPERIMENT", "")
-		t.Setenv("TG_PROVIDER_CACHE", "")
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
@@ -774,7 +741,6 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 	t.Run("should not enable Partial Parse Config Cache when TerraNoPartialParseCache is true", func(t *testing.T) {
 		// given
 		t.Setenv("TG_EXPERIMENT", "")
-		t.Setenv("TG_PROVIDER_CACHE", "")
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "true")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).

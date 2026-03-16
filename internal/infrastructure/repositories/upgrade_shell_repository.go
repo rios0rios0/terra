@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	logger "github.com/sirupsen/logrus"
 )
@@ -95,6 +96,7 @@ func (it *UpgradeAwareShellRepository) executeAndCapture(
 ) (string, error) {
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(arguments, " "), directory)
 
+	start := time.Now()
 	cmd := exec.CommandContext(context.Background(), command, arguments...)
 	cmd.Dir = directory
 	cmd.Stdin = os.Stdin
@@ -104,6 +106,7 @@ func (it *UpgradeAwareShellRepository) executeAndCapture(
 	cmd.Stderr = io.MultiWriter(os.Stderr, &outputBuf)
 
 	err := cmd.Run()
+	logCommandDuration(command, arguments, directory, time.Since(start), err)
 	if err != nil {
 		err = fmt.Errorf("failed to perform command execution: %w", err)
 	}
@@ -119,6 +122,7 @@ func (it *UpgradeAwareShellRepository) executePassthrough(
 ) error {
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(arguments, " "), directory)
 
+	start := time.Now()
 	cmd := exec.CommandContext(context.Background(), command, arguments...)
 	cmd.Dir = directory
 	cmd.Stdout = os.Stdout
@@ -126,6 +130,7 @@ func (it *UpgradeAwareShellRepository) executePassthrough(
 	cmd.Stdin = os.Stdin
 
 	err := cmd.Run()
+	logCommandDuration(command, arguments, directory, time.Since(start), err)
 	if err != nil {
 		err = fmt.Errorf("failed to perform command execution: %w", err)
 	}
@@ -141,6 +146,7 @@ func (it *UpgradeAwareShellRepository) runInitUpgrade(
 	initArgs := []string{"init", "--upgrade"}
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(initArgs, " "), directory)
 
+	start := time.Now()
 	cmd := exec.CommandContext(context.Background(), command, initArgs...)
 	cmd.Dir = directory
 	cmd.Stdout = os.Stdout
@@ -148,6 +154,7 @@ func (it *UpgradeAwareShellRepository) runInitUpgrade(
 	cmd.Stdin = os.Stdin
 
 	err := cmd.Run()
+	logCommandDuration(command, initArgs, directory, time.Since(start), err)
 	if err != nil {
 		return fmt.Errorf("failed to perform init --upgrade: %w", err)
 	}
