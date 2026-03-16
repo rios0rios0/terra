@@ -273,25 +273,25 @@ More about it in:
 
 ## Benchmarks
 
-Provider caching strategy comparison using `terragrunt init` with azurerm provider v4.42.0 on a single module:
+Provider caching strategy comparison using `terragrunt init` with `azurerm` provider `v4.42.0` on a single module:
 
 ### Speed
 
-| Strategy | Cold cache | Warm cache (median) |
-|---|---|---|
-| No cache | 12.4s | 12.4s |
-| `TF_PLUGIN_CACHE_DIR` only | 11.9s | **8.9s** |
-| `TG_PROVIDER_CACHE` only | 11.8s | 10.6s |
-| Both combined | 11.4s | 9.5s |
+| Strategy                   | Cold cache | Warm cache (median) |
+|----------------------------|------------|---------------------|
+| No cache                   | 12.4s      | 12.4s               |
+| `TF_PLUGIN_CACHE_DIR` only | 11.9s      | **8.9s**            |
+| `TG_PROVIDER_CACHE` only   | 11.8s      | 10.6s               |
+| Both combined              | 11.4s      | 9.5s                |
 
 ### Disk usage
 
-| Strategy | Shared cache | Per module | Total (N modules) |
-|---|---|---|---|
-| No cache | 0 | 238 MB (full copy) | 238 MB x N |
-| `TF_PLUGIN_CACHE_DIR` only | 219 MB | 19 MB (symlink) | 219 MB + 19 MB x N |
-| `TG_PROVIDER_CACHE` only | 219 MB | 19 MB (symlink) | 219 MB + 19 MB x N |
-| Both combined | 219 MB | 19 MB (symlink) | 219 MB + 19 MB x N |
+| Strategy                   | Shared cache | Per module         | Total (N modules)  |
+|----------------------------|--------------|--------------------|--------------------|
+| No cache                   | 0            | 238 MB (full copy) | 238 MB x N         |
+| `TF_PLUGIN_CACHE_DIR` only | 219 MB       | 19 MB (symlink)    | 219 MB + 19 MB x N |
+| `TG_PROVIDER_CACHE` only   | 219 MB       | 19 MB (symlink)    | 219 MB + 19 MB x N |
+| Both combined              | 219 MB       | 19 MB (symlink)    | 219 MB + 19 MB x N |
 
 Terra uses `TF_PLUGIN_CACHE_DIR` by default as it provides the best warm-cache performance (8.9s) with the same disk savings as other strategies, and no per-process server overhead.
 
