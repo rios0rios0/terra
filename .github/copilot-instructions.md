@@ -79,9 +79,6 @@ TERRA_WORKSPACE=dev
 # Optional: Disable Terragrunt CAS (Content Addressable Store) experiment
 # TERRA_NO_CAS=true
 
-# Optional: Disable Terragrunt Provider Cache Server
-# TERRA_NO_PROVIDER_CACHE=true
-
 # Optional: Disable Terragrunt Partial Parse Config Cache
 # TERRA_NO_PARTIAL_PARSE_CACHE=true
 
@@ -439,7 +436,7 @@ test/                    # Test helpers organized by domain/infrastructure layer
 - **Centralized module cache**: Terra sets `TG_DOWNLOAD_DIR` before invoking Terragrunt so all stacks share a single module download directory (default `~/.cache/terra/modules`). Override with `TERRA_MODULE_CACHE_DIR`.
 - **Centralized provider cache**: Terra sets `TF_PLUGIN_CACHE_DIR` so Terraform/OpenTofu provider plugins are downloaded once and reused (default `~/.cache/terra/providers`). Override with `TERRA_PROVIDER_CACHE_DIR`.
 - **CAS (Content Addressable Store)**: Terra enables the Terragrunt CAS experiment by default (`TG_EXPERIMENT=cas`), which deduplicates Git clones via hard links. This reduces disk usage and speeds up subsequent clones. Disable with `TERRA_NO_CAS=true`.
-- **Provider Cache Server**: Terra enables the Terragrunt Provider Cache Server by default (`TG_PROVIDER_CACHE=1`), which starts a localhost proxy that downloads each provider once and creates symlinks for subsequent modules. Disable with `TERRA_NO_PROVIDER_CACHE=true`.
+- **Provider caching**: Terra uses `TF_PLUGIN_CACHE_DIR` for symlink-based provider deduplication across modules. Benchmarks showed this is faster than `TG_PROVIDER_CACHE` (8.9s vs 10.6s warm) with identical disk savings and no per-process server overhead.
 - **Partial Parse Config Cache**: Terra enables the Terragrunt Partial Parse Config Cache by default (`TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true`), which caches parsed HCL configs across modules sharing the same root include. Disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`.
 - **Auto-initialization with upgrade**: `UpgradeAwareShellRepository` wraps command execution. When a terragrunt command fails with output matching upgrade-needed patterns (backend changed, provider conflicts, uninitialized modules), it automatically runs `init --upgrade` and retries the original command. This is used in the normal (non-interactive) execution path of `RunFromRootCommand`.
 - **Parallel execution**: Use `--parallel=N` to run terragrunt commands across multiple modules simultaneously (default: 5 workers). Use `--filter=mod1,mod2` to include specific modules, or `--filter=!mod3` to exclude. Use `--no-parallel-bypass` to forward `--parallel` to terragrunt instead of terra handling it.
@@ -483,9 +480,6 @@ TERRA_PROVIDER_CACHE_DIR=/custom/path/to/providers
 
 # Disable CAS experiment (optional, default: false = CAS enabled)
 TERRA_NO_CAS=true
-
-# Disable Provider Cache Server (optional, default: false = Provider Cache enabled)
-TERRA_NO_PROVIDER_CACHE=true
 
 # Disable Partial Parse Config Cache (optional, default: false = Partial Parse Cache enabled)
 TERRA_NO_PARTIAL_PARSE_CACHE=true

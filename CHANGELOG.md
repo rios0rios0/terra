@@ -16,9 +16,21 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added execution timing to command logs showing how long each terragrunt invocation took
+
+### Changed
+
+- changed provider caching strategy: removed `TG_PROVIDER_CACHE` (Provider Cache Server) in favor of `TF_PLUGIN_CACHE_DIR` only, which benchmarks showed is faster (8.9s vs 10.6s warm) with identical disk savings via symlinks
+
 ### Fixed
 
-- fixed deprecated `TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE` environment variable replaced with `TG_USE_PARTIAL_PARSE_CONFIG_CACHE`
+- fixed Terragrunt deprecation warning by replacing `TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE` with `TG_USE_PARTIAL_PARSE_CONFIG_CACHE`
+
+### Removed
+
+- removed `TERRA_NO_PROVIDER_CACHE` environment variable (Provider Cache Server replaced by `TF_PLUGIN_CACHE_DIR`)
 
 ## [1.7.1] - 2026-03-14
 

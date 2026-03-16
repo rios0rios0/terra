@@ -29,9 +29,8 @@ A powerful wrapper for Terragrunt and Terraform that revolutionizes infrastructu
 - Automatic dependency installation and management
 - Support for AWS and Azure cloud provider switching
 - **Parallel execution for any command** - Run any Terragrunt command across multiple modules simultaneously using the `--parallel=N` flag, where N is the number of concurrent threads. State commands also support the legacy `--all` flag for backward compatibility.
-- **Centralized module and provider caching** - Automatically configures `TG_DOWNLOAD_DIR` and `TF_PLUGIN_CACHE_DIR` so Terragrunt modules and providers are downloaded once and reused across all stacks. Override defaults with `TERRA_MODULE_CACHE_DIR` and `TERRA_PROVIDER_CACHE_DIR` environment variables.
+- **Centralized module and provider caching** - Automatically configures `TG_DOWNLOAD_DIR` and `TF_PLUGIN_CACHE_DIR` so Terragrunt modules and providers are downloaded once and reused across all stacks via symlinks. Override defaults with `TERRA_MODULE_CACHE_DIR` and `TERRA_PROVIDER_CACHE_DIR` environment variables.
 - **CAS (Content Addressable Store)** - Enables Terragrunt's experimental CAS by default (`TG_EXPERIMENT=cas`), which deduplicates Git clones via hard links for faster subsequent clones and reduced disk usage. Disable with `TERRA_NO_CAS=true`.
-- **Provider Cache Server** - Enables Terragrunt's Provider Cache Server by default (`TG_PROVIDER_CACHE=1`), which starts a localhost proxy that downloads each provider once and creates symlinks for subsequent modules, drastically reducing download times and disk usage. Disable with `TERRA_NO_PROVIDER_CACHE=true`.
 - **Partial Parse Config Cache** - Enables Terragrunt's Partial Parse Config Cache by default (`TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true`), which caches parsed HCL configs across modules sharing the same root include for faster config parsing. Disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`.
 - **Auto-initialization with upgrade detection** - Automatically detects when terraform/terragrunt needs `init --upgrade` (backend changes, provider conflicts, uninitialized modules) and runs it transparently before retrying the original command.
 
@@ -245,9 +244,6 @@ TF_VAR_region=us-west-2
 # Optional: Disable Terragrunt CAS (Content Addressable Store) experiment
 # TERRA_NO_CAS=true
 
-# Optional: Disable Terragrunt Provider Cache Server
-# TERRA_NO_PROVIDER_CACHE=true
-
 # Optional: Disable Terragrunt Partial Parse Config Cache
 # TERRA_NO_PARTIAL_PARSE_CACHE=true
 ```
@@ -274,6 +270,30 @@ More about it in:
    ```
    That means you exceeded the `path` size limitation on the current `path` you are running the command.
    To avoid this issue, move your infrastructure project to a shorter `path`, closer to your "/home" directory, for example.
+
+## Benchmarks
+
+Provider caching strategy comparison using `terragrunt init` with azurerm provider v4.42.0 on a single module:
+
+### Speed
+
+| Strategy | Cold cache | Warm cache (median) |
+|---|---|---|
+| No cache | 12.4s | 12.4s |
+| `TF_PLUGIN_CACHE_DIR` only | 11.9s | **8.9s** |
+| `TG_PROVIDER_CACHE` only | 11.8s | 10.6s |
+| Both combined | 11.4s | 9.5s |
+
+### Disk usage
+
+| Strategy | Shared cache | Per module | Total (N modules) |
+|---|---|---|---|
+| No cache | 0 | 238 MB (full copy) | 238 MB x N |
+| `TF_PLUGIN_CACHE_DIR` only | 219 MB | 19 MB (symlink) | 219 MB + 19 MB x N |
+| `TG_PROVIDER_CACHE` only | 219 MB | 19 MB (symlink) | 219 MB + 19 MB x N |
+| Both combined | 219 MB | 19 MB (symlink) | 219 MB + 19 MB x N |
+
+Terra uses `TF_PLUGIN_CACHE_DIR` by default as it provides the best warm-cache performance (8.9s) with the same disk savings as other strategies, and no per-process server overhead.
 
 ## Contributing
 
