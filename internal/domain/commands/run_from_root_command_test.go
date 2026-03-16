@@ -568,7 +568,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		t.Setenv("TF_PLUGIN_CACHE_DIR", "")
 		t.Setenv("TG_EXPERIMENT", "")
 		t.Setenv("TG_PROVIDER_CACHE", "")
-		t.Setenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		tempDir := t.TempDir()
 		moduleDir := tempDir + "/modules"
 		providerDir := tempDir + "/providers"
@@ -608,7 +608,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		t.Setenv("TF_PLUGIN_CACHE_DIR", "")
 		t.Setenv("TG_EXPERIMENT", "")
 		t.Setenv("TG_PROVIDER_CACHE", "")
-		t.Setenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().BuildSettings()
 		cmd := commands.NewRunFromRootCommand(
 			settings,
@@ -635,7 +635,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		// given
 		t.Setenv("TG_EXPERIMENT", "")
 		t.Setenv("TG_PROVIDER_CACHE", "")
-		t.Setenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
 			WithTerraProviderCacheDir(t.TempDir()).
@@ -663,7 +663,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		// given
 		t.Setenv("TG_EXPERIMENT", "cas")
 		t.Setenv("TG_PROVIDER_CACHE", "")
-		t.Setenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
 			WithTerraProviderCacheDir(t.TempDir()).
@@ -691,7 +691,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		// given
 		t.Setenv("TG_EXPERIMENT", "")
 		t.Setenv("TG_PROVIDER_CACHE", "")
-		t.Setenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
 			WithTerraProviderCacheDir(t.TempDir()).
@@ -719,7 +719,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		// given
 		t.Setenv("TG_EXPERIMENT", "")
 		t.Setenv("TG_PROVIDER_CACHE", "1")
-		t.Setenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
 			WithTerraProviderCacheDir(t.TempDir()).
@@ -747,7 +747,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		// given
 		t.Setenv("TG_EXPERIMENT", "")
 		t.Setenv("TG_PROVIDER_CACHE", "")
-		t.Setenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
 			WithTerraProviderCacheDir(t.TempDir()).
@@ -768,14 +768,14 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		cmd.ConfigureCacheEnvironmentPublic()
 
 		// then
-		assert.Equal(t, "true", os.Getenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE"))
+		assert.Equal(t, "true", os.Getenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE"))
 	})
 
 	t.Run("should not enable Partial Parse Config Cache when TerraNoPartialParseCache is true", func(t *testing.T) {
 		// given
 		t.Setenv("TG_EXPERIMENT", "")
 		t.Setenv("TG_PROVIDER_CACHE", "")
-		t.Setenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE", "true")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "true")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
 			WithTerraProviderCacheDir(t.TempDir()).
@@ -796,8 +796,8 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		cmd.ConfigureCacheEnvironmentPublic()
 
 		// then
-		assert.Empty(t, os.Getenv("TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE"),
-			"TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE should not be set when Partial Parse Cache is disabled")
+		assert.Empty(t, os.Getenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE"),
+			"TG_USE_PARTIAL_PARSE_CONFIG_CACHE should not be set when Partial Parse Cache is disabled")
 	})
 }
 
