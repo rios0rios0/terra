@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	logger "github.com/sirupsen/logrus"
 )
@@ -25,6 +26,7 @@ func (it *StdShellRepository) ExecuteCommand(
 	directory string,
 ) error {
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(arguments, " "), directory)
+	start := time.Now()
 	cmd := exec.CommandContext(context.Background(), command, arguments...)
 	cmd.Dir = directory
 	cmd.Stdout = os.Stdout
@@ -32,8 +34,24 @@ func (it *StdShellRepository) ExecuteCommand(
 	cmd.Stdin = os.Stdin
 
 	err := cmd.Run()
+	elapsed := time.Since(start)
 	if err != nil {
+		logger.Warnf(
+			"Failed [%s %s] in %s (took %.2fs)",
+			command,
+			strings.Join(arguments, " "),
+			directory,
+			elapsed.Seconds(),
+		)
 		err = fmt.Errorf("failed to perform command execution: %w", err)
+	} else {
+		logger.Infof(
+			"Completed [%s %s] in %s (took %.2fs)",
+			command,
+			strings.Join(arguments, " "),
+			directory,
+			elapsed.Seconds(),
+		)
 	}
 	return err
 }
