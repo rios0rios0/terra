@@ -246,7 +246,7 @@ func (it *RunFromRootCommand) configureCacheEnvironment() {
 	// Caches parsed HCL configs across modules sharing the same root include,
 	// speeding up config parsing in large codebases.
 	setOrUnsetEnv(
-		"TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE",
+		"TG_USE_PARTIAL_PARSE_CONFIG_CACHE",
 		"true",
 		it.settings.TerraNoPartialParseCache,
 	)
