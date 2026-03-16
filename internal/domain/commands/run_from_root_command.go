@@ -237,11 +237,6 @@ func (it *RunFromRootCommand) configureCacheEnvironment() {
 	// CAS deduplicates Git clones via hard links, reducing disk usage and clone times.
 	setOrUnsetEnv("TG_EXPERIMENT", "cas", it.settings.TerraNoCAS)
 
-	// Enable Terragrunt Provider Cache Server by default.
-	// The Provider Cache Server starts a localhost proxy that downloads each provider
-	// once and creates symlinks for subsequent modules, reducing download times and disk usage.
-	setOrUnsetEnv("TG_PROVIDER_CACHE", "1", it.settings.TerraNoProviderCache)
-
 	// Enable Terragrunt Partial Parse Config Cache by default.
 	// Caches parsed HCL configs across modules sharing the same root include,
 	// speeding up config parsing in large codebases.

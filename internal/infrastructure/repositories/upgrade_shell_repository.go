@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 
 	logger "github.com/sirupsen/logrus"
 )
@@ -95,6 +96,7 @@ func (it *UpgradeAwareShellRepository) executeAndCapture(
 ) (string, error) {
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(arguments, " "), directory)
 
+	start := time.Now()
 	cmd := exec.CommandContext(context.Background(), command, arguments...)
 	cmd.Dir = directory
 	cmd.Stdin = os.Stdin
@@ -104,8 +106,24 @@ func (it *UpgradeAwareShellRepository) executeAndCapture(
 	cmd.Stderr = io.MultiWriter(os.Stderr, &outputBuf)
 
 	err := cmd.Run()
+	elapsed := time.Since(start)
 	if err != nil {
+		logger.Warnf(
+			"Failed [%s %s] in %s (took %.2fs)",
+			command,
+			strings.Join(arguments, " "),
+			directory,
+			elapsed.Seconds(),
+		)
 		err = fmt.Errorf("failed to perform command execution: %w", err)
+	} else {
+		logger.Infof(
+			"Completed [%s %s] in %s (took %.2fs)",
+			command,
+			strings.Join(arguments, " "),
+			directory,
+			elapsed.Seconds(),
+		)
 	}
 
 	return outputBuf.String(), err
@@ -119,6 +137,7 @@ func (it *UpgradeAwareShellRepository) executePassthrough(
 ) error {
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(arguments, " "), directory)
 
+	start := time.Now()
 	cmd := exec.CommandContext(context.Background(), command, arguments...)
 	cmd.Dir = directory
 	cmd.Stdout = os.Stdout
@@ -126,8 +145,24 @@ func (it *UpgradeAwareShellRepository) executePassthrough(
 	cmd.Stdin = os.Stdin
 
 	err := cmd.Run()
+	elapsed := time.Since(start)
 	if err != nil {
+		logger.Warnf(
+			"Failed [%s %s] in %s (took %.2fs)",
+			command,
+			strings.Join(arguments, " "),
+			directory,
+			elapsed.Seconds(),
+		)
 		err = fmt.Errorf("failed to perform command execution: %w", err)
+	} else {
+		logger.Infof(
+			"Completed [%s %s] in %s (took %.2fs)",
+			command,
+			strings.Join(arguments, " "),
+			directory,
+			elapsed.Seconds(),
+		)
 	}
 
 	return err
@@ -141,6 +176,7 @@ func (it *UpgradeAwareShellRepository) runInitUpgrade(
 	initArgs := []string{"init", "--upgrade"}
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(initArgs, " "), directory)
 
+	start := time.Now()
 	cmd := exec.CommandContext(context.Background(), command, initArgs...)
 	cmd.Dir = directory
 	cmd.Stdout = os.Stdout
@@ -148,10 +184,25 @@ func (it *UpgradeAwareShellRepository) runInitUpgrade(
 	cmd.Stdin = os.Stdin
 
 	err := cmd.Run()
+	elapsed := time.Since(start)
 	if err != nil {
+		logger.Warnf(
+			"Failed [%s %s] in %s (took %.2fs)",
+			command,
+			strings.Join(initArgs, " "),
+			directory,
+			elapsed.Seconds(),
+		)
 		return fmt.Errorf("failed to perform init --upgrade: %w", err)
 	}
 
+	logger.Infof(
+		"Completed [%s %s] in %s (took %.2fs)",
+		command,
+		strings.Join(initArgs, " "),
+		directory,
+		elapsed.Seconds(),
+	)
 	return nil
 }
 
