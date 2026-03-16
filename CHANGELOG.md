@@ -16,6 +16,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Fixed
+
+- fixed deprecated `TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE` environment variable replaced with `TG_USE_PARTIAL_PARSE_CONFIG_CACHE`
+
 ## [1.7.1] - 2026-03-14
 
 ### Changed
@@ -26,7 +30,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
-- added Terragrunt Partial Parse Config Cache enabled by default (`TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE=true`) for faster HCL config parsing across modules sharing the same root include; disabled with `TERRA_NO_PARTIAL_PARSE_CACHE=true`
+- added Terragrunt Partial Parse Config Cache enabled by default (`TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true`) for faster HCL config parsing across modules sharing the same root include; disabled with `TERRA_NO_PARTIAL_PARSE_CACHE=true`
 - added Terragrunt Provider Cache Server enabled by default (`TG_PROVIDER_CACHE=1`) for localhost proxy-based provider deduplication via symlinks; disabled with `TERRA_NO_PROVIDER_CACHE=true`
 
 ### Changed
