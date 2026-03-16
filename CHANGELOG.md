@@ -26,6 +26,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Fixed
 
+- fixed `terra self-update` failing due to incorrect asset name matching (expected `terra_os_arch` but releases use `terra-version-os-arch.tar.gz`) and missing archive extraction
 - fixed Terragrunt deprecation warning by replacing `TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE` with `TG_USE_PARTIAL_PARSE_CONFIG_CACHE`
 
 ### Removed

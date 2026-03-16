@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -21,6 +22,7 @@ const (
 	terraRepoOwner    = "rios0rios0"
 	terraRepoName     = "terra"
 	githubAPIBaseURL  = "https://api.github.com"
+	windowsOS         = "windows"
 )
 
 type GitHubRelease struct {
@@ -115,9 +117,16 @@ func (it *SelfUpdateCommand) fetchLatestRelease() (string, string, error) {
 	// Extract version from tag name (remove 'v' prefix if present)
 	version := strings.TrimPrefix(release.TagName, "v")
 
-	// Find the appropriate binary for current platform
+	// Find the appropriate archive for current platform.
+	// GoReleaser naming: terra-<version>-<os>-<arch>.tar.gz (.zip on Windows)
 	platform := entities.GetPlatformInfo()
-	expectedAssetName := fmt.Sprintf("terra_%s_%s", platform.GetOSString(), platform.GetTerraformArchString())
+	ext := "tar.gz"
+	if platform.GetOSString() == windowsOS {
+		ext = "zip"
+	}
+	expectedAssetName := fmt.Sprintf(
+		"terra-%s-%s-%s.%s", version, platform.GetOSString(), platform.GetTerraformArchString(), ext,
+	)
 
 	for _, asset := range release.Assets {
 		if asset.Name == expectedAssetName {
@@ -125,7 +134,7 @@ func (it *SelfUpdateCommand) fetchLatestRelease() (string, string, error) {
 		}
 	}
 
-	return "", "", fmt.Errorf("no binary found for platform %s", platform.GetPlatformString())
+	return "", "", fmt.Errorf("no asset %q found for platform %s", expectedAssetName, platform.GetPlatformString())
 }
 
 func (it *SelfUpdateCommand) promptForUpdate(currentVersion, latestVersion string) bool {
@@ -158,22 +167,45 @@ func (it *SelfUpdateCommand) performUpdate(downloadURL string) error {
 		return fmt.Errorf("failed to resolve executable path: %w", err)
 	}
 
-	// Create temporary file for download
-	tempDir := currentOS.GetTempDir()
-	tempFile := filepath.Join(tempDir, "terra_update")
+	// Create temporary workspace for download and extraction
+	tempDir, err := os.MkdirTemp("", "terra-update-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temp directory: %w", err)
+	}
+	defer func() {
+		if removeErr := os.RemoveAll(tempDir); removeErr != nil {
+			logger.Warnf("Failed to cleanup temp directory %s: %v", tempDir, removeErr)
+		}
+	}()
+
+	tempArchive := filepath.Join(tempDir, "terra-archive")
 
 	logger.Info("Downloading new version...")
-	err = currentOS.Download(downloadURL, tempFile)
+	err = currentOS.Download(downloadURL, tempArchive)
 	if err != nil {
 		return fmt.Errorf("failed to download new version: %w", err)
 	}
 
-	// Make the downloaded file executable
-	err = currentOS.MakeExecutable(tempFile)
+	// Extract the archive to get the binary
+	logger.Info("Extracting archive...")
+	err = it.extractArchive(tempArchive, tempDir)
 	if err != nil {
-		if removeErr := currentOS.Remove(tempFile); removeErr != nil {
-			logger.Warnf("Failed to cleanup temp file: %v", removeErr)
-		}
+		return fmt.Errorf("failed to extract archive: %w", err)
+	}
+
+	// Locate the extracted binary
+	binaryName := "terra"
+	if entities.GetPlatformInfo().GetOSString() == windowsOS {
+		binaryName = "terra.exe"
+	}
+	extractedBinary := filepath.Join(tempDir, binaryName)
+	if _, statErr := os.Stat(extractedBinary); os.IsNotExist(statErr) {
+		return fmt.Errorf("binary %q not found in extracted archive", binaryName)
+	}
+
+	// Make the extracted binary executable
+	err = currentOS.MakeExecutable(extractedBinary)
+	if err != nil {
 		return fmt.Errorf("failed to make downloaded file executable: %w", err)
 	}
 
@@ -181,14 +213,11 @@ func (it *SelfUpdateCommand) performUpdate(downloadURL string) error {
 	backupFile := currentExe + ".backup"
 	err = currentOS.Move(currentExe, backupFile)
 	if err != nil {
-		if removeErr := currentOS.Remove(tempFile); removeErr != nil {
-			logger.Warnf("Failed to cleanup temp file: %v", removeErr)
-		}
 		return fmt.Errorf("failed to backup current binary: %w", err)
 	}
 
 	// Move new binary to current location
-	err = currentOS.Move(tempFile, currentExe)
+	err = currentOS.Move(extractedBinary, currentExe)
 	if err != nil {
 		// Try to restore backup on error
 		if restoreErr := currentOS.Move(backupFile, currentExe); restoreErr != nil {
@@ -206,5 +235,29 @@ func (it *SelfUpdateCommand) performUpdate(downloadURL string) error {
 	logger.Info("terra has been successfully updated!")
 	logger.Info("Please restart your terminal or run 'terra version' to verify the update")
 
+	return nil
+}
+
+func (it *SelfUpdateCommand) extractArchive(archivePath, destDir string) error {
+	platform := entities.GetPlatformInfo()
+	ctx, cancel := context.WithTimeout(context.Background(), selfUpdateTimeout)
+	defer cancel()
+
+	if platform.GetOSString() == windowsOS {
+		cmd := exec.CommandContext(ctx, "unzip", "-o", archivePath, "-d", destDir)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			return fmt.Errorf("failed to unzip archive: %w", err)
+		}
+		return nil
+	}
+
+	cmd := exec.CommandContext(ctx, "tar", "-xzf", archivePath, "-C", destDir)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("failed to extract tar.gz archive: %w", err)
+	}
 	return nil
 }
