@@ -16,18 +16,21 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-03-17
+
 ### Added
 
-- added execution timing to command logs showing how long each terragrunt invocation took
+- added execution timing to command logs showing how long each Terragrunt invocation took
 
 ### Changed
 
 - changed provider caching strategy: removed `TG_PROVIDER_CACHE` (Provider Cache Server) in favor of `TF_PLUGIN_CACHE_DIR` only, which benchmarks showed is faster (8.9s vs 10.6s warm) with identical disk savings via symlinks
+- changed version management to use build-time `ldflags` injection instead of hardcoded constant
 
 ### Fixed
 
-- fixed `terra self-update` failing due to incorrect asset name matching (expected `terra_os_arch` but releases use `terra-version-os-arch.tar.gz`) and missing archive extraction
 - fixed Terragrunt deprecation warning by replacing `TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE` with `TG_USE_PARTIAL_PARSE_CONFIG_CACHE`
+- fixed `terra self-update` failing due to incorrect asset name matching (expected `terra_os_arch` but releases use `terra-version-os-arch.tar.gz`) and missing archive extraction
 
 ### Removed
 
