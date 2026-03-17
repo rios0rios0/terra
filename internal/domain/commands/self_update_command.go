@@ -240,19 +240,16 @@ func (it *SelfUpdateCommand) performUpdate(downloadURL string) error {
 
 func (it *SelfUpdateCommand) extractArchive(archivePath, destDir string) error {
 	platform := entities.GetPlatformInfo()
-	ctx, cancel := context.WithTimeout(context.Background(), selfUpdateTimeout)
-	defer cancel()
 
+	// On Windows, use the OS abstraction (PowerShell Expand-Archive) for .zip files
 	if platform.GetOSString() == windowsOS {
-		cmd := exec.CommandContext(ctx, "unzip", "-o", archivePath, "-d", destDir)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			return fmt.Errorf("failed to unzip archive: %w", err)
-		}
-		return nil
+		currentOS := entities.GetOS()
+		return currentOS.Extract(archivePath, destDir)
 	}
 
+	// On Unix, extract .tar.gz using tar
+	ctx, cancel := context.WithTimeout(context.Background(), selfUpdateTimeout)
+	defer cancel()
 	cmd := exec.CommandContext(ctx, "tar", "-xzf", archivePath, "-C", destDir)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
