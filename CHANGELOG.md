@@ -16,6 +16,9 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Changed
+- changed version management to use build-time ldflags injection instead of hardcoded constant
+
 ## [1.8.0] - 2026-03-17
 
 ### Added
