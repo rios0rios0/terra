@@ -4,10 +4,17 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
+
+// version is set at build time via ldflags by GoReleaser.
+// During development, it defaults to "dev".
+//
+
+var version = "dev"
 
 // buildRootCommand creates and configures the root cobra command.
 func buildRootCommand(rootController entities.Controller, enableFlagParsing bool) *cobra.Command {
@@ -60,6 +67,8 @@ func addSubcommands(rootCmd *cobra.Command, appContext entities.AppContext) {
 }
 
 func main() {
+	commands.TerraVersion = version //nolint:reassign // Bridge build-time ldflags to domain package
+
 	//nolint:exhaustruct // Minimal TextFormatter initialization with required fields only
 	logger.SetFormatter(&logger.TextFormatter{
 		ForceColors:   true,

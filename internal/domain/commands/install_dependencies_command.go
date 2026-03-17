@@ -140,6 +140,14 @@ func getCurrentVersion(name string) string {
 
 // compare two semantic versions (returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2).
 func compareVersions(v1, v2 string) int {
+	// Development builds are always considered older than any release
+	if v1 == "dev" {
+		return -1
+	}
+	if v2 == "dev" {
+		return 1
+	}
+
 	// Only compare numeric parts, reject versions with non-numeric components
 	parts1 := strings.Split(v1, ".")
 	parts2 := strings.Split(v2, ".")

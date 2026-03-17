@@ -17,10 +17,11 @@ const (
 	commandTimeout         = 10 * time.Second
 )
 
-// TerraVersion will be set at build time via ldflags
+// TerraVersion is set at build time via ldflags through the main package bridge.
+// During development (`go run`), it defaults to "dev".
 //
 //nolint:gochecknoglobals // Version set at build time via ldflags
-var TerraVersion = "1.8.0"
+var TerraVersion = "dev"
 
 type VersionCommand struct {
 	dependencies []entities.Dependency
