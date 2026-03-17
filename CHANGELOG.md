@@ -16,6 +16,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-03-17
+
 ### Added
 
 - added execution timing to command logs showing how long each terragrunt invocation took
