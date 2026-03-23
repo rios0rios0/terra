@@ -246,6 +246,9 @@ TF_VAR_region=us-west-2
 
 # Optional: Disable Terragrunt Partial Parse Config Cache
 # TERRA_NO_PARTIAL_PARSE_CACHE=true
+
+# Optional: Disable automatic workspace selection from TERRA_WORKSPACE
+# TERRA_NO_WORKSPACE=true
 ```
 
 **Note**: If `TERRA_CLOUD` is specified, it must be set to either "aws" or "azure". This enables cloud-specific features like role switching for AWS or subscription switching for Azure.
