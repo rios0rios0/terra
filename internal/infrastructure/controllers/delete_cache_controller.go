@@ -30,5 +30,5 @@ func (it *DeleteCacheController) Execute(cmd *cobra.Command, _ []string) {
 		logger.Warnf("Failed to get global flag: %s, defaulting to false", err)
 		global = false
 	}
-	it.command.Execute([]string{".terraform", ".terragrunt-cache"}, global)
+	it.command.Execute([]string{".terraform", ".terragrunt-cache", "terragrunt-cache", ".terraform.lock.hcl"}, global)
 }

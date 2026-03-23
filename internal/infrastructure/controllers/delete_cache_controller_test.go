@@ -66,7 +66,7 @@ func TestDeleteCacheController_Execute(t *testing.T) {
 
 		// THEN: Should execute the command with correct directories and global=false
 		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
-		expectedDirs := []string{".terraform", ".terragrunt-cache"}
+		expectedDirs := []string{".terraform", ".terragrunt-cache", "terragrunt-cache", ".terraform.lock.hcl"}
 		assert.Equal(t, expectedDirs, mockCommand.LastToBeDeleted)
 		assert.False(t, mockCommand.LastGlobal)
 	})
@@ -86,7 +86,7 @@ func TestDeleteCacheController_Execute(t *testing.T) {
 
 		// THEN: Should execute the command with correct directories and global=true
 		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
-		expectedDirs := []string{".terraform", ".terragrunt-cache"}
+		expectedDirs := []string{".terraform", ".terragrunt-cache", "terragrunt-cache", ".terraform.lock.hcl"}
 		assert.Equal(t, expectedDirs, mockCommand.LastToBeDeleted)
 		assert.True(t, mockCommand.LastGlobal)
 	})
