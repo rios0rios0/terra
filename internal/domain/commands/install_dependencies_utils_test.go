@@ -30,6 +30,10 @@ func TestCompareVersions(t *testing.T) {
 		{"should return 1 when v1 is newer patch", "1.5.2", "1.5.1", 1},
 		{"should handle different length versions", "1.5", "1.5.0", 0},
 		{"should handle different length versions with diff", "1.5", "1.5.1", -1},
+		{"should return -1 when v1 is dev", "dev", "1.0.0", -1},
+		{"should return 1 when v2 is dev", "1.0.0", "dev", 1},
+		{"should fallback to string compare when v1 has non-numeric parts", "1.0.0-alpha", "1.0.0", 1},
+		{"should fallback to string compare when v2 has non-numeric parts", "1.0.0", "1.0.0-beta", -1},
 	}
 
 	for _, tt := range tests {
