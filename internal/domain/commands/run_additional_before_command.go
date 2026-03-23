@@ -43,7 +43,9 @@ func (it *RunAdditionalBeforeCommand) Execute(targetPath string, arguments []str
 
 	// init environment if necessary
 	if shouldInitEnvironment(arguments, targetPath) {
-		_ = it.repository.ExecuteCommand("terragrunt", []string{"init"}, targetPath)
+		if err := it.repository.ExecuteCommand("terragrunt", []string{"init"}, targetPath); err != nil {
+			logger.Warnf("Proactive terragrunt init failed in %s: %v", targetPath, err)
+		}
 	}
 
 	// change workspace if necessary
@@ -82,9 +84,9 @@ func shouldInitEnvironment(arguments []string, targetPath string) bool {
 		return false
 	}
 
-	// Skip init if .terraform already exists — the reactive UpgradeAwareShellRepository
-	// will handle stale state if needed.
-	if _, err := os.Stat(filepath.Join(targetPath, ".terraform")); err == nil {
+	// Skip init if .terraform already exists as a directory — the reactive
+	// UpgradeAwareShellRepository will handle stale state if needed.
+	if info, err := os.Stat(filepath.Join(targetPath, ".terraform")); err == nil && info.IsDir() {
 		return false
 	}
 
