@@ -1,6 +1,8 @@
 package commands
 
 import (
+	"os"
+	"path/filepath"
 	"slices"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
@@ -40,7 +42,7 @@ func (it *RunAdditionalBeforeCommand) Execute(targetPath string, arguments []str
 	}
 
 	// init environment if necessary
-	if shouldInitEnvironment(arguments) {
+	if shouldInitEnvironment(arguments, targetPath) {
 		_ = it.repository.ExecuteCommand("terragrunt", []string{"init"}, targetPath)
 	}
 
@@ -62,7 +64,7 @@ func (it *RunAdditionalBeforeCommand) shouldChangeWorkspace() (string, bool) {
 	return workspace, workspace != ""
 }
 
-func shouldInitEnvironment(arguments []string) bool {
+func shouldInitEnvironment(arguments []string, targetPath string) bool {
 	// Don't init when the first argument is "init"
 	if len(arguments) > 0 && arguments[0] == "init" {
 		return false
@@ -77,6 +79,12 @@ func shouldInitEnvironment(arguments []string) bool {
 	// initialization for state operations, and an explicit init triggers full
 	// dependency resolution (which can fail on unrelated dependency outputs).
 	if IsStateManipulationCommand(arguments) {
+		return false
+	}
+
+	// Skip init if .terraform already exists — the reactive UpgradeAwareShellRepository
+	// will handle stale state if needed.
+	if _, err := os.Stat(filepath.Join(targetPath, ".terraform")); err == nil {
 		return false
 	}
 
