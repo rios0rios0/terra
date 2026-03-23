@@ -18,8 +18,9 @@ func NewDeleteCacheController(command commands.DeleteCache) *DeleteCacheControll
 func (it *DeleteCacheController) GetBind() entities.ControllerBind {
 	return entities.ControllerBind{
 		Use:   "clear",
-		Short: "Clear all cache and modules directories",
-		Long: "Clear all temporary directories and cache folders created during the Terraform and Terragrunt execution. " +
+		Short: "Clear all cache directories and lock files",
+		Long: "Clear all temporary directories, cache folders, and lock files created during the Terraform and Terragrunt execution. " +
+			"This includes .terraform, .terragrunt-cache, terragrunt-cache directories and .terraform.lock.hcl files. " +
 			"Use --global to also remove centralized module and provider cache directories.",
 	}
 }
