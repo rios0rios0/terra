@@ -326,6 +326,61 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		assert.True(t, initCommandExecuted, "Should execute terragrunt init when .terraform directory is absent")
 	})
 
+	t.Run("should not change workspace when TERRA_NO_WORKSPACE is true", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A command with workspace configured but TERRA_NO_WORKSPACE enabled
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			WithTerraTerraformWorkspace("production").
+			WithTerraNoWorkspace(true).
+			BuildSettings()
+		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
+		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
+		targetPath := t.TempDir()
+		arguments := []string{"plan"}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments)
+
+		// THEN: Should not execute workspace change command even though workspace is set
+		for _, call := range repository.CallHistory {
+			if call.Command == "terragrunt" && len(call.Arguments) >= 1 &&
+				call.Arguments[0] == "workspace" {
+				assert.Fail(t, "Should not execute workspace command when TERRA_NO_WORKSPACE is true")
+			}
+		}
+	})
+
+	t.Run("should change workspace when TERRA_NO_WORKSPACE is false", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A command with workspace configured and TERRA_NO_WORKSPACE disabled
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			WithTerraTerraformWorkspace("staging").
+			WithTerraNoWorkspace(false).
+			BuildSettings()
+		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
+		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
+		targetPath := t.TempDir()
+		arguments := []string{"plan"}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments)
+
+		// THEN: Should execute workspace change command
+		workspaceCommandExecuted := false
+		for _, call := range repository.CallHistory {
+			if call.Command == "terragrunt" && len(call.Arguments) >= 4 &&
+				call.Arguments[0] == "workspace" && call.Arguments[1] == "select" &&
+				call.Arguments[2] == "-or-create" && call.Arguments[3] == "staging" {
+				workspaceCommandExecuted = true
+				assert.Equal(t, targetPath, call.Directory)
+				break
+			}
+		}
+		assert.True(t, workspaceCommandExecuted, "Should execute workspace change command when TERRA_NO_WORKSPACE is false")
+	})
+
 	t.Run("should execute all steps when all conditions met", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with all conditions met (account change, init, workspace change)
