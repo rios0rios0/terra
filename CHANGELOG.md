@@ -16,6 +16,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Fixed
+
+- fixed auto-init running `terragrunt init` on every command even when `.terraform` directory already exists
+
 ## [1.8.0] - 2026-03-17
 
 ### Added

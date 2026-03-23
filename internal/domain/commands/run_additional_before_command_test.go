@@ -3,6 +3,8 @@
 package commands_test
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
@@ -271,6 +273,57 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 				assert.Fail(t, "Should not execute workspace command when workspace is empty")
 			}
 		}
+	})
+
+	t.Run("should not init environment when .terraform directory exists", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A directory that already has a .terraform subdirectory
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
+		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
+		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
+		targetPath := t.TempDir()
+		require.NoError(t, os.MkdirAll(filepath.Join(targetPath, ".terraform"), 0o755))
+		arguments := []string{"plan"}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments)
+
+		// THEN: Should not execute terragrunt init because .terraform already exists
+		for _, call := range repository.CallHistory {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
+				assert.Fail(t, "Should not execute terragrunt init when .terraform directory exists")
+			}
+		}
+	})
+
+	t.Run("should init environment when .terraform directory does not exist", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A directory without .terraform subdirectory
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
+		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
+		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
+		targetPath := t.TempDir()
+		arguments := []string{"plan"}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments)
+
+		// THEN: Should execute terragrunt init because .terraform does not exist
+		initCommandExecuted := false
+		for _, call := range repository.CallHistory {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
+				initCommandExecuted = true
+				assert.Equal(t, targetPath, call.Directory)
+				break
+			}
+		}
+		assert.True(t, initCommandExecuted, "Should execute terragrunt init when .terraform directory is absent")
 	})
 
 	t.Run("should execute all steps when all conditions met", func(t *testing.T) {
