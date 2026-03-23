@@ -1,3 +1,5 @@
+//go:build integration || unit || test
+
 package commands
 
 // ExtractArchiveForTest exposes the private extractArchive method for use in external test packages.

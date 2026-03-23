@@ -33,42 +33,6 @@ func TestNewSelfUpdateCommand(t *testing.T) {
 	})
 }
 
-func TestSelfUpdateCommand_Execute(t *testing.T) {
-	t.Run("should show correct download URL when dry run succeeds", func(t *testing.T) {
-		// GIVEN
-		cmd := commands.NewSelfUpdateCommand()
-
-		// WHEN: Executing with dry run (hits real GitHub API)
-		err := cmd.Execute(true, false)
-
-		// THEN: Should succeed without error (dry run does not download)
-		// NOTE: This test may fail if GitHub API rate limits are hit.
-		// In that case, the error message will contain "failed to fetch latest release".
-		if err != nil {
-			assert.Contains(t, err.Error(), "failed to fetch latest release",
-				"Only GitHub API rate limiting should cause failure")
-		}
-	})
-
-	t.Run("should report current version is newer when version is higher than latest", func(t *testing.T) {
-		// GIVEN: A version significantly higher than any real release
-		originalVersion := commands.TerraVersion
-		commands.TerraVersion = "999.999.999"
-		defer func() { commands.TerraVersion = originalVersion }()
-		cmd := commands.NewSelfUpdateCommand()
-
-		// WHEN: Executing with dry run
-		err := cmd.Execute(true, false)
-
-		// THEN: Should succeed without error because the current version is newer
-		// NOTE: This test may fail if GitHub API rate limits are hit.
-		if err != nil {
-			assert.Contains(t, err.Error(), "failed to fetch latest release",
-				"Only GitHub API rate limiting should cause failure")
-		}
-	})
-}
-
 // redirectTransport is an http.RoundTripper that redirects all requests to a test server.
 type redirectTransport struct {
 	targetURL string
