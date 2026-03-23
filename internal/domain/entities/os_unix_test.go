@@ -97,6 +97,40 @@ func TestOSUnix_MakeExecutable(t *testing.T) {
 	})
 }
 
+func TestOSUnix_Extract(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return error when called with non-existent archive", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: An OS instance and a non-existent archive
+		osInstance := entities.GetOS()
+		destDir := t.TempDir()
+
+		// WHEN: Extracting a non-existent archive
+		err := osInstance.Extract("/non/existent/archive.zip", destDir)
+
+		// THEN: Should return an error
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "failed to perform decompressing")
+	})
+
+	t.Run("should return error when called with invalid archive", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: An OS instance and a file that is not a valid zip
+		osInstance := entities.GetOS()
+		tempDir := t.TempDir()
+		fakePath := tempDir + "/fake.zip"
+		require.NoError(t, os.WriteFile(fakePath, []byte("not a zip"), 0644))
+		destDir := t.TempDir()
+
+		// WHEN: Extracting the invalid archive
+		err := osInstance.Extract(fakePath, destDir)
+
+		// THEN: Should return an error
+		assert.Error(t, err)
+	})
+}
+
 func TestOSUnix_Remove(t *testing.T) {
 	t.Parallel()
 
