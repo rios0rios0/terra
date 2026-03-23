@@ -20,9 +20,14 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 - added `TERRA_NO_WORKSPACE` environment variable to disable automatic workspace selection from `TERRA_WORKSPACE`
 
+### Changed
+
+- changed `clear` command to also remove `terragrunt-cache` (without leading dot) and `.terraform.lock.hcl` lock files
+
 ### Fixed
 
 - fixed auto-init running `terragrunt init` on every command even when `.terraform` directory already exists
+- fixed `clear` command not resetting found paths between iterations, causing already-deleted entries to be re-processed
 
 ## [1.8.0] - 2026-03-17
 

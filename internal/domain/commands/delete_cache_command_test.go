@@ -48,13 +48,22 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 			os.WriteFile(filepath.Join(terraformDir, "test.txt"), []byte("test"), 0644),
 		)
 
-		// Create terragrunt cache directories
+		// Create terragrunt cache directories (with and without leading dot)
 		terragruntDir := ".terragrunt-cache"
 		nestedTerragruntDir := "module2/.terragrunt-cache"
+		legacyTerragruntDir := "module3/terragrunt-cache"
 		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(terragruntDir, 0755))
 		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		require.NoError(t, os.MkdirAll(nestedTerragruntDir, 0755))
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+		require.NoError(t, os.MkdirAll(legacyTerragruntDir, 0755))
+
+		// Create lock files
+		lockFile := ".terraform.lock.hcl"
+		nestedLockFile := "module1/.terraform.lock.hcl"
+		require.NoError(t, os.WriteFile(lockFile, []byte("lock"), 0644))
+		require.NoError(t, os.WriteFile(nestedLockFile, []byte("lock"), 0644))
 
 		// Create directories that should NOT be deleted
 		keepDir := "src"
@@ -62,9 +71,12 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		require.NoError(t, os.MkdirAll(keepDir, 0755))
 
 		// WHEN: Executing the delete command
-		cmd.Execute([]string{".terraform", ".terragrunt-cache"}, false)
+		cmd.Execute(
+			[]string{".terraform", ".terragrunt-cache", "terragrunt-cache", ".terraform.lock.hcl"},
+			false,
+		)
 
-		// THEN: Should delete target directories but preserve others
+		// THEN: Should delete target directories and files but preserve others
 		_, err := os.Stat(terraformDir)
 		assert.True(t, os.IsNotExist(err), "Terraform directory should be deleted")
 
@@ -76,6 +88,15 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 
 		_, err = os.Stat(nestedTerragruntDir)
 		assert.True(t, os.IsNotExist(err), "Nested terragrunt directory should be deleted")
+
+		_, err = os.Stat(legacyTerragruntDir)
+		assert.True(t, os.IsNotExist(err), "Legacy terragrunt-cache directory should be deleted")
+
+		_, err = os.Stat(lockFile)
+		assert.True(t, os.IsNotExist(err), "Lock file should be deleted")
+
+		_, err = os.Stat(nestedLockFile)
+		assert.True(t, os.IsNotExist(err), "Nested lock file should be deleted")
 
 		_, err = os.Stat(keepDir)
 		assert.False(t, os.IsNotExist(err), "Source directory should be preserved")
