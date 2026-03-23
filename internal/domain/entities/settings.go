@@ -19,6 +19,7 @@ type Settings struct {
 	TerraProviderCacheDir    string `envconfig:"TERRA_PROVIDER_CACHE_DIR"     required:"false"`
 	TerraNoCAS               bool   `envconfig:"TERRA_NO_CAS"                 required:"false"`
 	TerraNoPartialParseCache bool   `envconfig:"TERRA_NO_PARTIAL_PARSE_CACHE" required:"false"`
+	TerraNoWorkspace         bool   `envconfig:"TERRA_NO_WORKSPACE"           required:"false"`
 }
 
 func NewSettings() *Settings {

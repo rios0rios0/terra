@@ -16,6 +16,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added `TERRA_NO_WORKSPACE` environment variable to disable automatic workspace selection from `TERRA_WORKSPACE`
+
 ### Fixed
 
 - fixed auto-init running `terragrunt init` on every command even when `.terraform` directory already exists
