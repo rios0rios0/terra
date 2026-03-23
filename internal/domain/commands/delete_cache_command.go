@@ -3,7 +3,6 @@ package commands
 import (
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
@@ -18,29 +17,32 @@ func NewDeleteCacheCommand(settings *entities.Settings) *DeleteCacheCommand {
 }
 
 func (it *DeleteCacheCommand) Execute(toBeDeleted []string, global bool) {
-	for _, pattern := range toBeDeleted {
-		logger.Infof("Clearing all %s entries...", pattern)
-		var foundPaths []string
-		_ = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
-			if err != nil {
-				return err
-			}
+	patternSet := make(map[string]struct{}, len(toBeDeleted))
+	for _, p := range toBeDeleted {
+		patternSet[p] = struct{}{}
+	}
 
-			if strings.HasSuffix(path, pattern) {
-				foundPaths = append(foundPaths, path)
-				if info.IsDir() {
-					return filepath.SkipDir
-				}
-			}
-			return nil
-		})
+	logger.Infof("Clearing cache entries matching: %v", toBeDeleted)
+	var foundPaths []string
+	_ = filepath.Walk(".", func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-		for _, found := range foundPaths {
-			logger.Infof("Removing: %s", found)
-			err := os.RemoveAll(found)
-			if err != nil {
-				logger.Errorf("Failed to remove: %s, error: %v", found, err)
+		if _, ok := patternSet[filepath.Base(path)]; ok {
+			foundPaths = append(foundPaths, path)
+			if info.IsDir() {
+				return filepath.SkipDir
 			}
+		}
+		return nil
+	})
+
+	for _, found := range foundPaths {
+		logger.Infof("Removing: %s", found)
+		err := os.RemoveAll(found)
+		if err != nil {
+			logger.Errorf("Failed to remove: %s, error: %v", found, err)
 		}
 	}
 

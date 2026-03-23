@@ -43,8 +43,9 @@ func TestDeleteCacheController_GetBind(t *testing.T) {
 
 		// THEN: Should return correct bind configuration
 		assert.Equal(t, "clear", bind.Use)
-		assert.Equal(t, "Clear all cache and modules directories", bind.Short)
+		assert.Equal(t, "Clear all cache directories and lock files", bind.Short)
 		assert.Contains(t, bind.Long, "Clear all temporary directories")
+		assert.Contains(t, bind.Long, ".terraform.lock.hcl")
 		assert.Contains(t, bind.Long, "--global")
 	})
 }
