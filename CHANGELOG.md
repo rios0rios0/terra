@@ -23,6 +23,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ### Changed
 
 - changed `clear` command to also remove `terragrunt-cache` (without leading dot) and `.terraform.lock.hcl` lock files
+- added unit tests for DIG container registration, self-update command, run-from-root command, upgrade-aware shell repository, version command, and OS operations
 
 ### Fixed
 
