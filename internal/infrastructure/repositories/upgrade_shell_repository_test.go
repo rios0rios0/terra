@@ -219,7 +219,7 @@ func TestUpgradeAwareShellRepository_ExecuteCommandWithUpgrade(t *testing.T) {
 		// WHEN: Running a command that outputs an upgrade pattern to stderr and fails
 		// The "init --upgrade" retry will also fail because the command is not terraform/terragrunt
 		err := repo.ExecuteCommandWithUpgrade(
-			"bash",
+			"sh",
 			[]string{"-c", "echo 'Error: terraform init has not been run' >&2; exit 1"},
 			dir,
 		)
@@ -237,7 +237,7 @@ func TestUpgradeAwareShellRepository_ExecuteCommandWithUpgrade(t *testing.T) {
 
 		// WHEN: Running a command that produces both stdout and stderr but succeeds
 		err := repo.ExecuteCommandWithUpgrade(
-			"bash",
+			"sh",
 			[]string{"-c", "echo 'output to stdout'; echo 'output to stderr' >&2; exit 0"},
 			dir,
 		)
@@ -254,7 +254,7 @@ func TestUpgradeAwareShellRepository_ExecuteCommandWithUpgrade(t *testing.T) {
 
 		// WHEN: Running a command that uses its arguments
 		err := repo.ExecuteCommandWithUpgrade(
-			"bash",
+			"sh",
 			[]string{"-c", "test \"$0\" = 'arg1' && test \"$1\" = 'arg2'", "arg1", "arg2"},
 			dir,
 		)
