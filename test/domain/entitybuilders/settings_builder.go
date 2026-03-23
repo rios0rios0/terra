@@ -18,6 +18,7 @@ type SettingsBuilder struct {
 	terraProviderCacheDir    string
 	terraNoCAS               bool
 	terraNoPartialParseCache bool
+	terraNoWorkspace         bool
 }
 
 // NewSettingsBuilder creates a new Settings builder with empty defaults.
@@ -75,6 +76,12 @@ func (b *SettingsBuilder) WithTerraNoPartialParseCache(noPartialParseCache bool)
 	return b
 }
 
+// WithTerraNoWorkspace sets the no-workspace flag.
+func (b *SettingsBuilder) WithTerraNoWorkspace(noWorkspace bool) *SettingsBuilder {
+	b.terraNoWorkspace = noWorkspace
+	return b
+}
+
 // Build creates the Settings (satisfies testkit.Builder interface).
 func (b *SettingsBuilder) Build() interface{} {
 	return b.BuildSettings()
@@ -91,6 +98,7 @@ func (b *SettingsBuilder) BuildSettings() *entities.Settings {
 		TerraProviderCacheDir:    b.terraProviderCacheDir,
 		TerraNoCAS:               b.terraNoCAS,
 		TerraNoPartialParseCache: b.terraNoPartialParseCache,
+		TerraNoWorkspace:         b.terraNoWorkspace,
 	}
 }
 
@@ -105,6 +113,7 @@ func (b *SettingsBuilder) Reset() testkit.Builder {
 	b.terraProviderCacheDir = ""
 	b.terraNoCAS = false
 	b.terraNoPartialParseCache = false
+	b.terraNoWorkspace = false
 	return b
 }
 
@@ -120,5 +129,6 @@ func (b *SettingsBuilder) Clone() testkit.Builder {
 		terraProviderCacheDir:    b.terraProviderCacheDir,
 		terraNoCAS:               b.terraNoCAS,
 		terraNoPartialParseCache: b.terraNoPartialParseCache,
+		terraNoWorkspace:         b.terraNoWorkspace,
 	}
 }

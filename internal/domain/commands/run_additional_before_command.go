@@ -62,6 +62,9 @@ func (it *RunAdditionalBeforeCommand) Execute(targetPath string, arguments []str
 }
 
 func (it *RunAdditionalBeforeCommand) shouldChangeWorkspace() (string, bool) {
+	if it.settings.TerraNoWorkspace {
+		return "", false
+	}
 	workspace := it.settings.TerraTerraformWorkspace
 	return workspace, workspace != ""
 }
