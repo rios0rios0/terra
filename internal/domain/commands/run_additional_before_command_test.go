@@ -58,7 +58,7 @@ func TestRunAdditionalBeforeCommand_Execute_AccountChange(t *testing.T) {
 		}
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
-		targetPath := "/test/path"
+		targetPath := t.TempDir()
 		arguments := []string{"plan"}
 
 		// WHEN: Executing the command
@@ -88,7 +88,7 @@ func TestRunAdditionalBeforeCommand_Execute_AccountChange(t *testing.T) {
 		}
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
-		targetPath := "/test/path"
+		targetPath := t.TempDir()
 		arguments := []string{"plan"}
 
 		// WHEN: Executing the command
@@ -109,7 +109,7 @@ func TestRunAdditionalBeforeCommand_Execute_AccountChange(t *testing.T) {
 			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
-		targetPath := "/test/path"
+		targetPath := t.TempDir()
 		arguments := []string{"plan"}
 
 		// WHEN: Executing the command
@@ -134,7 +134,7 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
-		targetPath := "/test/path"
+		targetPath := t.TempDir()
 		arguments := []string{"plan", "--detailed-exitcode"}
 
 		// WHEN: Executing the command
@@ -161,7 +161,7 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
-		targetPath := "/test/path"
+		targetPath := t.TempDir()
 		arguments := []string{"init"}
 
 		// WHEN: Executing the command
@@ -184,7 +184,7 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
-		targetPath := "/test/path"
+		targetPath := t.TempDir()
 		arguments := []string{"apply", "--all"}
 
 		// WHEN: Executing the command
@@ -207,7 +207,7 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
-		targetPath := "/test/path"
+		targetPath := t.TempDir()
 		arguments := []string{"plan", "--detailed-exitcode", "--all", "--out=plan.out"}
 
 		// WHEN: Executing the command
@@ -231,7 +231,7 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
-		targetPath := "/test/path"
+		targetPath := t.TempDir()
 		arguments := []string{"plan"}
 
 		// WHEN: Executing the command
@@ -260,7 +260,7 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 			BuildSettings()
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
-		targetPath := "/test/path"
+		targetPath := t.TempDir()
 		arguments := []string{"plan"}
 
 		// WHEN: Executing the command
@@ -395,7 +395,7 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		}
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
-		targetPath := "/test/path"
+		targetPath := t.TempDir()
 		arguments := []string{"apply", "-auto-approve"}
 
 		// WHEN: Executing the command
