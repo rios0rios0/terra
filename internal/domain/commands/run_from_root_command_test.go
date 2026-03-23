@@ -767,6 +767,127 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 	})
 }
 
+func TestRunFromRootCommand_configureCacheEnvironment_allEnabled(t *testing.T) {
+	t.Run("should set all cache env vars when CAS and Partial Parse Cache both enabled", func(t *testing.T) {
+		// GIVEN: Settings with custom dirs, CAS enabled, and Partial Parse Cache enabled
+		t.Setenv("TG_DOWNLOAD_DIR", "")
+		t.Setenv("TF_PLUGIN_CACHE_DIR", "")
+		t.Setenv("TG_EXPERIMENT", "")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
+		tempDir := t.TempDir()
+		moduleDir := tempDir + "/modules"
+		providerDir := tempDir + "/providers"
+
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraModuleCacheDir(moduleDir).
+			WithTerraProviderCacheDir(providerDir).
+			WithTerraNoCAS(false).
+			WithTerraNoPartialParseCache(false).
+			BuildSettings()
+		cmd := commands.NewRunFromRootCommand(
+			settings,
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+
+		// WHEN
+		cmd.ConfigureCacheEnvironmentPublic()
+
+		// THEN: All four env vars should be set
+		assert.Equal(t, moduleDir, os.Getenv("TG_DOWNLOAD_DIR"))
+		assert.Equal(t, providerDir, os.Getenv("TF_PLUGIN_CACHE_DIR"))
+		assert.Equal(t, "cas", os.Getenv("TG_EXPERIMENT"))
+		assert.Equal(t, "true", os.Getenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE"))
+
+		// Directories should exist on disk
+		_, err := os.Stat(moduleDir)
+		require.NoError(t, err, "Module cache directory should be created")
+		_, err = os.Stat(providerDir)
+		require.NoError(t, err, "Provider cache directory should be created")
+	})
+
+	t.Run("should unset all feature env vars when CAS and Partial Parse Cache both disabled", func(t *testing.T) {
+		// GIVEN: Settings with both CAS and Partial Parse Cache disabled, and pre-existing env vars
+		t.Setenv("TG_EXPERIMENT", "cas")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "true")
+		t.Setenv("TG_DOWNLOAD_DIR", "")
+		t.Setenv("TF_PLUGIN_CACHE_DIR", "")
+
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraModuleCacheDir(t.TempDir()).
+			WithTerraProviderCacheDir(t.TempDir()).
+			WithTerraNoCAS(true).
+			WithTerraNoPartialParseCache(true).
+			BuildSettings()
+		cmd := commands.NewRunFromRootCommand(
+			settings,
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+
+		// WHEN
+		cmd.ConfigureCacheEnvironmentPublic()
+
+		// THEN: Feature env vars should be unset
+		assert.Empty(t, os.Getenv("TG_EXPERIMENT"), "TG_EXPERIMENT should be unset when CAS disabled")
+		assert.Empty(t, os.Getenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE"),
+			"TG_USE_PARTIAL_PARSE_CONFIG_CACHE should be unset when Partial Parse Cache disabled")
+	})
+
+	t.Run("should set module and provider dirs when directories do not exist yet", func(t *testing.T) {
+		// GIVEN: Settings with directories that need to be created
+		t.Setenv("TG_DOWNLOAD_DIR", "")
+		t.Setenv("TF_PLUGIN_CACHE_DIR", "")
+		t.Setenv("TG_EXPERIMENT", "")
+		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
+		tempDir := t.TempDir()
+		moduleDir := tempDir + "/deep/nested/modules"
+		providerDir := tempDir + "/deep/nested/providers"
+
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraModuleCacheDir(moduleDir).
+			WithTerraProviderCacheDir(providerDir).
+			WithTerraNoCAS(false).
+			WithTerraNoPartialParseCache(false).
+			BuildSettings()
+		cmd := commands.NewRunFromRootCommand(
+			settings,
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+
+		// WHEN
+		cmd.ConfigureCacheEnvironmentPublic()
+
+		// THEN: Nested directories should be created via MkdirAll
+		info, err := os.Stat(moduleDir)
+		require.NoError(t, err, "Nested module cache directory should be created")
+		assert.True(t, info.IsDir())
+
+		info, err = os.Stat(providerDir)
+		require.NoError(t, err, "Nested provider cache directory should be created")
+		assert.True(t, info.IsDir())
+
+		assert.Equal(t, moduleDir, os.Getenv("TG_DOWNLOAD_DIR"))
+		assert.Equal(t, providerDir, os.Getenv("TF_PLUGIN_CACHE_DIR"))
+	})
+}
+
 func TestSettings_GetModuleCacheDir(t *testing.T) {
 	t.Parallel()
 

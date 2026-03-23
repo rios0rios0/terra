@@ -10,7 +10,24 @@ import (
 	"github.com/rios0rios0/terra/test/domain/commanddoubles"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"go.uber.org/dig"
 )
+
+func TestRegisterProviders(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should register all controller providers when container is valid", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A fresh DIG container
+		container := dig.New()
+
+		// WHEN: Registering all controller providers
+		err := controllers.RegisterProviders(container)
+
+		// THEN: Should succeed without error
+		assert.NoError(t, err)
+	})
+}
 
 func TestNewControllers(t *testing.T) {
 	t.Parallel()

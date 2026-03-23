@@ -109,4 +109,20 @@ func TestDeleteCacheController_Execute(t *testing.T) {
 		// THEN: Should execute the command the correct number of times
 		assert.Equal(t, 3, mockCommand.ExecuteCallCount)
 	})
+
+	t.Run("should default global to false when flag not registered", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A delete cache controller with a command that has no global flag
+		mockCommand := &commanddoubles.StubDeleteCacheCommand{}
+		controller := controllers.NewDeleteCacheController(mockCommand)
+		cmd := &cobra.Command{} //nolint:exhaustruct // minimal test setup - intentionally no global flag
+		args := []string{}
+
+		// WHEN: Executing the controller without the global flag registered
+		controller.Execute(cmd, args)
+
+		// THEN: Should execute with global=false (default)
+		assert.Equal(t, 1, mockCommand.ExecuteCallCount)
+		assert.False(t, mockCommand.LastGlobal)
+	})
 }

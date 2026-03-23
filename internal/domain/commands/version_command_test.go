@@ -69,10 +69,16 @@ func TestVersionCommand_Execute(t *testing.T) {
 	})
 }
 
-// Note: Additional tests that were testing private methods like getTerraformVersion,
-// getVersionFromCLI, and getLatestVersionFromAPI have been removed in accordance with
-// the contributing guidelines that state:
-// "NEVER test private methods directly. Instead test through public interfaces."
-//
-// The VersionCommand.Execute method performs network operations and system interactions
-// that are better verified through integration tests or manual testing.
+func TestVersionCommand_Execute_ToolsNotInstalled(t *testing.T) {
+	// NOTE: Cannot use t.Parallel() because t.Setenv modifies process-wide environment
+
+	t.Run("should report not installed when tools are not found in PATH", func(t *testing.T) {
+		// GIVEN: PATH is set to empty so no CLI tools can be found
+		t.Setenv("PATH", "")
+		cmd := commands.NewVersionCommand([]entities.Dependency{})
+
+		// WHEN: Executing the version command with no tools available
+		// THEN: Should complete without panicking, reporting "not installed" for both tools
+		cmd.Execute()
+	})
+}
