@@ -163,4 +163,111 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 		// Should NOT execute parallel state command
 		assert.False(t, parallelState.ExecuteCalled, "Should not execute parallel state command for plan")
 	})
+
+	t.Run("should execute parallel command when --parallel=N used with non-state command", func(t *testing.T) {
+		// GIVEN: A command with --parallel=2 flag on a plan command (not a state command)
+		installCommand := &commanddoubles.StubInstallDependencies{}
+		formatCommand := &commanddoubles.StubFormatFiles{}
+		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
+		parallelState := &commanddoubles.StubParallelState{}
+		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
+		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
+		cmd := commands.NewRunFromRootCommand(
+			entitybuilders.NewSettingsBuilder().BuildSettings(),
+			installCommand,
+			formatCommand,
+			additionalBefore,
+			parallelState,
+			repository,
+			upgradeRepository,
+			interactiveRepository,
+		)
+
+		targetPath := "/test/path"
+		arguments := []string{"plan", "--parallel=2"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments, dependencies)
+
+		// THEN: Should execute parallel state command via isParallelCommand
+		assert.True(t, parallelState.ExecuteCalled, "Should execute parallel command for --parallel=N")
+		assert.Equal(t, targetPath, parallelState.LastTargetPath)
+		assert.Equal(t, arguments, parallelState.LastArguments)
+
+		// Should NOT execute normal flow
+		assert.False(t, additionalBefore.ExecuteCalled, "Should not execute additional before for parallel command")
+		assert.Equal(t, 0, upgradeRepository.ExecuteCallCount, "Should not execute normal terragrunt command for parallel")
+	})
+
+	t.Run("should execute normal flow when --parallel=N used with --no-parallel-bypass", func(t *testing.T) {
+		// GIVEN: A command with both --parallel=2 and --no-parallel-bypass and --all flags
+		installCommand := &commanddoubles.StubInstallDependencies{}
+		formatCommand := &commanddoubles.StubFormatFiles{}
+		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
+		parallelState := &commanddoubles.StubParallelState{}
+		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
+		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
+		cmd := commands.NewRunFromRootCommand(
+			entitybuilders.NewSettingsBuilder().BuildSettings(),
+			installCommand,
+			formatCommand,
+			additionalBefore,
+			parallelState,
+			repository,
+			upgradeRepository,
+			interactiveRepository,
+		)
+
+		targetPath := "/test/path"
+		arguments := []string{"plan", "--parallel=2", "--no-parallel-bypass", "--all"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments, dependencies)
+
+		// THEN: Should bypass terra's parallel execution and forward to terragrunt
+		assert.False(t, parallelState.ExecuteCalled, "Should not execute parallel command when --no-parallel-bypass is present")
+		assert.True(t, additionalBefore.ExecuteCalled, "Should execute additional before in normal flow")
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should execute normal terragrunt command")
+	})
+
+	t.Run("should execute parallel state command when state mv with --all", func(t *testing.T) {
+		// GIVEN: A command with state mv arguments and --all flag
+		installCommand := &commanddoubles.StubInstallDependencies{}
+		formatCommand := &commanddoubles.StubFormatFiles{}
+		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
+		parallelState := &commanddoubles.StubParallelState{}
+		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
+		interactiveRepository := infrastructure_repositories.NewInteractiveShellRepository()
+		cmd := commands.NewRunFromRootCommand(
+			entitybuilders.NewSettingsBuilder().BuildSettings(),
+			installCommand,
+			formatCommand,
+			additionalBefore,
+			parallelState,
+			repository,
+			upgradeRepository,
+			interactiveRepository,
+		)
+
+		targetPath := "/test/path"
+		arguments := []string{"state", "mv", "--all", "old_resource", "new_resource"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments, dependencies)
+
+		// THEN: Should execute parallel state command (backward compat: state + --all)
+		assert.True(t, parallelState.ExecuteCalled, "Should execute parallel state command")
+		assert.Equal(t, targetPath, parallelState.LastTargetPath)
+		assert.Equal(t, arguments, parallelState.LastArguments)
+
+		// Should NOT execute normal flow
+		assert.False(t, additionalBefore.ExecuteCalled, "Should not execute additional before for parallel state")
+		assert.Equal(t, 0, upgradeRepository.ExecuteCallCount, "Should not execute normal terragrunt command")
+	})
 }
