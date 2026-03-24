@@ -126,33 +126,6 @@ func TestRunAdditionalBeforeCommand_Execute_AccountChange(t *testing.T) {
 func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 	t.Parallel()
 
-	t.Run("should init environment when arguments require init", func(t *testing.T) {
-		t.Parallel()
-		// GIVEN: A command with arguments that require environment initialization
-		settings := entitybuilders.NewSettingsBuilder().
-			WithTerraCloud("aws").
-			BuildSettings()
-		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
-		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
-		targetPath := t.TempDir()
-		arguments := []string{"plan", "--detailed-exitcode"}
-
-		// WHEN: Executing the command
-		cmd.Execute(targetPath, arguments)
-
-		// THEN: Should execute terragrunt init command (indirectly tests shouldInitEnvironment)
-		initCommandExecuted := false
-		for _, call := range repository.CallHistory {
-			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
-				call.Arguments[0] == "init" {
-				initCommandExecuted = true
-				assert.Equal(t, targetPath, call.Directory)
-				break
-			}
-		}
-		assert.True(t, initCommandExecuted, "Should execute terragrunt init command")
-	})
-
 	t.Run("should not init environment when arguments are init", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with 'init' argument
@@ -299,33 +272,6 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		}
 	})
 
-	t.Run("should init environment when .terraform directory does not exist", func(t *testing.T) {
-		t.Parallel()
-		// GIVEN: A directory without .terraform subdirectory
-		settings := entitybuilders.NewSettingsBuilder().
-			WithTerraCloud("aws").
-			BuildSettings()
-		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
-		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
-		targetPath := t.TempDir()
-		arguments := []string{"plan"}
-
-		// WHEN: Executing the command
-		cmd.Execute(targetPath, arguments)
-
-		// THEN: Should execute terragrunt init because .terraform does not exist
-		initCommandExecuted := false
-		for _, call := range repository.CallHistory {
-			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
-				call.Arguments[0] == "init" {
-				initCommandExecuted = true
-				assert.Equal(t, targetPath, call.Directory)
-				break
-			}
-		}
-		assert.True(t, initCommandExecuted, "Should execute terragrunt init when .terraform directory is absent")
-	})
-
 	t.Run("should not init environment when .terragrunt-cache directory exists", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A directory that already has a .terragrunt-cache subdirectory
@@ -429,8 +375,91 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		assert.True(t, workspaceCommandExecuted, "Should execute workspace change command when TERRA_NO_WORKSPACE is false")
 	})
 
+}
+
+// TestRunAdditionalBeforeCommand_Execute_CentralizedCache tests init behavior with
+// centralized caching. These tests use t.Setenv and cannot run in parallel.
+func TestRunAdditionalBeforeCommand_Execute_CentralizedCache(t *testing.T) {
+	t.Run("should not init environment when centralized cache has content", func(t *testing.T) {
+		// GIVEN: TG_DOWNLOAD_DIR is set and has content
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
+		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
+		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
+		targetPath := t.TempDir()
+		cacheDir := t.TempDir()
+		require.NoError(t, os.MkdirAll(filepath.Join(cacheDir, "someHashDir"), 0o755))
+		t.Setenv("TG_DOWNLOAD_DIR", cacheDir)
+		arguments := []string{"apply"}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments)
+
+		// THEN: Should not execute terragrunt init because centralized cache has content
+		for _, call := range repository.CallHistory {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
+				assert.Fail(t, "Should not execute terragrunt init when centralized cache has content")
+			}
+		}
+	})
+
+	t.Run("should init environment when centralized cache is empty", func(t *testing.T) {
+		// GIVEN: TG_DOWNLOAD_DIR is set but empty
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
+		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
+		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
+		targetPath := t.TempDir()
+		cacheDir := t.TempDir()
+		t.Setenv("TG_DOWNLOAD_DIR", cacheDir)
+		arguments := []string{"apply"}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments)
+
+		// THEN: Should execute terragrunt init because centralized cache is empty
+		initCommandExecuted := false
+		for _, call := range repository.CallHistory {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
+				initCommandExecuted = true
+				break
+			}
+		}
+		assert.True(t, initCommandExecuted, "Should execute terragrunt init when centralized cache is empty")
+	})
+
+	t.Run("should init environment when TG_DOWNLOAD_DIR is unset and no local cache", func(t *testing.T) {
+		// GIVEN: TG_DOWNLOAD_DIR is unset and no local cache directories
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
+		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
+		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
+		targetPath := t.TempDir()
+		t.Setenv("TG_DOWNLOAD_DIR", "")
+		arguments := []string{"plan", "--detailed-exitcode"}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments)
+
+		// THEN: Should execute terragrunt init command
+		initCommandExecuted := false
+		for _, call := range repository.CallHistory {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
+				initCommandExecuted = true
+				assert.Equal(t, targetPath, call.Directory)
+				break
+			}
+		}
+		assert.True(t, initCommandExecuted, "Should execute terragrunt init command")
+	})
+
 	t.Run("should execute all steps when all conditions met", func(t *testing.T) {
-		t.Parallel()
 		// GIVEN: A command with all conditions met (account change, init, workspace change)
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraCloud("aws").
@@ -444,6 +473,7 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, cli, repository)
 		targetPath := t.TempDir()
+		t.Setenv("TG_DOWNLOAD_DIR", "")
 		arguments := []string{"apply", "-auto-approve"}
 
 		// WHEN: Executing the command
@@ -457,7 +487,6 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 			"Should execute at least 3 commands",
 		)
 
-		// Verify account change command
 		accountChangeFound := false
 		initFound := false
 		workspaceFound := false
