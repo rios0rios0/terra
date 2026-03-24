@@ -26,7 +26,6 @@ func getUpgradePatterns() []string {
 		"please run 'terraform init'",
 		"terraform init -upgrade",
 		"You must run 'terragrunt init --upgrade'",
-		"rerun this command to reinitialize",
 		"install it automatically by running",
 
 		// Initialization-required diagnostics (exact Terraform source strings).

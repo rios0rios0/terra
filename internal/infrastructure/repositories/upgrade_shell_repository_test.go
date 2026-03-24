@@ -108,10 +108,6 @@ func TestNeedsUpgrade(t *testing.T) {
 			"Please run terraform init -upgrade to resolve",
 		},
 		{
-			"should detect rerun init command suggestion",
-			"rerun this command to reinitialize your working directory",
-		},
-		{
 			"should detect install it automatically by running",
 			"You may be able to install it automatically by running:\n  terraform init",
 		},
@@ -190,6 +186,15 @@ func TestNeedsUpgrade(t *testing.T) {
 				"  with module.bedrock[0].aws_iam_user.bedrock,\n" +
 				"  on ../../modules/aws_bedrock_claude/main.tf line 12, in resource \"aws_iam_user\" \"bedrock\":\n" +
 				"    12: resource \"aws_iam_user\" \"bedrock\" {\n",
+		},
+		{
+			"should not detect upgrade for state lock error with init success in buffer",
+			"Terraform has been successfully initialized!\n" +
+				"rerun this command to reinitialize your working directory.\n\n" +
+				"Error: Error acquiring the state lock\n\n" +
+				"Error message: state blob is already locked\n" +
+				"Terraform acquires a state lock to protect the state from being written\n" +
+				"by multiple users at the same time.",
 		},
 	}
 
