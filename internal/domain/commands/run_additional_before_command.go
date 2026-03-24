@@ -87,10 +87,15 @@ func shouldInitEnvironment(arguments []string, targetPath string) bool {
 		return false
 	}
 
-	// Skip init if .terraform already exists as a directory — the reactive
+	// Skip init if the environment was already initialized — the reactive
 	// UpgradeAwareShellRepository will handle stale state if needed.
-	if info, err := os.Stat(filepath.Join(targetPath, ".terraform")); err == nil && info.IsDir() {
-		return false
+	// Check for .terraform (plain Terraform) and Terragrunt cache directories
+	// (.terragrunt-cache and legacy terragrunt-cache), since Terragrunt places
+	// .terraform inside .terragrunt-cache/<hash>/<hash>/.
+	for _, dir := range []string{".terraform", ".terragrunt-cache", "terragrunt-cache"} {
+		if info, err := os.Stat(filepath.Join(targetPath, dir)); err == nil && info.IsDir() {
+			return false
+		}
 	}
 
 	return true

@@ -326,6 +326,54 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		assert.True(t, initCommandExecuted, "Should execute terragrunt init when .terraform directory is absent")
 	})
 
+	t.Run("should not init environment when .terragrunt-cache directory exists", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A directory that already has a .terragrunt-cache subdirectory
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
+		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
+		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
+		targetPath := t.TempDir()
+		require.NoError(t, os.MkdirAll(filepath.Join(targetPath, ".terragrunt-cache"), 0o755))
+		arguments := []string{"apply"}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments)
+
+		// THEN: Should not execute terragrunt init because .terragrunt-cache already exists
+		for _, call := range repository.CallHistory {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
+				assert.Fail(t, "Should not execute terragrunt init when .terragrunt-cache directory exists")
+			}
+		}
+	})
+
+	t.Run("should not init environment when terragrunt-cache directory exists", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A directory that already has a terragrunt-cache subdirectory (no leading dot)
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraCloud("aws").
+			BuildSettings()
+		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
+		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
+		targetPath := t.TempDir()
+		require.NoError(t, os.MkdirAll(filepath.Join(targetPath, "terragrunt-cache"), 0o755))
+		arguments := []string{"apply"}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments)
+
+		// THEN: Should not execute terragrunt init because terragrunt-cache already exists
+		for _, call := range repository.CallHistory {
+			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
+				call.Arguments[0] == "init" {
+				assert.Fail(t, "Should not execute terragrunt init when terragrunt-cache directory exists")
+			}
+		}
+	})
+
 	t.Run("should not change workspace when TERRA_NO_WORKSPACE is true", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A command with workspace configured but TERRA_NO_WORKSPACE enabled
