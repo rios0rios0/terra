@@ -16,24 +16,26 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-03-24
+
 ### Added
 
 - added `TERRA_NO_WORKSPACE` environment variable to disable automatic workspace selection from `TERRA_WORKSPACE`
+- added unit tests for DIG container registration, self-update command, run-from-root command, upgrade-aware shell repository, version command, and OS operations
 
 ### Changed
 
 - changed `clear` command to also remove `terragrunt-cache` (without leading dot) and `.terraform.lock.hcl` lock files
-- added unit tests for DIG container registration, self-update command, run-from-root command, upgrade-aware shell repository, version command, and OS operations
 
 ### Fixed
 
-- fixed auto-upgrade detection logging which pattern triggered the retry, aiding future debugging
-- fixed proactive init running unnecessarily when centralized caching (`TG_DOWNLOAD_DIR`) is active and cache already has content
-- fixed overly broad auto-upgrade detection that triggered unnecessary `init --upgrade` on runtime provider errors (e.g., TLS failures)
-- fixed auto-init running `terragrunt init` on every command even when `.terraform` directory already exists
-- fixed proactive init not detecting `.terragrunt-cache` and legacy `terragrunt-cache` directories, causing unnecessary `terragrunt init` on every command when using Terragrunt
-- fixed `clear` command not resetting found paths between iterations, causing already-deleted entries to be re-processed
 - fixed `RunAdditionalBeforeCommand` tests using hard-coded `/test/path` instead of `t.TempDir()`, making them environment-dependent
+- fixed `clear` command not resetting found paths between iterations, causing already-deleted entries to be re-processed
+- fixed auto-init running `terragrunt init` on every command even when `.terraform` directory already exists
+- fixed auto-upgrade detection logging which pattern triggered the retry, aiding future debugging
+- fixed overly broad auto-upgrade detection that triggered unnecessary `init --upgrade` on runtime provider errors (e.g., TLS failures)
+- fixed proactive init not detecting `.terragrunt-cache` and legacy `terragrunt-cache` directories, causing unnecessary `terragrunt init` on every command when using Terragrunt
+- fixed proactive init running unnecessarily when centralized caching (`TG_DOWNLOAD_DIR`) is active and cache already has content
 
 ## [1.8.0] - 2026-03-17
 
@@ -71,7 +73,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ### Changed
 
 - changed the Go version to `1.26.1` and updated all module dependencies
-- replaced raw struct literals in tests with testkit builders for consistent test data construction
+- replaced raw struct literals in tests with `testkit` builders for consistent test data construction
 
 ### Fixed
 
@@ -85,7 +87,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Fixed
 
-- fixed cross-compilation failure for darwin (macOS) targets by replacing platform-specific `os_linux.go` with `os_unix.go` using `//go:build !windows` constraint, and renamed `OSLinux` to `OSUnix`
+- fixed cross-compilation failure for `darwin` (macOS) targets by replacing platform-specific `os_linux.go` with `os_unix.go` using `//go:build !windows` constraint, and renamed `OSLinux` to `OSUnix`
 
 ## [1.6.0] - 2026-02-14
 
