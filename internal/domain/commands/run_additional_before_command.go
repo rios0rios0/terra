@@ -98,5 +98,15 @@ func shouldInitEnvironment(arguments []string, targetPath string) bool {
 		}
 	}
 
+	// When centralized caching is active (TG_DOWNLOAD_DIR set by terra),
+	// terragrunt doesn't create .terragrunt-cache locally. Skip init if the
+	// centralized cache already has content from a previous run.
+	if downloadDir := os.Getenv("TG_DOWNLOAD_DIR"); downloadDir != "" {
+		entries, err := os.ReadDir(downloadDir)
+		if err == nil && len(entries) > 0 {
+			return false
+		}
+	}
+
 	return true
 }
