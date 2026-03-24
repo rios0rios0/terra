@@ -124,7 +124,7 @@ func TestNeedsUpgrade(t *testing.T) {
 			result := repositories.NeedsUpgradePublic(tt.output)
 
 			// then
-			assert.True(t, result, "Should detect upgrade need for: %s", tt.output)
+			assert.NotEmpty(t, result, "Should detect upgrade need for: %s", tt.output)
 		})
 	}
 
@@ -181,6 +181,16 @@ func TestNeedsUpgrade(t *testing.T) {
 				"Could not retrieve the list of available versions for provider\n" +
 				"hashicorp/aws: could not connect to registry.terraform.io",
 		},
+		{
+			"should not detect upgrade for IAM validation error",
+			"Error: creating IAM User (dev-1021-bedrock): operation error IAM: CreateUser, " +
+				"https response error StatusCode: 400, api error ValidationError: " +
+				"1 validation error detected: Value at 'tags.3.member.value' failed to satisfy constraint: " +
+				"Member must satisfy regular expression pattern: [\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*\n\n" +
+				"  with module.bedrock[0].aws_iam_user.bedrock,\n" +
+				"  on ../../modules/aws_bedrock_claude/main.tf line 12, in resource \"aws_iam_user\" \"bedrock\":\n" +
+				"    12: resource \"aws_iam_user\" \"bedrock\" {\n",
+		},
 	}
 
 	for _, tt := range noUpgradeOutputs {
@@ -190,7 +200,7 @@ func TestNeedsUpgrade(t *testing.T) {
 			result := repositories.NeedsUpgradePublic(tt.output)
 
 			// then
-			assert.False(t, result, "Should NOT detect upgrade need for: %s", tt.output)
+			assert.Empty(t, result, "Should NOT detect upgrade need for: %s", tt.output)
 		})
 	}
 }

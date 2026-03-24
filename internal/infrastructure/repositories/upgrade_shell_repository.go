@@ -76,13 +76,14 @@ func (it *UpgradeAwareShellRepository) ExecuteCommandWithUpgrade(
 		return nil
 	}
 
-	if !needsUpgrade(output) {
+	matchedPattern := needsUpgrade(output)
+	if matchedPattern == "" {
 		return err
 	}
 
 	logger.Infof(
-		"Detected that %s needs initialization with upgrade, running 'init --upgrade'...",
-		command,
+		"Detected that %s needs initialization with upgrade (matched pattern: %q), running 'init --upgrade'...",
+		command, matchedPattern,
 	)
 
 	initErr := it.runInitUpgrade(command, directory)
@@ -173,19 +174,20 @@ func (it *UpgradeAwareShellRepository) runInitUpgrade(
 
 // needsUpgrade checks if the command output contains patterns indicating
 // that terraform/terragrunt needs initialization with --upgrade.
-func needsUpgrade(output string) bool {
+// Returns the matched pattern (empty string if no match).
+func needsUpgrade(output string) string {
 	lowerOutput := strings.ToLower(output)
 
 	for _, pattern := range getUpgradePatterns() {
 		if strings.Contains(lowerOutput, strings.ToLower(pattern)) {
-			return true
+			return pattern
 		}
 	}
 
-	return false
+	return ""
 }
 
 // NeedsUpgradePublic is a public wrapper for testing the private needsUpgrade function.
-func NeedsUpgradePublic(output string) bool {
+func NeedsUpgradePublic(output string) string {
 	return needsUpgrade(output)
 }

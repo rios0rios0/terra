@@ -27,6 +27,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Fixed
 
+- fixed auto-upgrade detection logging which pattern triggered the retry, aiding future debugging
 - fixed overly broad auto-upgrade detection that triggered unnecessary `init --upgrade` on runtime provider errors (e.g., TLS failures)
 - fixed auto-init running `terragrunt init` on every command even when `.terraform` directory already exists
 - fixed proactive init not detecting `.terragrunt-cache` and legacy `terragrunt-cache` directories, causing unnecessary `terragrunt init` on every command when using Terragrunt
