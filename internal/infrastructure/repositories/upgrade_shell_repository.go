@@ -15,33 +15,44 @@ import (
 
 // getUpgradePatterns returns error output patterns that indicate terraform/terragrunt
 // needs initialization with --upgrade before the command can succeed.
+// Only patterns where Terraform/Terragrunt explicitly suggests running init are included;
+// broad patterns that match runtime provider errors (e.g., TLS failures) are excluded.
 func getUpgradePatterns() []string {
 	return []string{
-		// Module not initialized.
-		"terraform init has not been run",
-		"Working directory is not initialized",
+		// Explicit "run init" suggestions from Terraform/Terragrunt output.
+		"please run \"terraform init\"",
 		"run \"terraform init\"",
 		"run \"terragrunt init\"",
-		"Module not installed",
-		"Required plugins are not installed",
+		"please run 'terraform init'",
+		"terraform init -upgrade",
+		"terraform init -reconfigure",
+		"terraform init -migrate-state",
+		"You must run 'terragrunt init --upgrade'",
+		"rerun this command to reinitialize",
+		"install it automatically by running",
 
-		// Backend configuration changes.
+		// Initialization-required diagnostics (exact Terraform source strings).
+		"Backend initialization required",
+		"State store initialization required",
+		"initialization required: please run",
+
+		// Uninitialized working directory.
+		"terraform init has not been run",
+		"Working directory is not initialized",
+
+		// Backend configuration change detection.
 		"Backend configuration changed",
 		"backend type changed",
 		"backend configuration has changed",
-		"Error loading state",
 
-		// Provider version conflicts.
-		"provider version constraint",
-		"Provider doesn't satisfy version constraints",
+		// Module and plugin initialization.
+		"Module not installed",
+		"Required plugins are not installed",
+
+		// Provider version/lock file conflicts requiring init --upgrade.
 		"Inconsistent dependency lock file",
-		"provider registry.terraform.io",
-		"Failed to query available provider packages",
-
-		// Terragrunt-specific patterns.
-		"You must run 'terragrunt init --upgrade'",
-		"terraform init -upgrade",
-		"rerun this command to reinitialize",
+		"does not match configured version constraint",
+		"Provider doesn't satisfy version constraints",
 	}
 }
 

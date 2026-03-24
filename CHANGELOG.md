@@ -27,6 +27,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Fixed
 
+- fixed overly broad auto-upgrade detection that triggered unnecessary `init --upgrade` on runtime provider errors (e.g., TLS failures)
 - fixed auto-init running `terragrunt init` on every command even when `.terraform` directory already exists
 - fixed proactive init not detecting `.terragrunt-cache` and legacy `terragrunt-cache` directories, causing unnecessary `terragrunt init` on every command when using Terragrunt
 - fixed `clear` command not resetting found paths between iterations, causing already-deleted entries to be re-processed
