@@ -16,14 +16,16 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.9.0] - 2026-03-24
+
 ### Added
 
 - added `TERRA_NO_WORKSPACE` environment variable to disable automatic workspace selection from `TERRA_WORKSPACE`
+- added unit tests for DIG container registration, self-update command, run-from-root command, upgrade-aware shell repository, version command, and OS operations
 
 ### Changed
 
 - changed `clear` command to also remove `terragrunt-cache` (without leading dot) and `.terraform.lock.hcl` lock files
-- added unit tests for DIG container registration, self-update command, run-from-root command, upgrade-aware shell repository, version command, and OS operations
 
 ### Fixed
 
