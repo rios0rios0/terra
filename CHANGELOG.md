@@ -28,7 +28,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ### Fixed
 
 - fixed auto-init running `terragrunt init` on every command even when `.terraform` directory already exists
-- fixed proactive init not detecting `.terragrunt-cache` directory, causing unnecessary `terragrunt init` on every command when using Terragrunt
+- fixed proactive init not detecting `.terragrunt-cache` and legacy `terragrunt-cache` directories, causing unnecessary `terragrunt init` on every command when using Terragrunt
 - fixed `clear` command not resetting found paths between iterations, causing already-deleted entries to be re-processed
 - fixed `RunAdditionalBeforeCommand` tests using hard-coded `/test/path` instead of `t.TempDir()`, making them environment-dependent
 
