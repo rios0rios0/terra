@@ -108,14 +108,6 @@ func TestNeedsUpgrade(t *testing.T) {
 			"Please run terraform init -upgrade to resolve",
 		},
 		{
-			"should detect terraform init -reconfigure suggestion",
-			"Error: Backend configuration changed. Run terraform init -reconfigure to update",
-		},
-		{
-			"should detect terraform init -migrate-state suggestion",
-			"Error: Backend configuration changed. Run terraform init -migrate-state to migrate",
-		},
-		{
 			"should detect rerun init command suggestion",
 			"rerun this command to reinitialize your working directory",
 		},
