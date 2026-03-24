@@ -44,6 +44,14 @@ func TestNeedsUpgrade(t *testing.T) {
 			`Error: Could not load backend configuration. Please run "terraform init"`,
 		},
 		{
+			"should detect please run terraform init suggestion",
+			`Backend initialization required, please run "terraform init"`,
+		},
+		{
+			"should detect please run terraform init with single quotes",
+			"Backend initialization required, please run 'terraform init'",
+		},
+		{
 			"should detect run terragrunt init suggestion",
 			`Error: Please run "terragrunt init" to initialize`,
 		},
@@ -68,12 +76,16 @@ func TestNeedsUpgrade(t *testing.T) {
 			"Error: backend configuration has changed since last init",
 		},
 		{
-			"should detect error loading state",
-			"Error loading state: unable to load backend",
+			"should detect backend initialization required",
+			"Backend initialization required, please run \"terraform init\"",
 		},
 		{
-			"should detect provider version constraint",
-			"Error: provider version constraint not satisfied",
+			"should detect state store initialization required",
+			"State store initialization required, please run \"terraform init\"",
+		},
+		{
+			"should detect initialization required please run",
+			"HCP Terraform or Terraform Enterprise initialization required: please run \"terraform init\"",
 		},
 		{
 			"should detect provider does not satisfy version constraints",
@@ -84,12 +96,8 @@ func TestNeedsUpgrade(t *testing.T) {
 			"Error: Inconsistent dependency lock file",
 		},
 		{
-			"should detect provider registry issue",
-			"Error: provider registry.terraform.io/hashicorp/aws not available",
-		},
-		{
-			"should detect failed to query available provider packages",
-			"Error: Failed to query available provider packages",
+			"should detect does not match configured version constraint",
+			"locked provider registry.terraform.io/hashicorp/aws 4.0.0 does not match configured version constraint ~> 5.0; must use terraform init -upgrade",
 		},
 		{
 			"should detect terragrunt upgrade suggestion",
@@ -102,6 +110,10 @@ func TestNeedsUpgrade(t *testing.T) {
 		{
 			"should detect rerun init command suggestion",
 			"rerun this command to reinitialize your working directory",
+		},
+		{
+			"should detect install it automatically by running",
+			"You may be able to install it automatically by running:\n  terraform init",
 		},
 	}
 
@@ -139,6 +151,35 @@ func TestNeedsUpgrade(t *testing.T) {
 		{
 			"should not detect upgrade for permission error",
 			"Error: Access Denied. You don't have permission.",
+		},
+		{
+			"should not detect upgrade for TLS handshake failure from provider",
+			"Error: Post \"https://kc.example.io/realms/master/protocol/openid-connect/token\": " +
+				"remote error: tls: handshake failure\n\n" +
+				"  with module.keycloak_customer_realm.keycloak_realm.customer_realm,\n" +
+				"  on .terraform/modules/keycloak_customer_realm/main.tf line 24, " +
+				"in resource \"keycloak_realm\" \"customer_realm\":\n" +
+				"    24: resource \"keycloak_realm\" \"customer_realm\" {\n",
+		},
+		{
+			"should not detect upgrade for provider API error with registry path",
+			"Error: error creating resource: provider registry.terraform.io/hashicorp/aws returned 403",
+		},
+		{
+			"should not detect upgrade for state loading network error",
+			"Error loading state: AccessDenied: Access Denied\n\tstatus code: 403",
+		},
+		{
+			"should not detect upgrade for provider timeout",
+			"Error: Provider produced inconsistent result after apply\n\n" +
+				"  with provider[\"registry.terraform.io/hashicorp/azurerm\"],\n" +
+				"  context deadline exceeded (Client.Timeout)",
+		},
+		{
+			"should not detect upgrade for failed to query available provider packages",
+			"Error: Failed to query available provider packages\n\n" +
+				"Could not retrieve the list of available versions for provider\n" +
+				"hashicorp/aws: could not connect to registry.terraform.io",
 		},
 	}
 
