@@ -17,6 +17,7 @@ type SettingsBuilder struct {
 	terraModuleCacheDir      string
 	terraProviderCacheDir    string
 	terraNoCAS               bool
+	terraNoProviderCache     bool
 	terraNoPartialParseCache bool
 	terraNoWorkspace         bool
 }
@@ -70,6 +71,12 @@ func (b *SettingsBuilder) WithTerraNoCAS(noCAS bool) *SettingsBuilder {
 	return b
 }
 
+// WithTerraNoProviderCache sets the no-provider-cache flag.
+func (b *SettingsBuilder) WithTerraNoProviderCache(noProviderCache bool) *SettingsBuilder {
+	b.terraNoProviderCache = noProviderCache
+	return b
+}
+
 // WithTerraNoPartialParseCache sets the no-partial-parse-cache flag.
 func (b *SettingsBuilder) WithTerraNoPartialParseCache(noPartialParseCache bool) *SettingsBuilder {
 	b.terraNoPartialParseCache = noPartialParseCache
@@ -97,6 +104,7 @@ func (b *SettingsBuilder) BuildSettings() *entities.Settings {
 		TerraModuleCacheDir:      b.terraModuleCacheDir,
 		TerraProviderCacheDir:    b.terraProviderCacheDir,
 		TerraNoCAS:               b.terraNoCAS,
+		TerraNoProviderCache:     b.terraNoProviderCache,
 		TerraNoPartialParseCache: b.terraNoPartialParseCache,
 		TerraNoWorkspace:         b.terraNoWorkspace,
 	}
@@ -112,6 +120,7 @@ func (b *SettingsBuilder) Reset() testkit.Builder {
 	b.terraModuleCacheDir = ""
 	b.terraProviderCacheDir = ""
 	b.terraNoCAS = false
+	b.terraNoProviderCache = false
 	b.terraNoPartialParseCache = false
 	b.terraNoWorkspace = false
 	return b
@@ -128,6 +137,7 @@ func (b *SettingsBuilder) Clone() testkit.Builder {
 		terraModuleCacheDir:      b.terraModuleCacheDir,
 		terraProviderCacheDir:    b.terraProviderCacheDir,
 		terraNoCAS:               b.terraNoCAS,
+		terraNoProviderCache:     b.terraNoProviderCache,
 		terraNoPartialParseCache: b.terraNoPartialParseCache,
 		terraNoWorkspace:         b.terraNoWorkspace,
 	}
