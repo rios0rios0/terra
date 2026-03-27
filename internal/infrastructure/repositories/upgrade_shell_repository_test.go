@@ -129,6 +129,23 @@ func TestNeedsUpgrade(t *testing.T) {
 		output string
 	}{
 		{
+			"should not detect upgrade for cancelled apply even with init suggestion in output",
+			"terraform: Apply cancelled.\n" +
+				"terraform: Releasing state lock. This may take a few moments...\n" +
+				"error occurred:\n" +
+				"* Failed to execute \"terraform apply\" in .cache/terra/modules/abc/stacks/env\n\n" +
+				"exit status 1\n" +
+				"run \"terraform init\"",
+		},
+		{
+			"should not detect upgrade for cancelled plan",
+			"Plan cancelled.\nError: exit status 1",
+		},
+		{
+			"should not detect upgrade for cancelled destroy",
+			"Destroy cancelled.\nError: exit status 1",
+		},
+		{
 			"should not detect upgrade for normal error",
 			"Error: resource not found in state",
 		},
