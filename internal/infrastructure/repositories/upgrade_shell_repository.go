@@ -13,6 +13,17 @@ import (
 	logger "github.com/sirupsen/logrus"
 )
 
+// getCancellationPatterns returns output patterns that indicate the user cancelled the operation.
+// When a cancellation is detected, the upgrade retry must be skipped even if upgrade patterns
+// also appear in the output, because the failure was intentional.
+func getCancellationPatterns() []string {
+	return []string{
+		"Apply cancelled",
+		"Plan cancelled",
+		"Destroy cancelled",
+	}
+}
+
 // getUpgradePatterns returns error output patterns that indicate terraform/terragrunt
 // needs initialization with --upgrade before the command can succeed.
 // Only patterns where Terraform/Terragrunt explicitly suggests running init are included;
@@ -174,8 +185,15 @@ func (it *UpgradeAwareShellRepository) runInitUpgrade(
 // needsUpgrade checks if the command output contains patterns indicating
 // that terraform/terragrunt needs initialization with --upgrade.
 // Returns the matched pattern (empty string if no match).
+// If the output indicates the user cancelled the operation, upgrade is skipped.
 func needsUpgrade(output string) string {
 	lowerOutput := strings.ToLower(output)
+
+	for _, pattern := range getCancellationPatterns() {
+		if strings.Contains(lowerOutput, strings.ToLower(pattern)) {
+			return ""
+		}
+	}
 
 	for _, pattern := range getUpgradePatterns() {
 		if strings.Contains(lowerOutput, strings.ToLower(pattern)) {
