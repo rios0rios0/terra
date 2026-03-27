@@ -18,6 +18,7 @@ type Settings struct {
 	TerraModuleCacheDir      string `envconfig:"TERRA_MODULE_CACHE_DIR"       required:"false"`
 	TerraProviderCacheDir    string `envconfig:"TERRA_PROVIDER_CACHE_DIR"     required:"false"`
 	TerraNoCAS               bool   `envconfig:"TERRA_NO_CAS"                 required:"false"`
+	TerraNoProviderCache     bool   `envconfig:"TERRA_NO_PROVIDER_CACHE"      required:"false"`
 	TerraNoPartialParseCache bool   `envconfig:"TERRA_NO_PARTIAL_PARSE_CACHE" required:"false"`
 	TerraNoWorkspace         bool   `envconfig:"TERRA_NO_WORKSPACE"           required:"false"`
 }
