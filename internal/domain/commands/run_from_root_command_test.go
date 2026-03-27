@@ -595,7 +595,8 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		// then
 		assert.Equal(t, moduleDir, os.Getenv("TG_DOWNLOAD_DIR"))
 		assert.Equal(t, providerDir, os.Getenv("TG_PROVIDER_CACHE_DIR"))
-		assert.Empty(t, os.Getenv("TF_PLUGIN_CACHE_DIR"), "TF_PLUGIN_CACHE_DIR should be unset")
+		_, ok := os.LookupEnv("TF_PLUGIN_CACHE_DIR")
+		assert.False(t, ok, "TF_PLUGIN_CACHE_DIR should be unset")
 
 		// Verify directories were created
 		_, err := os.Stat(moduleDir)
@@ -741,8 +742,8 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		cmd.ConfigureCacheEnvironmentPublic()
 
 		// then
-		assert.Empty(t, os.Getenv("TG_PROVIDER_CACHE"),
-			"TG_PROVIDER_CACHE should not be set when Provider Cache is disabled")
+		_, ok := os.LookupEnv("TG_PROVIDER_CACHE")
+		assert.False(t, ok, "TG_PROVIDER_CACHE should not be set when Provider Cache is disabled")
 	})
 
 	t.Run("should enable Partial Parse Config Cache by default when TerraNoPartialParseCache is false", func(t *testing.T) {
@@ -838,7 +839,8 @@ func TestRunFromRootCommand_configureCacheEnvironment_allEnabled(t *testing.T) {
 		assert.Equal(t, moduleDir, os.Getenv("TG_DOWNLOAD_DIR"))
 		assert.Equal(t, providerDir, os.Getenv("TG_PROVIDER_CACHE_DIR"))
 		assert.Equal(t, "1", os.Getenv("TG_PROVIDER_CACHE"))
-		assert.Empty(t, os.Getenv("TF_PLUGIN_CACHE_DIR"), "TF_PLUGIN_CACHE_DIR should be unset")
+		_, ok := os.LookupEnv("TF_PLUGIN_CACHE_DIR")
+		assert.False(t, ok, "TF_PLUGIN_CACHE_DIR should be unset")
 		assert.Equal(t, "cas", os.Getenv("TG_EXPERIMENT"))
 		assert.Equal(t, "true", os.Getenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE"))
 
@@ -880,11 +882,14 @@ func TestRunFromRootCommand_configureCacheEnvironment_allEnabled(t *testing.T) {
 		cmd.ConfigureCacheEnvironmentPublic()
 
 		// THEN: Feature env vars should be unset
-		assert.Empty(t, os.Getenv("TG_EXPERIMENT"), "TG_EXPERIMENT should be unset when CAS disabled")
-		assert.Empty(t, os.Getenv("TG_PROVIDER_CACHE"),
-			"TG_PROVIDER_CACHE should be unset when Provider Cache disabled")
-		assert.Empty(t, os.Getenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE"),
-			"TG_USE_PARTIAL_PARSE_CONFIG_CACHE should be unset when Partial Parse Cache disabled")
+		_, ok := os.LookupEnv("TG_EXPERIMENT")
+		assert.False(t, ok, "TG_EXPERIMENT should be unset when CAS disabled")
+
+		_, ok = os.LookupEnv("TG_PROVIDER_CACHE")
+		assert.False(t, ok, "TG_PROVIDER_CACHE should be unset when Provider Cache disabled")
+
+		_, ok = os.LookupEnv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE")
+		assert.False(t, ok, "TG_USE_PARTIAL_PARSE_CONFIG_CACHE should be unset when Partial Parse Cache disabled")
 	})
 
 	t.Run("should set module and provider dirs when directories do not exist yet", func(t *testing.T) {
