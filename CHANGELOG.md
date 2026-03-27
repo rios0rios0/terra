@@ -16,6 +16,14 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added `TERRA_NO_PROVIDER_CACHE` environment variable to disable the Terragrunt Provider Cache Server (opt-out toggle)
+
+### Changed
+
+- changed provider caching strategy: replaced `TF_PLUGIN_CACHE_DIR` with Terragrunt Provider Cache Server (`TG_PROVIDER_CACHE=1` + `TG_PROVIDER_CACHE_DIR`) to fix "text file busy" errors during parallel execution (`--parallel=N`)
+
 ## [1.9.0] - 2026-03-24
 
 ### Added

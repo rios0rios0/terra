@@ -206,8 +206,9 @@ func (it *RunFromRootCommand) isParallelCommand(arguments []string) bool {
 
 // configureCacheEnvironment sets environment variables for centralized Terragrunt module
 // and provider caching. This ensures all stacks share a single download directory and
-// provider cache, avoiding redundant downloads. It also enables the Terragrunt CAS
-// (Content Addressable Store) experiment by default for Git clone deduplication.
+// provider cache, avoiding redundant downloads. It enables the Terragrunt Provider Cache
+// Server (TG_PROVIDER_CACHE) by default for concurrent-safe provider deduplication, and
+// the CAS (Content Addressable Store) experiment for Git clone deduplication.
 func (it *RunFromRootCommand) configureCacheEnvironment() {
 	const dirPermissions = 0o755
 
@@ -227,11 +228,25 @@ func (it *RunFromRootCommand) configureCacheEnvironment() {
 		logger.Warnf("Could not determine provider cache directory: %s", providerDirErr)
 	} else if mkdirErr := os.MkdirAll(providerDir, dirPermissions); mkdirErr != nil { // nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 		logger.Warnf("Could not create provider cache directory %s: %s", providerDir, mkdirErr)
-	} else if setenvErr := os.Setenv("TF_PLUGIN_CACHE_DIR", providerDir); setenvErr != nil {
-		logger.Warnf("Could not set TF_PLUGIN_CACHE_DIR: %s", setenvErr)
+	} else if setenvErr := os.Setenv("TG_PROVIDER_CACHE_DIR", providerDir); setenvErr != nil {
+		logger.Warnf("Could not set TG_PROVIDER_CACHE_DIR: %s", setenvErr)
 	} else {
 		logger.Debugf("Provider cache directory set to %s", providerDir)
 	}
+
+	// Explicitly unset TF_PLUGIN_CACHE_DIR to prevent conflicts from inherited environment.
+	// TF_PLUGIN_CACHE_DIR causes "text file busy" errors during parallel execution because
+	// Terraform directly creates symlinks without file locking.
+	if err := os.Unsetenv("TF_PLUGIN_CACHE_DIR"); err != nil {
+		logger.Warnf("Could not unset TF_PLUGIN_CACHE_DIR: %s", err)
+	}
+
+	// Enable Terragrunt Provider Cache Server by default.
+	// The server starts a localhost proxy that downloads each provider once with file
+	// locking and creates symlinks for subsequent modules. This is safe for concurrent
+	// access from parallel goroutines, unlike TF_PLUGIN_CACHE_DIR which causes "text
+	// file busy" errors during parallel execution.
+	setOrUnsetEnv("TG_PROVIDER_CACHE", "1", it.settings.TerraNoProviderCache)
 
 	// Enable Terragrunt CAS (Content Addressable Store) experiment by default.
 	// CAS deduplicates Git clones via hard links, reducing disk usage and clone times.

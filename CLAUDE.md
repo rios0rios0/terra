@@ -65,9 +65,9 @@ test/                  # Test helpers only (never in production folders)
 
 ## Key Mechanisms
 
-- **Centralized caching:** Sets `TG_DOWNLOAD_DIR` and `TF_PLUGIN_CACHE_DIR` automatically
+- **Centralized caching:** Sets `TG_DOWNLOAD_DIR` and `TG_PROVIDER_CACHE_DIR` automatically
 - **CAS:** Enables `TG_EXPERIMENT=cas` by default (disable with `TERRA_NO_CAS=true`)
-- **Provider caching:** Uses `TF_PLUGIN_CACHE_DIR` for symlink-based provider deduplication (no server overhead)
+- **Provider caching:** Uses `TG_PROVIDER_CACHE` (Provider Cache Server) for concurrent-safe provider deduplication with file locking; disable with `TERRA_NO_PROVIDER_CACHE=true`
 - **Partial Parse Config Cache:** Enables `TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true` by default (disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`)
 - **Auto-upgrade:** `UpgradeAwareShellRepository` detects backend/provider failures and retries with `init --upgrade`
 - **Parallel execution:** `--parallel=N` runs across modules via `ParallelStateCommand`
