@@ -16,6 +16,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.10.0] - 2026-03-30
+
 ### Added
 
 - added `TERRA_NO_PROVIDER_CACHE` environment variable to disable the Terragrunt Provider Cache Server (opt-out toggle)
@@ -41,8 +43,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Fixed
 
-- fixed `RunAdditionalBeforeCommand` tests using hard-coded `/test/path` instead of `t.TempDir()`, making them environment-dependent
 - fixed `clear` command not resetting found paths between iterations, causing already-deleted entries to be re-processed
+- fixed `RunAdditionalBeforeCommand` tests using hard-coded `/test/path` instead of `t.TempDir()`, making them environment-dependent
 - fixed auto-init running `terragrunt init` on every command even when `.terraform` directory already exists
 - fixed auto-upgrade detection logging which pattern triggered the retry, aiding future debugging
 - fixed overly broad auto-upgrade detection that triggered unnecessary `init --upgrade` on runtime provider errors (e.g., TLS failures)
@@ -62,8 +64,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Fixed
 
-- fixed Terragrunt deprecation warning by replacing `TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE` with `TG_USE_PARTIAL_PARSE_CONFIG_CACHE`
 - fixed `terra self-update` failing due to incorrect asset name matching (expected `terra_os_arch` but releases use `terra-version-os-arch.tar.gz`) and missing archive extraction
+- fixed Terragrunt deprecation warning by replacing `TERRAGRUNT_USE_PARTIAL_PARSE_CONFIG_CACHE` with `TG_USE_PARTIAL_PARSE_CONFIG_CACHE`
 
 ### Removed
 
@@ -116,7 +118,6 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
-- added Terragrunt CAS (Content Addressable Store) enabled by default for Git clone deduplication via hard links; disabled with `TERRA_NO_CAS=true`
 - added `--auto-answer` flag (`-a`) to automatically handle Terragrunt prompts, with configurable responses (`--auto-answer=y` or `-a=n`; defaults to "n" for backward compatibility)
 - added `--global` flag to the `clear` command to also remove centralized cache directories
 - added `update` command as an alias for `install`
@@ -127,6 +128,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - added installation shell script (`install.sh`) for automated terra installation from GitHub releases with platform detection, `--version`, `--force`, `--dry-run`, and `--install-dir` options
 - added parallel execution for any command via `--parallel=N`, including state manipulation commands (`import`, `state rm`, `state mv`, `state pull`, `state push`, `state show`) with `--all`, automatic module discovery, configurable concurrency (default: 5 jobs), and error aggregation
 - added self-update feature to update the CLI without any additional step
+- added Terragrunt CAS (Content Addressable Store) enabled by default for Git clone deduplication via hard links; disabled with `TERRA_NO_CAS=true`
 - added validation on the `settings` entity
 
 ### Changed
@@ -136,11 +138,11 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - corrected the structure to follow best practices using DDD
 - decoupled responsibilities from just one command to other layers
 - moved all business logic to the domain structure
-- replaced Wire with DIG for dependency injection to support Go `1.25.1` and active maintenance
 - replaced deprecated `run-all` command syntax with `--all` flag to align with Terragrunt's new syntax
+- replaced Wire with DIG for dependency injection to support Go `1.25.1` and active maintenance
+- updated `.editorconfig` to enforce LF line endings across all file types instead of just Go files
 - updated Copilot instructions and contributing guide to enforce `LF` (Unix) line endings for all new and edited files
 - updated Copilot instructions to use `rios0rios0/pipelines` project for linting and CI tools instead of direct tool installation
-- updated `.editorconfig` to enforce LF line endings across all file types instead of just Go files
 - updated documentation to require `CHANGELOG.md` updates for new features and bug fixes (not required for documentation-only changes)
 - upgraded the project to Go `1.26` and all the dependencies
 
