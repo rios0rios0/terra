@@ -51,7 +51,7 @@ func (it *ParallelStateCommand) removeAllFlag(arguments []string) []string {
 	return filtered
 }
 
-// removeParallelFlags removes --all, --parallel=N, --no-parallel-bypass, and --filter= flags from arguments.
+// removeParallelFlags removes --all, --parallel=N, --no-parallel-bypass, --include=, and --exclude= flags from arguments.
 func (it *ParallelStateCommand) removeParallelFlags(arguments []string) []string {
 	// First remove --all flag
 	filtered := it.removeAllFlag(arguments)
@@ -59,8 +59,8 @@ func (it *ParallelStateCommand) removeParallelFlags(arguments []string) []string
 	filtered = RemoveParallelFlag(filtered)
 	// Remove --no-parallel-bypass flag
 	filtered = RemoveNoParallelBypassFlag(filtered)
-	// Finally remove --filter= flag
-	return RemoveFilterFlag(filtered)
+	// Finally remove --include= and --exclude= flags
+	return RemoveFilterFlags(filtered)
 }
 
 // findSubdirectories finds all subdirectories that contain terraform/terragrunt files.
@@ -180,17 +180,16 @@ func (it *ParallelStateCommand) isExcluded(relPath string, exclusions []string) 
 	return false
 }
 
-// buildFilteredPaths builds full paths by concatenating filter values with the target path.
-// Handles both inclusions and exclusions (values starting with !).
+// buildFilteredPaths builds full paths from the given filter values.
+// Handles both inclusions and exclusions provided via --include= and --exclude= flags.
 func (it *ParallelStateCommand) buildFilteredPaths(
 	targetPath string,
-	filterValues []string,
+	filter FilterValues,
 ) []string {
-	parsed := ParseFilterValues(filterValues)
 	var paths []string
 
-	if len(parsed.Inclusions) > 0 {
-		paths = it.buildInclusionPaths(targetPath, parsed.Inclusions)
+	if len(filter.Inclusions) > 0 {
+		paths = it.buildInclusionPaths(targetPath, filter.Inclusions)
 	} else {
 		allModules, err := it.findSubdirectories(targetPath)
 		if err != nil {
@@ -201,8 +200,8 @@ func (it *ParallelStateCommand) buildFilteredPaths(
 		paths = allModules
 	}
 
-	if len(parsed.Exclusions) > 0 {
-		paths = it.applyExclusions(targetPath, paths, parsed.Exclusions)
+	if len(filter.Exclusions) > 0 {
+		paths = it.applyExclusions(targetPath, paths, filter.Exclusions)
 	}
 
 	return paths
@@ -213,8 +212,11 @@ func (it *ParallelStateCommand) resolveModules(
 	targetPath string,
 	arguments []string,
 ) ([]string, error) {
-	if filterValues, hasFilter := GetFilterValue(arguments); hasFilter {
-		modules := it.buildFilteredPaths(targetPath, filterValues)
+	filter := GetFilterValues(arguments)
+	hasFilter := len(filter.Inclusions) > 0 || len(filter.Exclusions) > 0
+
+	if hasFilter {
+		modules := it.buildFilteredPaths(targetPath, filter)
 		if len(modules) == 0 {
 			return nil, errors.New("no valid filter paths found")
 		}
