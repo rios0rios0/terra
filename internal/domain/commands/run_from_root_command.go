@@ -191,6 +191,21 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 	hasExcludeFlag := HasExcludeFlag(arguments)
 
 	if hasIncludeFlag || hasExcludeFlag {
+		// Validate that present flags have non-empty values
+		if hasIncludeFlag {
+			if values, found := GetIncludeValues(arguments); !found || len(values) == 0 {
+				logger.Fatalf("Error: --include flag is present but has no values. " +
+					"Provide comma-separated module names, e.g. --include=mod1,mod2.")
+			}
+		}
+
+		if hasExcludeFlag {
+			if values, found := GetExcludeValues(arguments); !found || len(values) == 0 {
+				logger.Fatalf("Error: --exclude flag is present but has no values. " +
+					"Provide comma-separated module names, e.g. --exclude=mod1,mod2.")
+			}
+		}
+
 		// --include/--exclude require parallel execution context
 		if !hasParallelFlag && !(isStateCommand && hasAllFlag) {
 			logger.Fatalf("Error: --include/--exclude flags require --parallel=N or state command with --all.")
