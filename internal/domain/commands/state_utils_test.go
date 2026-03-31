@@ -215,6 +215,7 @@ func TestGetIncludeValues(t *testing.T) {
 		{"should trim whitespace", []string{"--include= a , b "}, []string{"a", "b"}, true},
 		{"should return false when empty arguments", []string{}, nil, false},
 		{"should handle hyphens and underscores", []string{"--include=my-module,other_module"}, []string{"my-module", "other_module"}, true},
+		{"should skip empty and use later valid occurrence", []string{"--include=", "--include=a,b"}, []string{"a", "b"}, true},
 	}
 
 	for _, tt := range tests {
@@ -286,6 +287,7 @@ func TestGetExcludeValues(t *testing.T) {
 		{"should trim whitespace", []string{"--exclude= a , b "}, []string{"a", "b"}, true},
 		{"should return false when empty arguments", []string{}, nil, false},
 		{"should handle hyphens and underscores", []string{"--exclude=my-module,other_module"}, []string{"my-module", "other_module"}, true},
+		{"should skip empty and use later valid occurrence", []string{"--exclude=", "--exclude=a,b"}, []string{"a", "b"}, true},
 	}
 
 	for _, tt := range tests {

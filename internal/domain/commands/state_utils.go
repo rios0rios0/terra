@@ -115,11 +115,12 @@ type FilterValues struct {
 }
 
 // getCommaSeparatedFlagValues extracts comma-separated values from a flag with the given prefix.
+// If a matching flag has an empty value, it is skipped so that a later valid occurrence can be used.
 func getCommaSeparatedFlagValues(arguments []string, prefix string) ([]string, bool) {
 	for _, arg := range arguments {
 		if after, ok := strings.CutPrefix(arg, prefix); ok {
 			if after == "" {
-				return nil, false
+				continue
 			}
 
 			parts := strings.Split(after, ",")
@@ -135,8 +136,6 @@ func getCommaSeparatedFlagValues(arguments []string, prefix string) ([]string, b
 			if len(result) > 0 {
 				return result, true
 			}
-
-			return nil, false
 		}
 	}
 
