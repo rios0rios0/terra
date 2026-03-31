@@ -185,6 +185,41 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 				"Terragrunt needs --all to understand that it should apply to all modules.")
 		}
 	}
+
+	// Validate --include/--exclude flag usage
+	hasIncludeFlag := HasIncludeFlag(arguments)
+	hasExcludeFlag := HasExcludeFlag(arguments)
+
+	if hasIncludeFlag || hasExcludeFlag {
+		// --include/--exclude require parallel execution context
+		if !hasParallelFlag && !(isStateCommand && hasAllFlag) {
+			logger.Fatalf("Error: --include/--exclude flags require --parallel=N or state command with --all.")
+		}
+
+		// --include/--exclude are terra-specific and cannot be forwarded to terragrunt
+		if hasNoParallelBypass {
+			logger.Fatalf(
+				"Error: --include/--exclude flags cannot be used with --no-parallel-bypass. " +
+					"These flags are handled by terra's parallel execution and cannot be forwarded to terragrunt.",
+			)
+		}
+
+		// Detect conflicting modules in both --include and --exclude
+		if hasIncludeFlag && hasExcludeFlag {
+			includes, _ := GetIncludeValues(arguments)
+			excludes, _ := GetExcludeValues(arguments)
+
+			for _, inc := range includes {
+				for _, exc := range excludes {
+					if inc == exc {
+						logger.Fatalf(
+							"Error: module %q appears in both --include and --exclude. Remove it from one flag.", inc,
+						)
+					}
+				}
+			}
+		}
+	}
 }
 
 // isParallelCommand checks if the command should be executed in parallel.

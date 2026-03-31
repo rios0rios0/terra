@@ -14,8 +14,10 @@ const (
 	ParallelFlagPrefix = "--parallel="
 	// NoParallelBypassFlag represents the --no-parallel-bypass flag.
 	NoParallelBypassFlag = "--no-parallel-bypass"
-	// FilterFlagPrefix represents the prefix for the filter flag.
-	FilterFlagPrefix = "--filter="
+	// IncludeFlagPrefix represents the prefix for the include flag.
+	IncludeFlagPrefix = "--include="
+	// ExcludeFlagPrefix represents the prefix for the exclude flag.
+	ExcludeFlagPrefix = "--exclude="
 )
 
 // IsStateManipulationCommand checks if the given arguments represent a state manipulation command.
@@ -106,78 +108,111 @@ func RemoveNoParallelBypassFlag(arguments []string) []string {
 	return filtered
 }
 
-// HasFilterFlag checks if the --filter= flag is present in arguments.
-func HasFilterFlag(arguments []string) bool {
-	for _, arg := range arguments {
-		if strings.HasPrefix(arg, FilterFlagPrefix) {
-			return true
-		}
-	}
-	return false
-}
-
-// FilterValues represents separated inclusions and exclusions from the filter flag.
+// FilterValues represents separated inclusions and exclusions from the include/exclude flags.
 type FilterValues struct {
-	Inclusions []string // Values without ! prefix
-	Exclusions []string // Values with ! prefix (without the !)
+	Inclusions []string
+	Exclusions []string
 }
 
-// GetFilterValue extracts the comma-separated list from --filter=value1,value2,!value3 flag.
-// Returns the separated inclusions and exclusions, and true if found, or nil and false if not found.
-func GetFilterValue(arguments []string) ([]string, bool) {
+// getCommaSeparatedFlagValues extracts comma-separated values from a flag with the given prefix.
+func getCommaSeparatedFlagValues(arguments []string, prefix string) ([]string, bool) {
 	for _, arg := range arguments {
-		if after, ok := strings.CutPrefix(arg, FilterFlagPrefix); ok {
-			valueStr := after
-			if valueStr == "" {
+		if after, ok := strings.CutPrefix(arg, prefix); ok {
+			if after == "" {
 				return nil, false
 			}
-			// Split by comma and trim whitespace
-			filters := strings.Split(valueStr, ",")
+
+			parts := strings.Split(after, ",")
+
 			var result []string
-			for _, filter := range filters {
-				trimmed := strings.TrimSpace(filter)
+			for _, part := range parts {
+				trimmed := strings.TrimSpace(part)
 				if trimmed != "" {
 					result = append(result, trimmed)
 				}
 			}
+
 			if len(result) > 0 {
 				return result, true
 			}
+
 			return nil, false
 		}
 	}
+
 	return nil, false
 }
 
-// ParseFilterValues separates filter values into inclusions and exclusions.
-func ParseFilterValues(filterValues []string) FilterValues {
-	var result FilterValues
-	for _, value := range filterValues {
-		if after, ok := strings.CutPrefix(value, "!"); ok {
-			// Exclusion: remove the ! prefix
-			exclusion := after
-			exclusion = strings.TrimSpace(exclusion)
-			if exclusion != "" {
-				result.Exclusions = append(result.Exclusions, exclusion)
-			}
-		} else {
-			// Inclusion
-			inclusion := strings.TrimSpace(value)
-			if inclusion != "" {
-				result.Inclusions = append(result.Inclusions, inclusion)
-			}
+// hasFlagWithPrefix checks if any argument starts with the given prefix.
+func hasFlagWithPrefix(arguments []string, prefix string) bool {
+	for _, arg := range arguments {
+		if strings.HasPrefix(arg, prefix) {
+			return true
 		}
 	}
-	return result
+
+	return false
 }
 
-// RemoveFilterFlag removes --filter= flag from arguments.
-func RemoveFilterFlag(arguments []string) []string {
+// removeFlagWithPrefix removes arguments that start with the given prefix.
+func removeFlagWithPrefix(arguments []string, prefix string) []string {
 	var filtered []string
 	for _, arg := range arguments {
-		if !strings.HasPrefix(arg, FilterFlagPrefix) {
+		if !strings.HasPrefix(arg, prefix) {
 			filtered = append(filtered, arg)
 		}
 	}
+
 	return filtered
+}
+
+// HasIncludeFlag checks if the --include= flag is present in arguments.
+func HasIncludeFlag(arguments []string) bool {
+	return hasFlagWithPrefix(arguments, IncludeFlagPrefix)
+}
+
+// GetIncludeValues extracts comma-separated values from --include=value1,value2 flag.
+func GetIncludeValues(arguments []string) ([]string, bool) {
+	return getCommaSeparatedFlagValues(arguments, IncludeFlagPrefix)
+}
+
+// RemoveIncludeFlag removes --include= flag from arguments.
+func RemoveIncludeFlag(arguments []string) []string {
+	return removeFlagWithPrefix(arguments, IncludeFlagPrefix)
+}
+
+// HasExcludeFlag checks if the --exclude= flag is present in arguments.
+func HasExcludeFlag(arguments []string) bool {
+	return hasFlagWithPrefix(arguments, ExcludeFlagPrefix)
+}
+
+// GetExcludeValues extracts comma-separated values from --exclude=value1,value2 flag.
+func GetExcludeValues(arguments []string) ([]string, bool) {
+	return getCommaSeparatedFlagValues(arguments, ExcludeFlagPrefix)
+}
+
+// RemoveExcludeFlag removes --exclude= flag from arguments.
+func RemoveExcludeFlag(arguments []string) []string {
+	return removeFlagWithPrefix(arguments, ExcludeFlagPrefix)
+}
+
+// GetFilterValues extracts inclusions and exclusions from --include= and --exclude= flags.
+func GetFilterValues(arguments []string) FilterValues {
+	var result FilterValues
+
+	if values, found := GetIncludeValues(arguments); found {
+		result.Inclusions = values
+	}
+
+	if values, found := GetExcludeValues(arguments); found {
+		result.Exclusions = values
+	}
+
+	return result
+}
+
+// RemoveFilterFlags removes both --include= and --exclude= flags from arguments.
+func RemoveFilterFlags(arguments []string) []string {
+	filtered := RemoveIncludeFlag(arguments)
+	return RemoveExcludeFlag(filtered)
 }
