@@ -112,30 +112,11 @@ func (it *RunFromRootCommand) hasReplyFlag(arguments []string) bool {
 }
 
 func (it *RunFromRootCommand) getReplyValue(arguments []string) string {
-	for _, arg := range arguments {
-		if arg == ReplyFlag || arg == ReplyShortFlag {
-			return "n" // Default backward compatibility behavior
-		}
-		if strings.HasPrefix(arg, ReplyFlag+"=") {
-			return arg[len(ReplyFlag+"="):]
-		}
-		if strings.HasPrefix(arg, ReplyShortFlag+"=") {
-			return arg[len(ReplyShortFlag+"="):]
-		}
-	}
-	return ""
+	return GetReplyValue(arguments)
 }
 
 func (it *RunFromRootCommand) removeReplyFlag(arguments []string) []string {
-	var filtered []string
-	for _, arg := range arguments {
-		if arg != ReplyFlag && arg != ReplyShortFlag &&
-			!strings.HasPrefix(arg, ReplyFlag+"=") &&
-			!strings.HasPrefix(arg, ReplyShortFlag+"=") {
-			filtered = append(filtered, arg)
-		}
-	}
-	return filtered
+	return RemoveReplyFlag(arguments)
 }
 
 // validateFlagCombinations validates that flag combinations are correct.

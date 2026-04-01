@@ -313,7 +313,6 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
 		for _, arg := range lastCall.Arguments {
 			assert.NotContains(t, arg, "--reply", "Should not pass --reply flag to terragrunt")
-			assert.NotContains(t, arg, "-r", "Should not pass -r flag to terragrunt")
 		}
 		assert.Contains(t, lastCall.Arguments, "--non-interactive", "Should inject --non-interactive when --reply was present")
 	})

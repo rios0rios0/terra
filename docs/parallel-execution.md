@@ -116,15 +116,20 @@ terra apply --all --parallelism=4 --filter="region-us-east" /path/to/infrastruct
 
 ## Interactive Commands Require `--reply`
 
-When using `--parallel` with `apply` or `destroy`, you **must** provide `--reply` because parallel workers cannot handle interactive stdin prompts. Terra automatically injects `--non-interactive` into each terragrunt worker invocation.
+When using `--parallel` with `apply` or `destroy`, you **must** provide `--reply` because parallel workers cannot share a single stdin for interactive prompts. Each worker gets its own PTY (pseudo-terminal) that automatically replies to terragrunt prompts with the specified value.
 
 ```bash
-# ERROR: apply prompts for confirmation, but parallel workers can't handle stdin
+# ERROR: apply prompts for confirmation, but parallel workers can't share stdin
 terra apply --parallel=4 /path/to/infrastructure
 
-# CORRECT: --reply=y tells terra to make workers non-interactive
+# CORRECT: each worker gets its own PTY that auto-replies "y" to prompts
 terra apply --parallel=4 --reply=y /path/to/infrastructure
-terra destroy --parallel=4 --reply=y /path/to/infrastructure
+
+# Decline external dependency prompts across all modules
+terra apply --parallel=4 --reply=n /path/to/infrastructure
+
+# Short form
+terra destroy --parallel=4 -r=y /path/to/infrastructure
 
 # OK: plan never prompts, so --reply is not required
 terra plan --parallel=4 /path/to/infrastructure
