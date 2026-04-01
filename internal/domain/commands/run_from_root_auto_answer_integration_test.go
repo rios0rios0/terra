@@ -32,7 +32,7 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		t.Skip("Skipping integration test: terragrunt not available")
 	}
 
-	t.Run("should respond with 'y' when auto-answer=y flag used", func(t *testing.T) {
+	t.Run("should respond with 'y' when reply=y flag used", func(t *testing.T) {
 		// GIVEN: A temporary directory with a simple terragrunt configuration
 		tempDir := t.TempDir()
 		createMockTerragruntConfig(t, tempDir, "y")
@@ -53,8 +53,8 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			repositories.NewInteractiveShellRepository(),
 		)
 
-		// WHEN: Executing with auto-answer=y
-		arguments := []string{"--auto-answer=y", "plan"}
+		// WHEN: Executing with reply=y
+		arguments := []string{"--reply=y", "plan"}
 		dependencies := []entities.Dependency{}
 
 		// Execute in a controlled way to avoid actual terraform execution
@@ -70,17 +70,17 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			done <- true
 		}()
 
-		// THEN: Should have attempted to execute with the correct auto-answer value
+		// THEN: Should have attempted to execute with the correct reply value
 		select {
 		case <-done:
-			// Test passed - the command executed and handled the auto-answer flag
-			assert.True(t, true, "Command executed with auto-answer=y")
+			// Test passed - the command executed and handled the reply flag
+			assert.True(t, true, "Command executed with reply=y")
 		case <-time.After(60 * time.Second):
 			t.Fatal("Command execution timed out")
 		}
 	})
 
-	t.Run("should respond with 'n' when auto-answer=n flag used", func(t *testing.T) {
+	t.Run("should respond with 'n' when reply=n flag used", func(t *testing.T) {
 		// GIVEN: A temporary directory with a simple terragrunt configuration
 		tempDir := t.TempDir()
 		createMockTerragruntConfig(t, tempDir, "n")
@@ -101,8 +101,8 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			repositories.NewInteractiveShellRepository(),
 		)
 
-		// WHEN: Executing with auto-answer=n
-		arguments := []string{"--auto-answer=n", "plan"}
+		// WHEN: Executing with reply=n
+		arguments := []string{"--reply=n", "plan"}
 		dependencies := []entities.Dependency{}
 
 		// Execute in a controlled way to avoid actual terraform execution
@@ -118,17 +118,17 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			done <- true
 		}()
 
-		// THEN: Should have attempted to execute with the correct auto-answer value
+		// THEN: Should have attempted to execute with the correct reply value
 		select {
 		case <-done:
-			// Test passed - the command executed and handled the auto-answer flag
-			assert.True(t, true, "Command executed with auto-answer=n")
+			// Test passed - the command executed and handled the reply flag
+			assert.True(t, true, "Command executed with reply=n")
 		case <-time.After(60 * time.Second):
 			t.Fatal("Command execution timed out")
 		}
 	})
 
-	t.Run("should default to 'n' when boolean auto-answer flag used", func(t *testing.T) {
+	t.Run("should default to 'n' when boolean reply flag used", func(t *testing.T) {
 		// GIVEN: A temporary directory with a simple terragrunt configuration
 		tempDir := t.TempDir()
 		createMockTerragruntConfig(t, tempDir, "n")
@@ -149,8 +149,8 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 			repositories.NewInteractiveShellRepository(),
 		)
 
-		// WHEN: Executing with boolean auto-answer flag
-		arguments := []string{"--auto-answer", "plan"}
+		// WHEN: Executing with boolean reply flag
+		arguments := []string{"--reply", "plan"}
 		dependencies := []entities.Dependency{}
 
 		// Execute in a controlled way to avoid actual terraform execution
@@ -169,8 +169,8 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 		// THEN: Should have attempted to execute with default 'n' value
 		select {
 		case <-done:
-			// Test passed - the command executed and handled the auto-answer flag
-			assert.True(t, true, "Command executed with boolean auto-answer defaulting to 'n'")
+			// Test passed - the command executed and handled the reply flag
+			assert.True(t, true, "Command executed with boolean reply defaulting to 'n'")
 		case <-time.After(60 * time.Second):
 			t.Fatal("Command execution timed out")
 		}
@@ -180,14 +180,14 @@ func TestRunFromRootCommand_AutoAnswer_Integration(t *testing.T) {
 // createMockTerragruntConfig creates a minimal terragrunt configuration for testing
 func createMockTerragruntConfig(t *testing.T, dir, expectedAnswer string) {
 	t.Helper()
-	
+
 	// Create a simple terragrunt.hcl file
 	terragruntConfig := fmt.Sprintf(`
 terraform {
   source = "."
 }
 
-# This configuration expects auto-answer to be: %s
+# This configuration expects reply to be: %s
 `, expectedAnswer)
 
 	configPath := filepath.Join(dir, "terragrunt.hcl")
@@ -202,7 +202,7 @@ resource "null_resource" "test" {
   }
 }
 `
-	
+
 	mainPath := filepath.Join(dir, "main.tf")
 	err = os.WriteFile(mainPath, []byte(terraformConfig), 0644)
 	require.NoError(t, err, "Failed to create mock terraform config")

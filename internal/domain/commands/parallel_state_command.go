@@ -28,39 +28,16 @@ func NewParallelStateCommand(repository repositories.ShellRepository) *ParallelS
 }
 
 // shouldExecuteInParallel determines if the command should be executed in parallel.
-// It returns true if either:
-// 1. It's a state command with --all flag (backward compatibility)
-// 2. It has --parallel=N flag (new functionality for any command).
+// Returns true if --parallel=N flag is present.
 func (it *ParallelStateCommand) shouldExecuteInParallel(arguments []string) bool {
-	// New: support parallel=N for any command
-	if HasParallelFlag(arguments) {
-		return true
-	}
-	// Backward compatibility: state commands with --all flag
-	return IsStateManipulationCommand(arguments) && HasAllFlag(arguments)
+	return HasParallelFlag(arguments)
 }
 
-// removeAllFlag removes --all flag from arguments since terragrunt doesn't support it for state commands.
-func (it *ParallelStateCommand) removeAllFlag(arguments []string) []string {
-	var filtered []string
-	for _, arg := range arguments {
-		if arg != AllFlag {
-			filtered = append(filtered, arg)
-		}
-	}
-	return filtered
-}
-
-// removeParallelFlags removes --all, --parallel=N, --no-parallel-bypass, --include=, and --exclude= flags from arguments.
+// removeParallelFlags removes --parallel=N, --only=, --skip=, and --reply/-r flags from arguments.
 func (it *ParallelStateCommand) removeParallelFlags(arguments []string) []string {
-	// First remove --all flag
-	filtered := it.removeAllFlag(arguments)
-	// Then remove --parallel=N flag
-	filtered = RemoveParallelFlag(filtered)
-	// Remove --no-parallel-bypass flag
-	filtered = RemoveNoParallelBypassFlag(filtered)
-	// Finally remove --include= and --exclude= flags
-	return RemoveFilterFlags(filtered)
+	filtered := RemoveParallelFlag(arguments)
+	filtered = RemoveSelectionFlags(filtered)
+	return RemoveReplyFlag(filtered)
 }
 
 // findSubdirectories finds all subdirectories that contain terraform/terragrunt files.
@@ -126,32 +103,32 @@ func (it *ParallelStateCommand) containsTerraformFiles(dirPath string) bool {
 	return false
 }
 
-// buildInclusionPaths validates and returns full paths for the given inclusion filter values.
-func (it *ParallelStateCommand) buildInclusionPaths(
+// buildOnlyPaths validates and returns full paths for the given --only values.
+func (it *ParallelStateCommand) buildOnlyPaths(
 	targetPath string,
-	inclusions []string,
+	onlyModules []string,
 ) []string {
 	var paths []string
 
-	for _, inclusion := range inclusions {
-		fullPath := filepath.Join(targetPath, inclusion)
+	for _, module := range onlyModules {
+		fullPath := filepath.Join(targetPath, module)
 
 		info, err := os.Stat(fullPath)
 		if err == nil && info.IsDir() {
 			paths = append(paths, fullPath)
 		} else {
-			logger.Warnf("Filter path does not exist or is not a directory: %s", fullPath)
+			logger.Warnf("Module path does not exist or is not a directory: %s", fullPath)
 		}
 	}
 
 	return paths
 }
 
-// applyExclusions removes paths matching any exclusion from the given path list.
-func (it *ParallelStateCommand) applyExclusions(
+// applySkips removes paths matching any --skip value from the given path list.
+func (it *ParallelStateCommand) applySkips(
 	targetPath string,
 	paths []string,
-	exclusions []string,
+	skipModules []string,
 ) []string {
 	var filteredPaths []string
 
@@ -161,7 +138,7 @@ func (it *ParallelStateCommand) applyExclusions(
 			relPath = filepath.Base(currentPath)
 		}
 
-		if !it.isExcluded(relPath, exclusions) {
+		if !it.isSkipped(relPath, skipModules) {
 			filteredPaths = append(filteredPaths, currentPath)
 		}
 	}
@@ -169,10 +146,10 @@ func (it *ParallelStateCommand) applyExclusions(
 	return filteredPaths
 }
 
-// isExcluded checks whether a relative path matches any exclusion entry.
-func (it *ParallelStateCommand) isExcluded(relPath string, exclusions []string) bool {
-	for _, exclusion := range exclusions {
-		if relPath == exclusion || filepath.Base(relPath) == exclusion {
+// isSkipped checks whether a relative path matches any --skip entry.
+func (it *ParallelStateCommand) isSkipped(relPath string, skipModules []string) bool {
+	for _, skip := range skipModules {
+		if relPath == skip || filepath.Base(relPath) == skip {
 			return true
 		}
 	}
@@ -180,48 +157,47 @@ func (it *ParallelStateCommand) isExcluded(relPath string, exclusions []string) 
 	return false
 }
 
-// buildFilteredPaths builds full paths from the given filter values.
-// Handles both inclusions and exclusions provided via --include= and --exclude= flags.
-func (it *ParallelStateCommand) buildFilteredPaths(
+// buildSelectedPaths builds full paths from the given --only/--skip values.
+func (it *ParallelStateCommand) buildSelectedPaths(
 	targetPath string,
-	filter FilterValues,
+	selection SelectionValues,
 ) []string {
 	var paths []string
 
-	if len(filter.Inclusions) > 0 {
-		paths = it.buildInclusionPaths(targetPath, filter.Inclusions)
+	if len(selection.Only) > 0 {
+		paths = it.buildOnlyPaths(targetPath, selection.Only)
 	} else {
 		allModules, err := it.findSubdirectories(targetPath)
 		if err != nil {
-			logger.Warnf("Failed to find subdirectories for exclusion filter: %s", err)
+			logger.Warnf("Failed to find subdirectories for --skip filter: %s", err)
 			return paths
 		}
 
 		paths = allModules
 	}
 
-	if len(filter.Exclusions) > 0 {
-		paths = it.applyExclusions(targetPath, paths, filter.Exclusions)
+	if len(selection.Skip) > 0 {
+		paths = it.applySkips(targetPath, paths, selection.Skip)
 	}
 
 	return paths
 }
 
-// resolveModules discovers which module directories to process based on arguments and filters.
+// resolveModules discovers which module directories to process based on --only/--skip flags.
 func (it *ParallelStateCommand) resolveModules(
 	targetPath string,
 	arguments []string,
 ) ([]string, error) {
-	filter := GetFilterValues(arguments)
-	hasFilter := len(filter.Inclusions) > 0 || len(filter.Exclusions) > 0
+	selection := GetSelectionValues(arguments)
+	hasSelection := len(selection.Only) > 0 || len(selection.Skip) > 0
 
-	if hasFilter {
-		modules := it.buildFilteredPaths(targetPath, filter)
+	if hasSelection {
+		modules := it.buildSelectedPaths(targetPath, selection)
 		if len(modules) == 0 {
-			return nil, errors.New("no valid filter paths found")
+			return nil, errors.New("no valid module paths found for --only/--skip selection")
 		}
 
-		logger.Infof("Using filter: %d modules to process", len(modules))
+		logger.Infof("Using module selection: %d modules to process", len(modules))
 
 		return modules, nil
 	}
@@ -304,7 +280,15 @@ func (it *ParallelStateCommand) executeInParallel(
 		logger.Infof("Reducing thread count to %d (number of modules)", maxJobs)
 	}
 
+	hadReplyFlag := HasReplyFlag(arguments)
 	filteredArguments := it.removeParallelFlags(arguments)
+
+	// When --reply was provided, inject --non-interactive so terragrunt skips prompts
+	// in each worker (parallel workers cannot handle stdin prompts)
+	if hadReplyFlag {
+		filteredArguments = append(filteredArguments, "--non-interactive")
+	}
+
 	executeErrors := it.runWorkers(modules, filteredArguments, maxJobs)
 	duration := time.Since(startTime)
 

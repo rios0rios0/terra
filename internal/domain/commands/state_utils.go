@@ -8,16 +8,21 @@ import (
 
 // StateCommandConstants defines constants for state manipulation commands and flags.
 const (
-	// AllFlag represents the --all flag used with state commands.
+	// AllFlag represents the --all flag (forwarded to terragrunt for non-state commands).
 	AllFlag = "--all"
 	// ParallelFlagPrefix represents the prefix for the parallel flag.
 	ParallelFlagPrefix = "--parallel="
-	// NoParallelBypassFlag represents the --no-parallel-bypass flag.
-	NoParallelBypassFlag = "--no-parallel-bypass"
-	// IncludeFlagPrefix represents the prefix for the include flag.
-	IncludeFlagPrefix = "--include="
-	// ExcludeFlagPrefix represents the prefix for the exclude flag.
-	ExcludeFlagPrefix = "--exclude="
+	// OnlyFlagPrefix represents the prefix for the --only flag (select specific modules).
+	OnlyFlagPrefix = "--only="
+	// SkipFlagPrefix represents the prefix for the --skip flag (exclude specific modules).
+	SkipFlagPrefix = "--skip="
+
+	// DeprecatedNoParallelBypassFlag is the removed --no-parallel-bypass flag.
+	DeprecatedNoParallelBypassFlag = "--no-parallel-bypass"
+	// DeprecatedIncludeFlagPrefix is the renamed --include flag (now --only).
+	DeprecatedIncludeFlagPrefix = "--include="
+	// DeprecatedExcludeFlagPrefix is the renamed --exclude flag (now --skip).
+	DeprecatedExcludeFlagPrefix = "--exclude="
 )
 
 // IsStateManipulationCommand checks if the given arguments represent a state manipulation command.
@@ -50,9 +55,14 @@ func IsStateManipulationCommand(arguments []string) bool {
 	return false
 }
 
-// HasAllFlag checks if the --all flag is present in arguments.
+// HasAllFlag checks if the --all flag is present in arguments (including --all=true form).
 func HasAllFlag(arguments []string) bool {
-	return slices.Contains(arguments, AllFlag)
+	for _, arg := range arguments {
+		if arg == AllFlag || strings.HasPrefix(arg, AllFlag+"=") {
+			return true
+		}
+	}
+	return false
 }
 
 // HasParallelFlag checks if the --parallel=N flag is present in arguments.
@@ -92,26 +102,30 @@ func RemoveParallelFlag(arguments []string) []string {
 	return filtered
 }
 
-// HasNoParallelBypassFlag checks if the --no-parallel-bypass flag is present in arguments.
-func HasNoParallelBypassFlag(arguments []string) bool {
-	return slices.Contains(arguments, NoParallelBypassFlag)
-}
-
-// RemoveNoParallelBypassFlag removes --no-parallel-bypass flag from arguments.
-func RemoveNoParallelBypassFlag(arguments []string) []string {
-	var filtered []string
+// HasDeprecatedNoParallelBypassFlag checks if the removed --no-parallel-bypass flag is present.
+func HasDeprecatedNoParallelBypassFlag(arguments []string) bool {
 	for _, arg := range arguments {
-		if arg != NoParallelBypassFlag {
-			filtered = append(filtered, arg)
+		if arg == DeprecatedNoParallelBypassFlag || strings.HasPrefix(arg, DeprecatedNoParallelBypassFlag+"=") {
+			return true
 		}
 	}
-	return filtered
+	return false
 }
 
-// FilterValues represents separated inclusions and exclusions from the include/exclude flags.
-type FilterValues struct {
-	Inclusions []string
-	Exclusions []string
+// HasDeprecatedIncludeFlag checks if the renamed --include= flag is present.
+func HasDeprecatedIncludeFlag(arguments []string) bool {
+	return hasFlagWithPrefix(arguments, DeprecatedIncludeFlagPrefix)
+}
+
+// HasDeprecatedExcludeFlag checks if the renamed --exclude= flag is present.
+func HasDeprecatedExcludeFlag(arguments []string) bool {
+	return hasFlagWithPrefix(arguments, DeprecatedExcludeFlagPrefix)
+}
+
+// SelectionValues represents separated --only and --skip values for module selection.
+type SelectionValues struct {
+	Only []string
+	Skip []string
 }
 
 // getCommaSeparatedFlagValues extracts comma-separated values from a flag with the given prefix.
@@ -165,53 +179,107 @@ func removeFlagWithPrefix(arguments []string, prefix string) []string {
 	return filtered
 }
 
-// HasIncludeFlag checks if the --include= flag is present in arguments.
-func HasIncludeFlag(arguments []string) bool {
-	return hasFlagWithPrefix(arguments, IncludeFlagPrefix)
+// HasOnlyFlag checks if the --only= flag is present in arguments.
+func HasOnlyFlag(arguments []string) bool {
+	return hasFlagWithPrefix(arguments, OnlyFlagPrefix)
 }
 
-// GetIncludeValues extracts comma-separated values from --include=value1,value2 flag.
-func GetIncludeValues(arguments []string) ([]string, bool) {
-	return getCommaSeparatedFlagValues(arguments, IncludeFlagPrefix)
+// GetOnlyValues extracts comma-separated values from --only=value1,value2 flag.
+func GetOnlyValues(arguments []string) ([]string, bool) {
+	return getCommaSeparatedFlagValues(arguments, OnlyFlagPrefix)
 }
 
-// RemoveIncludeFlag removes --include= flag from arguments.
-func RemoveIncludeFlag(arguments []string) []string {
-	return removeFlagWithPrefix(arguments, IncludeFlagPrefix)
+// RemoveOnlyFlag removes --only= flag from arguments.
+func RemoveOnlyFlag(arguments []string) []string {
+	return removeFlagWithPrefix(arguments, OnlyFlagPrefix)
 }
 
-// HasExcludeFlag checks if the --exclude= flag is present in arguments.
-func HasExcludeFlag(arguments []string) bool {
-	return hasFlagWithPrefix(arguments, ExcludeFlagPrefix)
+// HasSkipFlag checks if the --skip= flag is present in arguments.
+func HasSkipFlag(arguments []string) bool {
+	return hasFlagWithPrefix(arguments, SkipFlagPrefix)
 }
 
-// GetExcludeValues extracts comma-separated values from --exclude=value1,value2 flag.
-func GetExcludeValues(arguments []string) ([]string, bool) {
-	return getCommaSeparatedFlagValues(arguments, ExcludeFlagPrefix)
+// GetSkipValues extracts comma-separated values from --skip=value1,value2 flag.
+func GetSkipValues(arguments []string) ([]string, bool) {
+	return getCommaSeparatedFlagValues(arguments, SkipFlagPrefix)
 }
 
-// RemoveExcludeFlag removes --exclude= flag from arguments.
-func RemoveExcludeFlag(arguments []string) []string {
-	return removeFlagWithPrefix(arguments, ExcludeFlagPrefix)
+// RemoveSkipFlag removes --skip= flag from arguments.
+func RemoveSkipFlag(arguments []string) []string {
+	return removeFlagWithPrefix(arguments, SkipFlagPrefix)
 }
 
-// GetFilterValues extracts inclusions and exclusions from --include= and --exclude= flags.
-func GetFilterValues(arguments []string) FilterValues {
-	var result FilterValues
+// GetSelectionValues extracts --only and --skip values for module selection.
+func GetSelectionValues(arguments []string) SelectionValues {
+	var result SelectionValues
 
-	if values, found := GetIncludeValues(arguments); found {
-		result.Inclusions = values
+	if values, found := GetOnlyValues(arguments); found {
+		result.Only = values
 	}
 
-	if values, found := GetExcludeValues(arguments); found {
-		result.Exclusions = values
+	if values, found := GetSkipValues(arguments); found {
+		result.Skip = values
 	}
 
 	return result
 }
 
-// RemoveFilterFlags removes both --include= and --exclude= flags from arguments.
-func RemoveFilterFlags(arguments []string) []string {
-	filtered := RemoveIncludeFlag(arguments)
-	return RemoveExcludeFlag(filtered)
+// RemoveSelectionFlags removes both --only= and --skip= flags from arguments.
+func RemoveSelectionFlags(arguments []string) []string {
+	filtered := RemoveOnlyFlag(arguments)
+	return RemoveSkipFlag(filtered)
+}
+
+// IsInteractiveCommand checks if the command triggers yes/no prompts in terragrunt.
+// Skips leading flags (arguments starting with "-") to find the actual command.
+func IsInteractiveCommand(arguments []string) bool {
+	for _, arg := range arguments {
+		if strings.HasPrefix(arg, "-") {
+			continue
+		}
+		return arg == "apply" || arg == "destroy"
+	}
+	return false
+}
+
+// HasReplyFlag checks if --reply, -r, --reply=<value>, or -r=<value> is present.
+func HasReplyFlag(arguments []string) bool {
+	for _, arg := range arguments {
+		if arg == ReplyFlag || arg == ReplyShortFlag ||
+			strings.HasPrefix(arg, ReplyFlag+"=") ||
+			strings.HasPrefix(arg, ReplyShortFlag+"=") {
+			return true
+		}
+	}
+	return false
+}
+
+// GetReplyValue extracts the value from --reply=<value> or -r=<value>.
+// Returns "n" as default when the boolean form (--reply or -r) is used.
+func GetReplyValue(arguments []string) string {
+	for _, arg := range arguments {
+		if arg == ReplyFlag || arg == ReplyShortFlag {
+			return "n"
+		}
+		if strings.HasPrefix(arg, ReplyFlag+"=") {
+			return arg[len(ReplyFlag+"="):]
+		}
+		if strings.HasPrefix(arg, ReplyShortFlag+"=") {
+			return arg[len(ReplyShortFlag+"="):]
+		}
+	}
+	return ""
+}
+
+// RemoveReplyFlag removes --reply, -r, --reply=<value>, and -r=<value> from arguments.
+func RemoveReplyFlag(arguments []string) []string {
+	var filtered []string
+	for _, arg := range arguments {
+		if arg != ReplyFlag && arg != ReplyShortFlag &&
+			!strings.HasPrefix(arg, ReplyFlag+"=") &&
+			!strings.HasPrefix(arg, ReplyShortFlag+"=") {
+			filtered = append(filtered, arg)
+		}
+	}
+	return filtered
 }

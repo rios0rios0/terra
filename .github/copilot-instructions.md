@@ -158,18 +158,15 @@ terra apply /path/to/infrastructure/module
 # Execute command in parallel across N modules (default: 5)
 terra plan --parallel=5 /path/to/infrastructure
 
-# Include specific modules in parallel execution (comma-separated subdirectory names)
-terra apply --parallel=3 --include=module1,module2 /path/to/infrastructure
+# Select specific modules in parallel execution (comma-separated subdirectory names)
+terra apply --parallel=3 --only=module1,module2 /path/to/infrastructure
 
 # Exclude specific modules from parallel execution
-terra apply --parallel=3 --exclude=excluded_module /path/to/infrastructure
+terra apply --parallel=3 --skip=excluded_module /path/to/infrastructure
 
-# Auto-answer interactive prompts (backward-compat: -a defaults to "n")
-terra apply --auto-answer=yes /path/to/infrastructure/module
-terra apply -a=yes /path/to/infrastructure/module
-
-# Forward --parallel to terragrunt instead of terra (pass-through mode)
-terra apply --parallel=5 --all --no-parallel-bypass /path/to/infrastructure
+# Auto-reply to interactive prompts (defaults to "n")
+terra apply --reply=y /path/to/infrastructure/module
+terra apply -r=y /path/to/infrastructure/module
 ```
 
 ## Validation and Testing
@@ -439,8 +436,8 @@ test/                    # Test helpers organized by domain/infrastructure layer
 - **Provider caching**: Terra uses the Terragrunt Provider Cache Server (`TG_PROVIDER_CACHE=1`) for concurrent-safe provider deduplication with file locking. This replaced `TF_PLUGIN_CACHE_DIR` which caused "text file busy" errors during parallel execution. Disable with `TERRA_NO_PROVIDER_CACHE=true`.
 - **Partial Parse Config Cache**: Terra enables the Terragrunt Partial Parse Config Cache by default (`TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true`), which caches parsed HCL configs across modules sharing the same root include. Disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`.
 - **Auto-initialization with upgrade**: `UpgradeAwareShellRepository` wraps command execution. When a terragrunt command fails with output matching upgrade-needed patterns (backend changed, provider conflicts, uninitialized modules), it automatically runs `init --upgrade` and retries the original command. This is used in the normal (non-interactive) execution path of `RunFromRootCommand`.
-- **Parallel execution**: Use `--parallel=N` to run terragrunt commands across multiple modules simultaneously (default: 5 workers). Use `--include=mod1,mod2` to include specific modules, or `--exclude=mod3` to exclude. Use `--no-parallel-bypass` to forward `--parallel` to terragrunt instead of terra handling it.
-- **Auto-answer mode**: Use `--auto-answer=<value>` (or `-a=<value>`) to automatically answer interactive prompts from terragrunt. Uses `creack/pty` for PTY-based interaction.
+- **Parallel execution**: Two independent strategies exist. **Terra-managed**: `--parallel=N` runs terragrunt across multiple modules using N goroutine workers; use `--only=mod1,mod2` to select modules or `--skip=mod3` to exclude. **Terragrunt-managed**: `--all`, `--parallelism=N`, and `--filter=query` are forwarded directly to terragrunt for its native run-all behavior. These two strategies cannot be combined (`--parallel` and `--all` together is an error).
+- **Reply mode**: Use `--reply=<value>` (or `-r=<value>`) to automatically answer interactive prompts from terragrunt. Uses `creack/pty` for PTY-based interaction.
 - **Pre-execution steps**: `RunAdditionalBeforeCommand` runs before the main terragrunt command: switches cloud account (if `TERRA_CLOUD` is set), initializes terraform (if not already done), and selects the workspace (if `TERRA_WORKSPACE` is set).
 - **Clearing caches**: `terra clear` removes local `.terraform` and `.terragrunt-cache` directories. Use `terra clear --global` to also remove the centralized cache directories.
 

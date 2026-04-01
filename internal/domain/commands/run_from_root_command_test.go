@@ -213,9 +213,9 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		assert.Equal(t, targetPath, upgradeRepository.LastDirectory)
 	})
 
-	t.Run("should not use interactive mode when no auto answer flag", func(t *testing.T) {
+	t.Run("should not use interactive mode when no reply flag", func(t *testing.T) {
 		t.Parallel()
-		// GIVEN: A command without auto-answer flag in arguments
+		// GIVEN: A command without reply flag in arguments
 		installCommand := &commanddoubles.StubInstallDependencies{}
 		formatCommand := &commanddoubles.StubFormatFiles{}
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
@@ -240,14 +240,14 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		// WHEN: Executing the command
 		cmd.Execute(targetPath, arguments, dependencies)
 
-		// THEN: Should use normal repository (indirectly tests hasAutoAnswerFlag)
+		// THEN: Should use normal repository (indirectly tests hasReplyFlag)
 		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should use normal repository")
 		assert.Equal(t, arguments, upgradeRepository.LastArguments, "Should pass arguments unchanged")
 	})
 
-	t.Run("should use interactive mode with default 'n' when boolean auto-answer flag", func(t *testing.T) {
+	t.Run("should use interactive mode with default 'n' when boolean reply flag", func(t *testing.T) {
 		t.Parallel()
-		// GIVEN: A command with boolean auto-answer flag in arguments
+		// GIVEN: A command with boolean reply flag in arguments
 		installCommand := &commanddoubles.StubInstallDependencies{}
 		formatCommand := &commanddoubles.StubFormatFiles{}
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
@@ -265,7 +265,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		)
 
 		targetPath := "/test/path"
-		arguments := []string{"--auto-answer", "plan", "--detailed-exitcode"}
+		arguments := []string{"--reply", "plan", "--detailed-exitcode"}
 		dependencies := []entities.Dependency{}
 
 		// WHEN: Executing the command
@@ -273,14 +273,14 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 
 		// THEN: Should use interactive repository with default 'n' answer
 		assert.Equal(t, 1, interactiveRepository.ExecuteWithAnswerCallCount, "Should use interactive repository")
-		assert.Equal(t, []string{"plan", "--detailed-exitcode"}, interactiveRepository.LastArguments, "Should filter out auto-answer flag")
+		assert.Equal(t, []string{"plan", "--detailed-exitcode"}, interactiveRepository.LastArguments, "Should filter out reply flag")
 		assert.Equal(t, "n", interactiveRepository.LastAutoAnswer, "Should default to 'n' for boolean flag")
 		assert.Equal(t, 0, repository.ExecuteCallCount, "Should not use normal repository")
 	})
 
-	t.Run("should use interactive mode with specified 'y' when auto-answer=y flag", func(t *testing.T) {
+	t.Run("should use interactive mode with specified 'y' when reply=y flag", func(t *testing.T) {
 		t.Parallel()
-		// GIVEN: A command with auto-answer=y flag in arguments
+		// GIVEN: A command with --reply=y flag in arguments
 		installCommand := &commanddoubles.StubInstallDependencies{}
 		formatCommand := &commanddoubles.StubFormatFiles{}
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
@@ -298,7 +298,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		)
 
 		targetPath := "/test/path"
-		arguments := []string{"--auto-answer=y", "apply", "--auto-approve"}
+		arguments := []string{"--reply=y", "apply", "--auto-approve"}
 		dependencies := []entities.Dependency{}
 
 		// WHEN: Executing the command
@@ -306,79 +306,13 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 
 		// THEN: Should use interactive repository with 'y' answer
 		assert.Equal(t, 1, interactiveRepository.ExecuteWithAnswerCallCount, "Should use interactive repository")
-		assert.Equal(t, []string{"apply", "--auto-approve"}, interactiveRepository.LastArguments, "Should filter out auto-answer flag")
+		assert.Equal(t, []string{"apply", "--auto-approve"}, interactiveRepository.LastArguments, "Should filter out reply flag")
 		assert.Equal(t, "y", interactiveRepository.LastAutoAnswer, "Should use specified 'y' value")
-		assert.Equal(t, 0, repository.ExecuteCallCount, "Should not use normal repository")
-	})
-
-	t.Run("should use interactive mode with specified 'n' when -a=n flag", func(t *testing.T) {
-		t.Parallel()
-		// GIVEN: A command with -a=n flag in arguments
-		installCommand := &commanddoubles.StubInstallDependencies{}
-		formatCommand := &commanddoubles.StubFormatFiles{}
-		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
-		repository := &repositorydoubles.StubShellRepositoryForRoot{}
-		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
-		cmd := commands.NewRunFromRootCommand(
-			entitybuilders.NewSettingsBuilder().BuildSettings(),
-			installCommand,
-			formatCommand,
-			additionalBefore,
-			&commanddoubles.StubParallelState{},
-			repository,
-			&repositorydoubles.StubUpgradeShellRepository{},
-			interactiveRepository,
-		)
-
-		targetPath := "/test/path"
-		arguments := []string{"-a=n", "plan"}
-		dependencies := []entities.Dependency{}
-
-		// WHEN: Executing the command
-		cmd.Execute(targetPath, arguments, dependencies)
-
-		// THEN: Should use interactive repository with 'n' answer
-		assert.Equal(t, 1, interactiveRepository.ExecuteWithAnswerCallCount, "Should use interactive repository")
-		assert.Equal(t, []string{"plan"}, interactiveRepository.LastArguments, "Should filter out auto-answer flag")
-		assert.Equal(t, "n", interactiveRepository.LastAutoAnswer, "Should use specified 'n' value")
-		assert.Equal(t, 0, repository.ExecuteCallCount, "Should not use normal repository")
-	})
-
-	t.Run("should use interactive mode with default 'n' when short -a flag", func(t *testing.T) {
-		t.Parallel()
-		// GIVEN: A command with short -a flag in arguments
-		installCommand := &commanddoubles.StubInstallDependencies{}
-		formatCommand := &commanddoubles.StubFormatFiles{}
-		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
-		repository := &repositorydoubles.StubShellRepositoryForRoot{}
-		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
-		cmd := commands.NewRunFromRootCommand(
-			entitybuilders.NewSettingsBuilder().BuildSettings(),
-			installCommand,
-			formatCommand,
-			additionalBefore,
-			&commanddoubles.StubParallelState{},
-			repository,
-			&repositorydoubles.StubUpgradeShellRepository{},
-			interactiveRepository,
-		)
-
-		targetPath := "/test/path"
-		arguments := []string{"-a", "destroy"}
-		dependencies := []entities.Dependency{}
-
-		// WHEN: Executing the command
-		cmd.Execute(targetPath, arguments, dependencies)
-
-		// THEN: Should use interactive repository with default 'n' answer
-		assert.Equal(t, 1, interactiveRepository.ExecuteWithAnswerCallCount, "Should use interactive repository")
-		assert.Equal(t, []string{"destroy"}, interactiveRepository.LastArguments, "Should filter out auto-answer flag")
-		assert.Equal(t, "n", interactiveRepository.LastAutoAnswer, "Should default to 'n' for short flag")
 		assert.Equal(t, 0, repository.ExecuteCallCount, "Should not use normal repository")
 	})
 }
 
-func TestRunFromRootCommand_hasAutoAnswerFlag(t *testing.T) {
+func TestRunFromRootCommand_hasReplyFlag(t *testing.T) {
 	t.Parallel()
 
 	// Create command instance for testing
@@ -399,27 +333,27 @@ func TestRunFromRootCommand_hasAutoAnswerFlag(t *testing.T) {
 		expected  bool
 	}{
 		{
-			name:      "should return true when --auto-answer flag present",
-			arguments: []string{"--auto-answer", "plan"},
+			name:      "should return true when --reply flag present",
+			arguments: []string{"--reply", "plan"},
 			expected:  true,
 		},
 		{
-			name:      "should return true when -a flag present",
-			arguments: []string{"-a", "apply"},
+			name:      "should return true when -r flag present",
+			arguments: []string{"-r", "apply"},
 			expected:  true,
 		},
 		{
-			name:      "should return true when --auto-answer=y flag present",
-			arguments: []string{"--auto-answer=y", "destroy"},
+			name:      "should return true when --reply=y flag present",
+			arguments: []string{"--reply=y", "destroy"},
 			expected:  true,
 		},
 		{
-			name:      "should return true when -a=n flag present",
-			arguments: []string{"-a=n", "import"},
+			name:      "should return true when -r=n flag present",
+			arguments: []string{"-r=n", "import"},
 			expected:  true,
 		},
 		{
-			name:      "should return false when no auto-answer flag present",
+			name:      "should return false when no reply flag present",
 			arguments: []string{"plan", "--detailed-exitcode"},
 			expected:  false,
 		},
@@ -433,13 +367,13 @@ func TestRunFromRootCommand_hasAutoAnswerFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := cmd.HasAutoAnswerFlagPublic(tt.arguments)
+			result := cmd.HasReplyFlagPublic(tt.arguments)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
 
-func TestRunFromRootCommand_getAutoAnswerValue(t *testing.T) {
+func TestRunFromRootCommand_getReplyValue(t *testing.T) {
 	t.Parallel()
 
 	// Create command instance for testing
@@ -460,33 +394,33 @@ func TestRunFromRootCommand_getAutoAnswerValue(t *testing.T) {
 		expected  string
 	}{
 		{
-			name:      "should return 'n' for boolean --auto-answer flag",
-			arguments: []string{"--auto-answer", "plan"},
+			name:      "should return 'n' for boolean --reply flag",
+			arguments: []string{"--reply", "plan"},
 			expected:  "n",
 		},
 		{
-			name:      "should return 'n' for boolean -a flag",
-			arguments: []string{"-a", "apply"},
+			name:      "should return 'n' for boolean -r flag",
+			arguments: []string{"-r", "apply"},
 			expected:  "n",
 		},
 		{
-			name:      "should return 'y' for --auto-answer=y flag",
-			arguments: []string{"--auto-answer=y", "destroy"},
+			name:      "should return 'y' for --reply=y flag",
+			arguments: []string{"--reply=y", "destroy"},
 			expected:  "y",
 		},
 		{
-			name:      "should return 'n' for -a=n flag",
-			arguments: []string{"-a=n", "import"},
+			name:      "should return 'n' for -r=n flag",
+			arguments: []string{"-r=n", "import"},
 			expected:  "n",
 		},
 		{
-			name:      "should return empty string when no auto-answer flag present",
+			name:      "should return empty string when no reply flag present",
 			arguments: []string{"plan", "--detailed-exitcode"},
 			expected:  "",
 		},
 		{
-			name:      "should return custom value for --auto-answer=custom",
-			arguments: []string{"--auto-answer=custom", "plan"},
+			name:      "should return custom value for --reply=custom",
+			arguments: []string{"--reply=custom", "plan"},
 			expected:  "custom",
 		},
 	}
@@ -494,13 +428,13 @@ func TestRunFromRootCommand_getAutoAnswerValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := cmd.GetAutoAnswerValuePublic(tt.arguments)
+			result := cmd.GetReplyValuePublic(tt.arguments)
 			assert.Equal(t, tt.expected, result)
 		})
 	}
 }
 
-func TestRunFromRootCommand_removeAutoAnswerFlag(t *testing.T) {
+func TestRunFromRootCommand_removeReplyFlag(t *testing.T) {
 	t.Parallel()
 
 	// Create command instance for testing
@@ -521,33 +455,33 @@ func TestRunFromRootCommand_removeAutoAnswerFlag(t *testing.T) {
 		expected  []string
 	}{
 		{
-			name:      "should remove --auto-answer flag",
-			arguments: []string{"--auto-answer", "plan", "--detailed-exitcode"},
+			name:      "should remove --reply flag",
+			arguments: []string{"--reply", "plan", "--detailed-exitcode"},
 			expected:  []string{"plan", "--detailed-exitcode"},
 		},
 		{
-			name:      "should remove -a flag",
-			arguments: []string{"-a", "apply", "--auto-approve"},
+			name:      "should remove -r flag",
+			arguments: []string{"-r", "apply", "--auto-approve"},
 			expected:  []string{"apply", "--auto-approve"},
 		},
 		{
-			name:      "should remove --auto-answer=y flag",
-			arguments: []string{"--auto-answer=y", "destroy"},
+			name:      "should remove --reply=y flag",
+			arguments: []string{"--reply=y", "destroy"},
 			expected:  []string{"destroy"},
 		},
 		{
-			name:      "should remove -a=n flag",
-			arguments: []string{"import", "-a=n", "resource.type.name"},
+			name:      "should remove -r=n flag",
+			arguments: []string{"import", "-r=n", "resource.type.name"},
 			expected:  []string{"import", "resource.type.name"},
 		},
 		{
-			name:      "should return unchanged when no auto-answer flag present",
+			name:      "should return unchanged when no reply flag present",
 			arguments: []string{"plan", "--detailed-exitcode"},
 			expected:  []string{"plan", "--detailed-exitcode"},
 		},
 		{
-			name:      "should return empty slice when only auto-answer flag present",
-			arguments: []string{"--auto-answer"},
+			name:      "should return empty slice when only reply flag present",
+			arguments: []string{"--reply"},
 			expected:  nil, // Go returns nil slice when filtering results in empty
 		},
 	}
@@ -555,7 +489,7 @@ func TestRunFromRootCommand_removeAutoAnswerFlag(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := cmd.RemoveAutoAnswerFlagPublic(tt.arguments)
+			result := cmd.RemoveReplyFlagPublic(tt.arguments)
 			assert.Equal(t, tt.expected, result)
 		})
 	}

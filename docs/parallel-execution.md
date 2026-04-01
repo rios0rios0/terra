@@ -16,10 +16,9 @@ terra plan --parallel=2 /path/to/infrastructure
 terra apply --parallel=8 /path/to/infrastructure
 ```
 
-**For state commands (--parallel automatically implies --all behavior):**
+**For state commands:**
 ```bash
 # Import a resource across all modules in parallel (4 threads)
-# Note: --all flag is NOT needed when using --parallel
 terra import --parallel=4 null_resource.example resource-id /path/to/infrastructure
 
 # Remove a resource from state across all modules in parallel (2 threads)
@@ -32,82 +31,105 @@ terra state mv --parallel=4 old_resource.name new_resource.name /path/to/infrast
 terra state pull --parallel=4 /path/to/infrastructure
 ```
 
-**Legacy --all flag (backward compatibility for state commands only):**
-```bash
-# State commands still support --all flag (defaults to 5 concurrent jobs)
-terra import --all null_resource.example resource-id /path/to/infrastructure
-terra state rm --all null_resource.example /path/to/infrastructure
-```
+## Selecting Specific Directories
 
-## Filtering Specific Directories
+Use the `--only` and `--skip` flags to control which subdirectories should be processed in parallel. This is useful when you only want to run commands on specific modules rather than all discovered modules.
 
-Use the `--include` and `--exclude` flags to control which subdirectories should be processed in parallel. This is useful when you only want to run commands on specific modules rather than all discovered modules.
-
-**Including specific directories:**
+**Selecting specific directories with `--only`:**
 ```bash
 # Run init on specific folders (test1, test2, test3) within the target path
-terra init --parallel=4 --include=test1,test2,test3 environments/xpto/prod
+terra init --parallel=4 --only=test1,test2,test3 environments/xpto/prod
 # This executes init on:
 # - environments/xpto/prod/test1
 # - environments/xpto/prod/test2
 # - environments/xpto/prod/test3
 ```
 
-**Excluding specific directories:**
+**Skipping specific directories with `--skip`:**
 ```bash
 # Run apply on all folders except folder2
-terra apply --parallel=4 --exclude=folder2 /path/to/infrastructure
+terra apply --parallel=4 --skip=folder2 /path/to/infrastructure
 
 # Run plan on all folders except folder1 and folder3
-terra plan --parallel=4 --exclude=folder1,folder3 /path/to/infrastructure
+terra plan --parallel=4 --skip=folder1,folder3 /path/to/infrastructure
 ```
 
-**Combining include and exclude:**
+**Combining `--only` and `--skip`:**
 ```bash
-# Include specific folders but exclude a subset
-terra init --parallel=4 --include=folder1,folder2,folder3 --exclude=folder2 /path/to/infrastructure
+# Select specific folders but skip a subset
+terra init --parallel=4 --only=folder1,folder2,folder3 --skip=folder2 /path/to/infrastructure
 ```
 
 **How it works:**
-- **`--include=`**: Values are concatenated with the target path using `filepath.Join()`. Only these directories are processed.
-- **`--exclude=`**: Matching directories are removed from processing.
-- When only `--exclude` is provided, all subdirectories are discovered first, then exclusions are removed.
-- When both `--include` and `--exclude` are provided, inclusions are processed first, then exclusions are applied.
+- **`--only=`**: Values are concatenated with the target path using `filepath.Join()`. Only these directories are processed.
+- **`--skip=`**: Matching directories are removed from processing.
+- When only `--skip` is provided, all subdirectories are discovered first, then skipped modules are removed.
+- When both `--only` and `--skip` are provided, `--only` is processed first, then `--skip` is applied.
 - Only directories that exist and are valid will be processed.
 - Non-existent or invalid paths are logged as warnings and skipped.
 - If the number of threads (`--parallel=N`) exceeds the number of modules, the thread count is automatically reduced to match.
-- The same module cannot appear in both `--include` and `--exclude` (validation error).
+- The same module cannot appear in both `--only` and `--skip` (validation error).
 
 **Examples:**
 ```bash
 # Apply changes to specific environments only
-terra apply --parallel=3 --include=dev,staging,prod /path/to/infrastructure
+terra apply --parallel=3 --only=dev,staging,prod /path/to/infrastructure
 
 # Plan all modules except test environments
-terra plan --parallel=2 --exclude=test,testing /path/to/infrastructure
+terra plan --parallel=2 --skip=test,testing /path/to/infrastructure
 
-# Import resources in specific directories, excluding backup folders
-terra import --parallel=4 --include=region1,region2 --exclude=backup null_resource.example resource-id /path/to/infrastructure
+# Import resources in specific directories, skipping backup folders
+terra import --parallel=4 --only=region1,region2 --skip=backup null_resource.example resource-id /path/to/infrastructure
 ```
 
 **Thread count optimization:**
 ```bash
-# If you specify --parallel=4 but only provide 3 included items,
+# If you specify --parallel=4 but only provide 3 items in --only,
 # the thread count is automatically reduced to 3
-terra init --parallel=4 --include=test1,test2,test3 /path
+terra init --parallel=4 --only=test1,test2,test3 /path
 # Logs: "Reducing thread count to 3 (number of modules)"
 ```
 
-## Forwarding --parallel to Terragrunt
+## Terragrunt's `--all` and `--parallelism`
 
-If you want Terragrunt to handle the `--parallel` flag instead of Terra, use the `--no-parallel-bypass` flag:
+Terra's `--parallel=N` is separate from Terragrunt's native `--all` and `--parallelism` flags. They serve different purposes:
+
+| Flag | Owner | Purpose |
+|------|-------|---------|
+| `--parallel=N` | Terra | Terra manages goroutine workers across module directories |
+| `--all` | Terragrunt | Terragrunt's native run-all behavior (forwarded as-is) |
+| `--parallelism=N` | Terragrunt | Terragrunt's concurrency for `--all` (forwarded as-is) |
+| `--filter=query` | Terragrunt | Terragrunt's config filter language (forwarded as-is) |
 
 ```bash
-# Forward --parallel=4 to terragrunt (Terra won't handle parallel execution)
-terra init --parallel=4 --no-parallel-bypass /path/to/infrastructure
+# Terra-managed parallel execution (terra discovers modules, runs N workers)
+terra plan --parallel=4 /path/to/infrastructure
 
-# This is useful when you want Terragrunt's native parallel execution behavior
-terra plan --parallel=2 --no-parallel-bypass /path/to/infrastructure
+# Terragrunt-managed run-all (forwarded directly to terragrunt)
+terra apply --all /path/to/infrastructure
+
+# Terragrunt-managed run-all with parallelism and filter
+terra apply --all --parallelism=4 --filter="region-us-east" /path/to/infrastructure
+```
+
+**Important:** `--parallel` and `--all` cannot be used together -- they represent competing execution strategies.
+
+## Interactive Commands Require `--reply`
+
+When using `--parallel` with `apply` or `destroy`, you **must** provide `--reply` because parallel workers cannot share a single stdin for interactive prompts. In terra-managed parallel mode, the presence of `--reply` causes terragrunt to run in **non-interactive** mode (`--non-interactive`) for each worker, so prompts are skipped automatically.
+
+```bash
+# ERROR: apply prompts for confirmation, but parallel workers can't share stdin
+terra apply --parallel=4 /path/to/infrastructure
+
+# CORRECT: run apply in parallel with non-interactive mode
+terra apply --parallel=4 --reply=y /path/to/infrastructure
+
+# Short form
+terra destroy --parallel=4 -r=y /path/to/infrastructure
+
+# OK: plan never prompts, so --reply is not required
+terra plan --parallel=4 /path/to/infrastructure
 ```
 
 ## Supported Commands
@@ -129,39 +151,38 @@ terra plan --parallel=2 --no-parallel-bypass /path/to/infrastructure
 
 ## How It Works
 
-1. **Automatic Module Discovery**: Scans subdirectories for `.tf`, `.tfvars`, or `terragrunt.hcl` files (unless `--include` is specified)
-2. **Selective Filtering**: When `--include` or `--exclude` is used, only the matching subdirectories are processed
-3. **Parallel Execution**: Runs N jobs concurrently (where N is specified in `--parallel=N`, default is 5 for `--all` flag)
+1. **Automatic Module Discovery**: Scans subdirectories for `.tf`, `.tfvars`, or `terragrunt.hcl` files (unless `--only` is specified)
+2. **Selective Filtering**: When `--only` or `--skip` is used, only the matching subdirectories are processed
+3. **Parallel Execution**: Runs N jobs concurrently (where N is specified in `--parallel=N`, default is 5)
 4. **Thread Optimization**: Automatically reduces thread count if it exceeds the number of modules to process
 5. **Error Aggregation**: Collects and reports errors from all parallel operations
 6. **Progress Tracking**: Provides real-time logging of module processing status
-7. **Flag Filtering**: Removes Terra-specific flags (`--parallel=N`, `--all`, `--no-parallel-bypass`, `--include=`, `--exclude=`) before passing to Terragrunt
+7. **Flag Filtering**: Removes Terra-specific flags (`--parallel=N`, `--only=`, `--skip=`) before passing to Terragrunt
 
 ## Command Scenarios
 
 | Command | Behavior |
 |---------|----------|
 | `terra init --parallel=4` | Terra handles parallel execution with 4 threads across all modules |
-| `terra init --parallel=4 --include=test1,test2,test3 /path` | Terra handles parallel execution with 4 threads on specified folders only |
-| `terra import --parallel=4` | Terra handles parallel execution (equivalent to `--all` for state commands) |
-| `terra import --all` | Terra handles parallel execution with 5 threads (backward compatibility) |
-| `terra init --parallel=4 --no-parallel-bypass` | `--parallel=4` is forwarded to Terragrunt, Terra doesn't handle parallel execution |
-| `terra plan --all` | Terragrunt handles `--all` flag natively (not handled by Terra) |
-| `terra apply --all` | Terragrunt handles `--all` flag natively (not handled by Terra) |
+| `terra init --parallel=4 --only=test1,test2,test3 /path` | Terra handles parallel execution with 4 threads on specified folders only |
+| `terra import --parallel=4` | Terra handles parallel execution with 4 threads |
+| `terra plan --all` | Terragrunt handles `--all` flag natively (forwarded by Terra) |
+| `terra apply --all --parallelism=4` | Both flags forwarded to Terragrunt |
+| `terra apply --all --filter=mod1` | Both flags forwarded to Terragrunt |
 
 ## Benefits
 
 - **Performance**: Executes across multiple modules simultaneously instead of sequentially
 - **Flexibility**: Control the number of parallel threads with `--parallel=N`
-- **Selective Execution**: Use `--include` and `--exclude` to target specific directories instead of all discovered modules
+- **Selective Execution**: Use `--only` and `--skip` to target specific directories instead of all discovered modules
 - **Thread Optimization**: Automatically adjusts thread count to match the number of modules
 - **Native Integration**: No need for external tools like GNU parallel
 - **Error Handling**: Comprehensive error reporting and aggregation
 - **Logging**: Detailed progress and completion status for each module
-- **Backward Compatibility**: State commands still support the `--all` flag
+- **Clean Separation**: Terra's `--parallel` and Terragrunt's `--all`/`--parallelism`/`--filter` are independent and unambiguous
 
 ## Notes
 
-- When using `--parallel=N` (without `--no-parallel-bypass`), Terra automatically handles parallel execution for **all commands**, including state commands. For state commands, you don't need to provide `--all` when using `--parallel`.
-- Regular Terragrunt commands with `--all` (like `plan --all`, `apply --all`) continue to work normally through Terragrunt's native implementation and are not handled by Terra's parallel execution.
-- State commands that don't natively support `--all` in Terragrunt (like `import`, `state rm`, etc.) are handled by Terra's parallel execution when using either `--all` or `--parallel=N`.
+- When using `--parallel=N`, Terra automatically handles parallel execution for **all commands**, including state commands.
+- Regular Terragrunt commands with `--all` (like `plan --all`, `apply --all`) are forwarded to Terragrunt's native implementation and are not handled by Terra's parallel execution.
+- `--parallel=N` and `--all` cannot be used together.

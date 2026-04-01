@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What is Terra?
 
-Terra is a Go CLI tool that wraps Terraform and Terragrunt, providing simplified path-based infrastructure management inspired by Kubernetes. It adds parallel execution, centralized caching, auto-answer prompts, and self-update capabilities.
+Terra is a Go CLI tool that wraps Terraform and Terragrunt, providing simplified path-based infrastructure management inspired by Kubernetes. It adds parallel execution, centralized caching, auto-reply prompts, and self-update capabilities.
 
 ## Build & Development Commands
 
@@ -70,8 +70,9 @@ test/                  # Test helpers only (never in production folders)
 - **Provider caching:** Uses `TG_PROVIDER_CACHE` (Provider Cache Server) for concurrent-safe provider deduplication with file locking; disable with `TERRA_NO_PROVIDER_CACHE=true`
 - **Partial Parse Config Cache:** Enables `TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true` by default (disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`)
 - **Auto-upgrade:** `UpgradeAwareShellRepository` detects backend/provider failures and retries with `init --upgrade`
-- **Parallel execution:** `--parallel=N` runs across modules via `ParallelStateCommand`
-- **Auto-answer:** `--auto-answer=<value>` uses `creack/pty` for PTY-based prompt automation
+- **Parallel execution (terra-managed):** `--parallel=N` runs across modules via `ParallelStateCommand`; use `--only=mod1,mod2` to select modules or `--skip=mod3` to exclude them
+- **Parallel execution (terragrunt-managed):** `--all`, `--parallelism=N`, and `--filter=query` are forwarded to terragrunt as-is; `--parallel` and `--all` cannot be combined
+- **Reply:** `--reply=<value>` (or `-r=<value>`) uses `creack/pty` for PTY-based prompt automation
 
 ## Testing Conventions
 
