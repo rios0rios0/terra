@@ -33,10 +33,11 @@ func (it *ParallelStateCommand) shouldExecuteInParallel(arguments []string) bool
 	return HasParallelFlag(arguments)
 }
 
-// removeParallelFlags removes --parallel=N, --only=, and --skip= flags from arguments.
+// removeParallelFlags removes --parallel=N, --only=, --skip=, and --reply/-r flags from arguments.
 func (it *ParallelStateCommand) removeParallelFlags(arguments []string) []string {
 	filtered := RemoveParallelFlag(arguments)
-	return RemoveSelectionFlags(filtered)
+	filtered = RemoveSelectionFlags(filtered)
+	return RemoveReplyFlag(filtered)
 }
 
 // findSubdirectories finds all subdirectories that contain terraform/terragrunt files.
@@ -279,7 +280,15 @@ func (it *ParallelStateCommand) executeInParallel(
 		logger.Infof("Reducing thread count to %d (number of modules)", maxJobs)
 	}
 
+	hadReplyFlag := HasReplyFlag(arguments)
 	filteredArguments := it.removeParallelFlags(arguments)
+
+	// When --reply was provided, inject --non-interactive so terragrunt skips prompts
+	// in each worker (parallel workers cannot handle stdin prompts)
+	if hadReplyFlag {
+		filteredArguments = append(filteredArguments, "--non-interactive")
+	}
+
 	executeErrors := it.runWorkers(modules, filteredArguments, maxJobs)
 	duration := time.Since(startTime)
 

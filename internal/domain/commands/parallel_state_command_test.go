@@ -292,6 +292,52 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 			assert.NotContains(t, arg, "--skip=", "Should not pass --skip flag to terragrunt")
 		}
 	})
+
+	t.Run("should strip --reply flag and inject --non-interactive when reply present", func(t *testing.T) {
+		// GIVEN: A parallel state command with --reply=y flag
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"apply", "--parallel=2", "--reply=y"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should strip --reply and inject --non-interactive
+		require.NoError(t, err)
+		require.NotEmpty(t, repository.CallHistory)
+		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
+		for _, arg := range lastCall.Arguments {
+			assert.NotContains(t, arg, "--reply", "Should not pass --reply flag to terragrunt")
+			assert.NotContains(t, arg, "-r", "Should not pass -r flag to terragrunt")
+		}
+		assert.Contains(t, lastCall.Arguments, "--non-interactive", "Should inject --non-interactive when --reply was present")
+	})
+
+	t.Run("should not inject --non-interactive when reply not present", func(t *testing.T) {
+		// GIVEN: A parallel state command without --reply flag
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"plan", "--parallel=2"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should not inject --non-interactive
+		require.NoError(t, err)
+		require.NotEmpty(t, repository.CallHistory)
+		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
+		assert.NotContains(t, lastCall.Arguments, "--non-interactive", "Should not inject --non-interactive without --reply")
+	})
 }
 
 // testDirectoryHelper helps create test directories for parallel state tests

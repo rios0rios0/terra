@@ -16,6 +16,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added `--reply` requirement when using `--parallel` with `apply` or `destroy` to prevent workers from hanging on interactive prompts; terra injects `--non-interactive` into each terragrunt worker automatically
+
 ### Changed
 
 - changed `--include` flag to `--only` and `--exclude` flag to `--skip` for terra's parallel module selection, eliminating name collisions with terragrunt's own `--include`/`--exclude` flags
