@@ -16,6 +16,21 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added `--reply` requirement when using `--parallel` with `apply` or `destroy` to prevent workers from hanging on interactive prompts; when `--reply` is set, parallel workers run in non-interactive mode (using `--non-interactive`) instead of waiting for user input
+
+### Changed
+
+- changed `--include` flag to `--only` and `--exclude` flag to `--skip` for terra's parallel module selection, eliminating name collisions with terragrunt's own `--include`/`--exclude` flags
+- changed `--all` flag to always forward to terragrunt (no longer intercepted by terra for state commands); use `--parallel=5` instead for terra-managed parallel state operations
+
+### Removed
+
+- removed `--auto-answer` / `-a` flags; replaced with `--reply` / `-r` to avoid collision with terragrunt's `-a` shorthand for `--all`
+- removed `--no-parallel-bypass` flag (`--all` now always forwards to terragrunt; use terragrunt's `--parallelism=N` directly for terragrunt-managed parallelism)
+- removed legacy `--all` support for state commands (`import`, `state rm`, etc.); use `--parallel=N` instead
+
 ## [1.11.0] - 2026-04-01
 
 ### Added

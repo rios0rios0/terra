@@ -128,7 +128,7 @@ func TestRemoveParallelFlag(t *testing.T) {
 	}
 }
 
-func TestHasNoParallelBypassFlag(t *testing.T) {
+func TestHasOnlyFlag(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -136,70 +136,21 @@ func TestHasNoParallelBypassFlag(t *testing.T) {
 		arguments []string
 		expected  bool
 	}{
-		{"should return true when present", []string{"--no-parallel-bypass", "plan"}, true},
-		{"should return false when absent", []string{"plan"}, false},
-		{"should return false when empty", []string{}, false},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Equal(t, tt.expected, commands.HasNoParallelBypassFlag(tt.arguments))
-		})
-	}
-}
-
-func TestRemoveNoParallelBypassFlag(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name      string
-		arguments []string
-		expected  []string
-	}{
-		{
-			"should remove flag",
-			[]string{"plan", "--no-parallel-bypass"},
-			[]string{"plan"},
-		},
-		{
-			"should return unchanged when absent",
-			[]string{"plan"},
-			[]string{"plan"},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			assert.Equal(t, tt.expected, commands.RemoveNoParallelBypassFlag(tt.arguments))
-		})
-	}
-}
-
-func TestHasIncludeFlag(t *testing.T) {
-	t.Parallel()
-
-	tests := []struct {
-		name      string
-		arguments []string
-		expected  bool
-	}{
-		{"should return true when --include=mod1 present", []string{"plan", "--include=mod1"}, true},
+		{"should return true when --only=mod1 present", []string{"plan", "--only=mod1"}, true},
 		{"should return false when absent", []string{"plan"}, false},
 		{"should return false when empty arguments", []string{}, false},
-		{"should return false when --exclude=mod1 present", []string{"--exclude=mod1"}, false},
+		{"should return false when --skip=mod1 present", []string{"--skip=mod1"}, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.expected, commands.HasIncludeFlag(tt.arguments))
+			assert.Equal(t, tt.expected, commands.HasOnlyFlag(tt.arguments))
 		})
 	}
 }
 
-func TestGetIncludeValues(t *testing.T) {
+func TestGetOnlyValues(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -208,27 +159,27 @@ func TestGetIncludeValues(t *testing.T) {
 		expectedValue []string
 		expectedFound bool
 	}{
-		{"should return values when --include=a,b", []string{"--include=a,b"}, []string{"a", "b"}, true},
-		{"should return single value", []string{"--include=mod1"}, []string{"mod1"}, true},
-		{"should return false when empty value", []string{"--include="}, nil, false},
+		{"should return values when --only=a,b", []string{"--only=a,b"}, []string{"a", "b"}, true},
+		{"should return single value", []string{"--only=mod1"}, []string{"mod1"}, true},
+		{"should return false when empty value", []string{"--only="}, nil, false},
 		{"should return false when not present", []string{"plan"}, nil, false},
-		{"should trim whitespace", []string{"--include= a , b "}, []string{"a", "b"}, true},
+		{"should trim whitespace", []string{"--only= a , b "}, []string{"a", "b"}, true},
 		{"should return false when empty arguments", []string{}, nil, false},
-		{"should handle hyphens and underscores", []string{"--include=my-module,other_module"}, []string{"my-module", "other_module"}, true},
-		{"should skip empty and use later valid occurrence", []string{"--include=", "--include=a,b"}, []string{"a", "b"}, true},
+		{"should handle hyphens and underscores", []string{"--only=my-module,other_module"}, []string{"my-module", "other_module"}, true},
+		{"should skip empty and use later valid occurrence", []string{"--only=", "--only=a,b"}, []string{"a", "b"}, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			value, found := commands.GetIncludeValues(tt.arguments)
+			value, found := commands.GetOnlyValues(tt.arguments)
 			assert.Equal(t, tt.expectedValue, value)
 			assert.Equal(t, tt.expectedFound, found)
 		})
 	}
 }
 
-func TestRemoveIncludeFlag(t *testing.T) {
+func TestRemoveOnlyFlag(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -236,20 +187,20 @@ func TestRemoveIncludeFlag(t *testing.T) {
 		arguments []string
 		expected  []string
 	}{
-		{"should remove --include=a,b", []string{"plan", "--include=a,b"}, []string{"plan"}},
+		{"should remove --only=a,b", []string{"plan", "--only=a,b"}, []string{"plan"}},
 		{"should return unchanged when absent", []string{"plan"}, []string{"plan"}},
-		{"should return nil when only include flag", []string{"--include=mod1"}, nil},
+		{"should return nil when only only flag", []string{"--only=mod1"}, nil},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.expected, commands.RemoveIncludeFlag(tt.arguments))
+			assert.Equal(t, tt.expected, commands.RemoveOnlyFlag(tt.arguments))
 		})
 	}
 }
 
-func TestHasExcludeFlag(t *testing.T) {
+func TestHasSkipFlag(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -257,21 +208,21 @@ func TestHasExcludeFlag(t *testing.T) {
 		arguments []string
 		expected  bool
 	}{
-		{"should return true when --exclude=mod1 present", []string{"plan", "--exclude=mod1"}, true},
+		{"should return true when --skip=mod1 present", []string{"plan", "--skip=mod1"}, true},
 		{"should return false when absent", []string{"plan"}, false},
 		{"should return false when empty arguments", []string{}, false},
-		{"should return false when --include=mod1 present", []string{"--include=mod1"}, false},
+		{"should return false when --only=mod1 present", []string{"--only=mod1"}, false},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.expected, commands.HasExcludeFlag(tt.arguments))
+			assert.Equal(t, tt.expected, commands.HasSkipFlag(tt.arguments))
 		})
 	}
 }
 
-func TestGetExcludeValues(t *testing.T) {
+func TestGetSkipValues(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -280,27 +231,27 @@ func TestGetExcludeValues(t *testing.T) {
 		expectedValue []string
 		expectedFound bool
 	}{
-		{"should return values when --exclude=a,b", []string{"--exclude=a,b"}, []string{"a", "b"}, true},
-		{"should return single value", []string{"--exclude=mod1"}, []string{"mod1"}, true},
-		{"should return false when empty value", []string{"--exclude="}, nil, false},
+		{"should return values when --skip=a,b", []string{"--skip=a,b"}, []string{"a", "b"}, true},
+		{"should return single value", []string{"--skip=mod1"}, []string{"mod1"}, true},
+		{"should return false when empty value", []string{"--skip="}, nil, false},
 		{"should return false when not present", []string{"plan"}, nil, false},
-		{"should trim whitespace", []string{"--exclude= a , b "}, []string{"a", "b"}, true},
+		{"should trim whitespace", []string{"--skip= a , b "}, []string{"a", "b"}, true},
 		{"should return false when empty arguments", []string{}, nil, false},
-		{"should handle hyphens and underscores", []string{"--exclude=my-module,other_module"}, []string{"my-module", "other_module"}, true},
-		{"should skip empty and use later valid occurrence", []string{"--exclude=", "--exclude=a,b"}, []string{"a", "b"}, true},
+		{"should handle hyphens and underscores", []string{"--skip=my-module,other_module"}, []string{"my-module", "other_module"}, true},
+		{"should skip empty and use later valid occurrence", []string{"--skip=", "--skip=a,b"}, []string{"a", "b"}, true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			value, found := commands.GetExcludeValues(tt.arguments)
+			value, found := commands.GetSkipValues(tt.arguments)
 			assert.Equal(t, tt.expectedValue, value)
 			assert.Equal(t, tt.expectedFound, found)
 		})
 	}
 }
 
-func TestRemoveExcludeFlag(t *testing.T) {
+func TestRemoveSkipFlag(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -308,43 +259,43 @@ func TestRemoveExcludeFlag(t *testing.T) {
 		arguments []string
 		expected  []string
 	}{
-		{"should remove --exclude=a,b", []string{"plan", "--exclude=a,b"}, []string{"plan"}},
+		{"should remove --skip=a,b", []string{"plan", "--skip=a,b"}, []string{"plan"}},
 		{"should return unchanged when absent", []string{"plan"}, []string{"plan"}},
-		{"should return nil when only exclude flag", []string{"--exclude=mod1"}, nil},
+		{"should return nil when only skip flag", []string{"--skip=mod1"}, nil},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.expected, commands.RemoveExcludeFlag(tt.arguments))
+			assert.Equal(t, tt.expected, commands.RemoveSkipFlag(tt.arguments))
 		})
 	}
 }
 
-func TestGetFilterValues(t *testing.T) {
+func TestGetSelectionValues(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name               string
-		arguments          []string
-		expectedInclusions []string
-		expectedExclusions []string
+		name         string
+		arguments    []string
+		expectedOnly []string
+		expectedSkip []string
 	}{
 		{
 			"should return both when both flags present",
-			[]string{"plan", "--include=a,b", "--exclude=c"},
+			[]string{"plan", "--only=a,b", "--skip=c"},
 			[]string{"a", "b"},
 			[]string{"c"},
 		},
 		{
-			"should return only inclusions when only include present",
-			[]string{"plan", "--include=a,b"},
+			"should return only only when only only present",
+			[]string{"plan", "--only=a,b"},
 			[]string{"a", "b"},
 			nil,
 		},
 		{
-			"should return only exclusions when only exclude present",
-			[]string{"plan", "--exclude=x,y"},
+			"should return only skip when only skip present",
+			[]string{"plan", "--skip=x,y"},
 			nil,
 			[]string{"x", "y"},
 		},
@@ -356,13 +307,13 @@ func TestGetFilterValues(t *testing.T) {
 		},
 		{
 			"should handle flags mixed with other arguments",
-			[]string{"plan", "--parallel=4", "--include=mod1", "--exclude=mod2", "/path"},
+			[]string{"plan", "--parallel=4", "--only=mod1", "--skip=mod2", "/path"},
 			[]string{"mod1"},
 			[]string{"mod2"},
 		},
 		{
 			"should handle multiple values in both flags",
-			[]string{"--include=a,b,c", "--exclude=x,y"},
+			[]string{"--only=a,b,c", "--skip=x,y"},
 			[]string{"a", "b", "c"},
 			[]string{"x", "y"},
 		},
@@ -371,14 +322,14 @@ func TestGetFilterValues(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			result := commands.GetFilterValues(tt.arguments)
-			assert.Equal(t, tt.expectedInclusions, result.Inclusions)
-			assert.Equal(t, tt.expectedExclusions, result.Exclusions)
+			result := commands.GetSelectionValues(tt.arguments)
+			assert.Equal(t, tt.expectedOnly, result.Only)
+			assert.Equal(t, tt.expectedSkip, result.Skip)
 		})
 	}
 }
 
-func TestRemoveFilterFlags(t *testing.T) {
+func TestRemoveSelectionFlags(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
@@ -387,18 +338,18 @@ func TestRemoveFilterFlags(t *testing.T) {
 		expected  []string
 	}{
 		{
-			"should remove both include and exclude flags",
-			[]string{"plan", "--include=a,b", "--exclude=c"},
+			"should remove both only and skip flags",
+			[]string{"plan", "--only=a,b", "--skip=c"},
 			[]string{"plan"},
 		},
 		{
-			"should remove only include when exclude absent",
-			[]string{"plan", "--include=a"},
+			"should remove only only when skip absent",
+			[]string{"plan", "--only=a"},
 			[]string{"plan"},
 		},
 		{
-			"should remove only exclude when include absent",
-			[]string{"plan", "--exclude=c"},
+			"should remove only skip when only absent",
+			[]string{"plan", "--skip=c"},
 			[]string{"plan"},
 		},
 		{
@@ -411,7 +362,108 @@ func TestRemoveFilterFlags(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tt.expected, commands.RemoveFilterFlags(tt.arguments))
+			assert.Equal(t, tt.expected, commands.RemoveSelectionFlags(tt.arguments))
+		})
+	}
+}
+
+func TestIsInteractiveCommand(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  bool
+	}{
+		{"should return true when apply command", []string{"apply"}, true},
+		{"should return true when destroy command", []string{"destroy"}, true},
+		{"should return false when plan command", []string{"plan"}, false},
+		{"should return false when init command", []string{"init"}, false},
+		{"should return false when import command", []string{"import", "addr", "id"}, false},
+		{"should return false when state rm command", []string{"state", "rm", "addr"}, false},
+		{"should return true when apply has leading flags", []string{"--reply=y", "apply"}, true},
+		{"should return true when destroy has leading flags", []string{"--parallel=4", "--reply=y", "destroy"}, true},
+		{"should return false when plan has leading flags", []string{"--parallel=4", "plan"}, false},
+		{"should return false when empty arguments", []string{}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.IsInteractiveCommand(tt.arguments))
+		})
+	}
+}
+
+func TestHasReplyFlag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  bool
+	}{
+		{"should return true when --reply present", []string{"apply", "--reply"}, true},
+		{"should return true when -r present", []string{"apply", "-r"}, true},
+		{"should return true when --reply=y present", []string{"apply", "--reply=y"}, true},
+		{"should return true when -r=n present", []string{"apply", "-r=n"}, true},
+		{"should return false when absent", []string{"apply"}, false},
+		{"should return false when empty arguments", []string{}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.HasReplyFlag(tt.arguments))
+		})
+	}
+}
+
+func TestRemoveReplyFlag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  []string
+	}{
+		{"should remove --reply", []string{"apply", "--reply"}, []string{"apply"}},
+		{"should remove -r", []string{"apply", "-r"}, []string{"apply"}},
+		{"should remove --reply=y", []string{"apply", "--reply=y"}, []string{"apply"}},
+		{"should remove -r=n", []string{"apply", "-r=n"}, []string{"apply"}},
+		{"should return unchanged when absent", []string{"plan"}, []string{"plan"}},
+		{"should return nil when only reply flag", []string{"--reply=y"}, nil},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.RemoveReplyFlag(tt.arguments))
+		})
+	}
+}
+
+func TestGetReplyValue(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  string
+	}{
+		{"should return 'n' for boolean --reply", []string{"--reply", "apply"}, "n"},
+		{"should return 'n' for boolean -r", []string{"-r", "apply"}, "n"},
+		{"should return 'y' for --reply=y", []string{"--reply=y", "apply"}, "y"},
+		{"should return 'n' for -r=n", []string{"-r=n", "apply"}, "n"},
+		{"should return custom value for --reply=custom", []string{"--reply=custom", "plan"}, "custom"},
+		{"should return empty when absent", []string{"plan"}, ""},
+		{"should return empty for empty arguments", []string{}, ""},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.GetReplyValue(tt.arguments))
 		})
 	}
 }

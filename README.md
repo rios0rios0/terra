@@ -23,12 +23,12 @@ A powerful wrapper for Terragrunt and Terraform that revolutionizes infrastructu
 - Enhanced state management
 - Simplified module path specification
 - Cross-platform compatibility
-- Auto-answering for Terragrunt prompts to avoid manual intervention
+- Auto-replying to Terragrunt prompts via `--reply` / `-r` to avoid manual intervention
 - Self-update capability to automatically update terra to the latest version
 - Version checking for Terra, Terraform, and Terragrunt dependencies
 - Automatic dependency installation and management
 - Support for AWS and Azure cloud provider switching
-- **Parallel execution for any command** - Run any Terragrunt command across multiple modules simultaneously using the `--parallel=N` flag, where N is the number of concurrent threads. State commands also support the legacy `--all` flag for backward compatibility.
+- **Parallel execution for any command** - Run any Terragrunt command across multiple modules simultaneously using the `--parallel=N` flag, where N is the number of concurrent threads. Use `--only=mod1,mod2` to select specific modules or `--skip=mod3` to exclude modules.
 - **Centralized module and provider caching** - Automatically configures `TG_DOWNLOAD_DIR` and `TG_PROVIDER_CACHE_DIR` so Terragrunt modules and providers are downloaded once and reused across all stacks. Enables the Terragrunt Provider Cache Server (`TG_PROVIDER_CACHE=1`) for concurrent-safe provider deduplication with file locking. Override defaults with `TERRA_MODULE_CACHE_DIR` and `TERRA_PROVIDER_CACHE_DIR` environment variables. Disable the Provider Cache Server with `TERRA_NO_PROVIDER_CACHE=true`.
 - **CAS (Content Addressable Store)** - Enables Terragrunt's experimental CAS by default (`TG_EXPERIMENT=cas`), which deduplicates Git clones via hard links for faster subsequent clones and reduced disk usage. Disable with `TERRA_NO_CAS=true`.
 - **Partial Parse Config Cache** - Enables Terragrunt's Partial Parse Config Cache by default (`TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true`), which caches parsed HCL configs across modules sharing the same root include for faster config parsing. Disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`.
@@ -103,17 +103,17 @@ terra plan --all /path/to/module
 # or using Terraform approach, plan just the "module" subdirectory inside "to"
 terra plan /path/to/module
 
-# with auto-answering to avoid manual prompts (defaults to "n" for backward compatibility)
-terra --auto-answer apply --all /path
-terra -a plan --all /path/to
+# with auto-replying to avoid manual prompts (defaults to "n" for backward compatibility)
+terra --reply apply --all /path
+terra -r plan --all /path/to
 
 # with explicit "y" responses to prompts
-terra --auto-answer=y apply --all /path
-terra -a=y plan --all /path/to
+terra --reply=y apply --all /path
+terra -r=y plan --all /path/to
 
 # with explicit "n" responses to prompts
-terra --auto-answer=n apply --all /path
-terra -a=n plan --all /path/to
+terra --reply=n apply --all /path
+terra -r=n plan --all /path/to
 ```
 
 ### Command Reference
@@ -127,65 +127,73 @@ self-update Update terra to the latest version
 version     Show Terra, Terraform, and Terragrunt versions
 ```
 
-### Auto-Answer Feature
+### Reply Feature
 
-The `--auto-answer` (or `-a`) flag enables automatic responses to Terragrunt prompts, eliminating the need for manual intervention during long-running operations. This is particularly useful in CI/CD pipelines or when running multiple Terragrunt commands.
+The `--reply` (or `-r`) flag enables automatic responses to Terragrunt prompts, eliminating the need for manual intervention during long-running operations. This is particularly useful in CI/CD pipelines or when running multiple Terragrunt commands.
 
 **What it does:**
-- Automatically answers "n" to external dependency prompts (when using boolean flag or explicit `--auto-answer=n`)
-- Automatically answers "y" to external dependency prompts (when using `--auto-answer=y`)
+- Automatically answers "n" to external dependency prompts (when using boolean flag or explicit `--reply=n`)
+- Automatically answers "y" to external dependency prompts (when using `--reply=y`)
 - Automatically answers general yes/no prompts with the specified value
 - Switches to manual mode for confirmation prompts (like "Are you sure you want to run...")
-- Filters out the auto-answer flag before passing arguments to Terragrunt
+- Filters out the reply flag before passing arguments to Terragrunt
 
 **Usage Options:**
-- `--auto-answer` or `-a` - Boolean flag (defaults to "n" for backward compatibility)
-- `--auto-answer=y` or `-a=y` - Explicitly answer "y" to prompts
-- `--auto-answer=n` or `-a=n` - Explicitly answer "n" to prompts
+- `--reply` or `-r` - Boolean flag (defaults to "n" for backward compatibility)
+- `--reply=y` or `-r=y` - Explicitly answer "y" to prompts
+- `--reply=n` or `-r=n` - Explicitly answer "n" to prompts
 
 **Example:**
 ```bash
-# Without auto-answer - requires manual input for each prompt
+# Without reply - requires manual input for each prompt
 terra apply --all /path
 
-# With boolean auto-answer - automatically answers "n" (backward compatible)
-terra --auto-answer apply --all /path
+# With boolean reply - automatically answers "n" (backward compatible)
+terra --reply apply --all /path
 
 # With explicit "y" answer - automatically answers "y" to prompts
-terra --auto-answer=y apply --all /path
+terra --reply=y apply --all /path
 
 # Short form syntax
-terra -a=y apply --all /path
-terra -a=n plan --all /path
+terra -r=y apply --all /path
+terra -r=n plan --all /path
 ```
 
 ### Parallel Execution
 
-Terra provides powerful parallel execution capabilities for **any Terragrunt command** using the `--parallel=N` flag, where N is the number of concurrent threads.
+Terra provides two independent parallel execution strategies:
 
-**Basic usage:**
+**Terra-managed parallel** (`--parallel=N`) -- terra discovers modules and runs N goroutine workers:
 ```bash
 # Run init across all modules with 4 parallel threads
 terra init --parallel=4 /path/to/infrastructure
 
-# Run plan with specific directories included
-terra plan --parallel=4 --include=dev,staging,prod /path/to/infrastructure
+# Select specific directories with --only
+terra plan --parallel=4 --only=dev,staging,prod /path/to/infrastructure
 
-# Exclude specific directories
-terra apply --parallel=4 --exclude=test,backup /path/to/infrastructure
+# Skip specific directories with --skip
+terra apply --parallel=4 --skip=test,backup /path/to/infrastructure
 
-# State commands (--parallel automatically implies --all behavior)
+# State commands
 terra import --parallel=4 null_resource.example resource-id /path/to/infrastructure
 terra state rm --parallel=2 null_resource.example /path/to/infrastructure
-
-# Legacy --all flag (backward compatibility for state commands)
-terra import --all null_resource.example resource-id /path/to/infrastructure
-
-# Forward --parallel to Terragrunt instead of Terra handling it
-terra init --parallel=4 --no-parallel-bypass /path/to/infrastructure
 ```
 
-For comprehensive documentation on parallel execution, including filtering, thread optimization, command scenarios, and all supported commands, see [docs/parallel-execution.md](docs/parallel-execution.md).
+**Terragrunt-managed parallel** (`--all` + `--parallelism`) -- forwarded directly to terragrunt:
+```bash
+# Terragrunt's native run-all
+terra apply --all /path/to/infrastructure
+
+# Terragrunt's run-all with concurrency control
+terra plan --all --parallelism=4 /path/to/infrastructure
+
+# Terragrunt's run-all with filter
+terra apply --all --filter="region-us-east" /path/to/infrastructure
+```
+
+> **Note:** `--parallel` and `--all` cannot be used together -- they represent competing execution strategies.
+
+For comprehensive documentation, see [docs/parallel-execution.md](docs/parallel-execution.md).
 
 ### Version Management
 
