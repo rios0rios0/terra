@@ -168,11 +168,11 @@ Terra provides powerful parallel execution capabilities for **any Terragrunt com
 # Run init across all modules with 4 parallel threads
 terra init --parallel=4 /path/to/infrastructure
 
-# Run plan with filtering specific directories
-terra plan --parallel=4 --filter=dev,staging,prod /path/to/infrastructure
+# Run plan with specific directories included
+terra plan --parallel=4 --include=dev,staging,prod /path/to/infrastructure
 
 # Exclude specific directories
-terra apply --parallel=4 --filter=!test,!backup /path/to/infrastructure
+terra apply --parallel=4 --exclude=test,backup /path/to/infrastructure
 
 # State commands (--parallel automatically implies --all behavior)
 terra import --parallel=4 null_resource.example resource-id /path/to/infrastructure

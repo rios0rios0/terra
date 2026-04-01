@@ -157,11 +157,11 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		assert.GreaterOrEqual(t, repository.ExecuteCallCount, 2)
 	})
 
-	t.Run("should execute with --filter inclusion when filter flag present", func(t *testing.T) {
-		// GIVEN: A parallel state command with --filter flag
+	t.Run("should execute with --include when include flag present", func(t *testing.T) {
+		// GIVEN: A parallel state command with --include flag
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
-		arguments := []string{"import", "--all", "--filter=mod1,mod2", "null_resource.test", "id"}
+		arguments := []string{"import", "--all", "--include=mod1,mod2", "null_resource.test", "id"}
 		dependencies := []entities.Dependency{}
 
 		tempDir := t.TempDir()
@@ -171,16 +171,16 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		// WHEN: Executing the command
 		err := cmd.Execute(tempDir, arguments, dependencies)
 
-		// THEN: Should execute only for filtered modules (mod1 and mod2, not mod3)
+		// THEN: Should execute only for included modules (mod1 and mod2, not mod3)
 		require.NoError(t, err)
-		assert.Equal(t, 2, repository.ExecuteCallCount, "Should execute exactly 2 commands for filtered modules")
+		assert.Equal(t, 2, repository.ExecuteCallCount, "Should execute exactly 2 commands for included modules")
 	})
 
-	t.Run("should execute with --filter exclusion when exclusion filter present", func(t *testing.T) {
-		// GIVEN: A parallel state command with exclusion filter
+	t.Run("should execute with --exclude when exclude flag present", func(t *testing.T) {
+		// GIVEN: A parallel state command with --exclude flag
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
-		arguments := []string{"import", "--all", "--filter=!mod3", "null_resource.test", "id"}
+		arguments := []string{"import", "--all", "--exclude=mod3", "null_resource.test", "id"}
 		dependencies := []entities.Dependency{}
 
 		tempDir := t.TempDir()
@@ -195,11 +195,11 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		assert.Equal(t, 2, repository.ExecuteCallCount, "Should execute 2 commands excluding mod3")
 	})
 
-	t.Run("should return error when filter matches no valid paths", func(t *testing.T) {
-		// GIVEN: A parallel state command with filter pointing to nonexistent dirs
+	t.Run("should return error when include matches no valid paths", func(t *testing.T) {
+		// GIVEN: A parallel state command with --include pointing to nonexistent dirs
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
-		arguments := []string{"import", "--all", "--filter=nonexistent", "null_resource.test", "id"}
+		arguments := []string{"import", "--all", "--include=nonexistent", "null_resource.test", "id"}
 		dependencies := []entities.Dependency{}
 
 		tempDir := t.TempDir()
@@ -210,6 +210,87 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		// THEN: Should return error about no valid filter paths
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "no valid filter paths found")
+	})
+
+	t.Run("should execute with both --include and --exclude when both flags present", func(t *testing.T) {
+		// GIVEN: A parallel state command with both --include and --exclude flags
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"import", "--all", "--include=mod1,mod2,mod3", "--exclude=mod2", "null_resource.test", "id"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1", "mod2", "mod3"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should execute only for included modules minus excluded (mod1 and mod3)
+		require.NoError(t, err)
+		assert.Equal(t, 2, repository.ExecuteCallCount, "Should execute 2 commands (mod1 and mod3, excluding mod2)")
+	})
+
+	t.Run("should execute with --exclude only discovering all modules first", func(t *testing.T) {
+		// GIVEN: A parallel state command with only --exclude flag (no --include)
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"plan", "--parallel=4", "--exclude=mod2"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1", "mod2", "mod3"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should discover all modules then exclude mod2
+		require.NoError(t, err)
+		assert.Equal(t, 2, repository.ExecuteCallCount, "Should execute 2 commands (mod1 and mod3)")
+	})
+
+	t.Run("should return error when exclude removes all discovered modules", func(t *testing.T) {
+		// GIVEN: A parallel state command where --exclude removes all modules
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"plan", "--parallel=2", "--exclude=mod1,mod2"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1", "mod2"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should return error because no modules remain after exclusion
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "no valid filter paths found")
+	})
+
+	t.Run("should not pass --include or --exclude flags to terragrunt", func(t *testing.T) {
+		// GIVEN: A parallel state command with both --include and --exclude flags
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"import", "--all", "--include=mod1", "--exclude=mod2", "null_resource.test", "id"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should not pass --include or --exclude flags to terragrunt
+		require.NoError(t, err)
+		require.NotEmpty(t, repository.CallHistory)
+		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
+		for _, arg := range lastCall.Arguments {
+			assert.NotContains(t, arg, "--include=", "Should not pass --include flag to terragrunt")
+			assert.NotContains(t, arg, "--exclude=", "Should not pass --exclude flag to terragrunt")
+		}
 	})
 }
 
