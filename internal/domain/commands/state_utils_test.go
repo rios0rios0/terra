@@ -381,6 +381,9 @@ func TestIsInteractiveCommand(t *testing.T) {
 		{"should return false when init command", []string{"init"}, false},
 		{"should return false when import command", []string{"import", "addr", "id"}, false},
 		{"should return false when state rm command", []string{"state", "rm", "addr"}, false},
+		{"should return true when apply has leading flags", []string{"--reply=y", "apply"}, true},
+		{"should return true when destroy has leading flags", []string{"--parallel=4", "--reply=y", "destroy"}, true},
+		{"should return false when plan has leading flags", []string{"--parallel=4", "plan"}, false},
 		{"should return false when empty arguments", []string{}, false},
 	}
 

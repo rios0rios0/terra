@@ -55,9 +55,14 @@ func IsStateManipulationCommand(arguments []string) bool {
 	return false
 }
 
-// HasAllFlag checks if the --all flag is present in arguments.
+// HasAllFlag checks if the --all flag is present in arguments (including --all=true form).
 func HasAllFlag(arguments []string) bool {
-	return slices.Contains(arguments, AllFlag)
+	for _, arg := range arguments {
+		if arg == AllFlag || strings.HasPrefix(arg, AllFlag+"=") {
+			return true
+		}
+	}
+	return false
 }
 
 // HasParallelFlag checks if the --parallel=N flag is present in arguments.
@@ -99,7 +104,12 @@ func RemoveParallelFlag(arguments []string) []string {
 
 // HasDeprecatedNoParallelBypassFlag checks if the removed --no-parallel-bypass flag is present.
 func HasDeprecatedNoParallelBypassFlag(arguments []string) bool {
-	return slices.Contains(arguments, DeprecatedNoParallelBypassFlag)
+	for _, arg := range arguments {
+		if arg == DeprecatedNoParallelBypassFlag || strings.HasPrefix(arg, DeprecatedNoParallelBypassFlag+"=") {
+			return true
+		}
+	}
+	return false
 }
 
 // HasDeprecatedIncludeFlag checks if the renamed --include= flag is present.
@@ -221,11 +231,15 @@ func RemoveSelectionFlags(arguments []string) []string {
 }
 
 // IsInteractiveCommand checks if the command triggers yes/no prompts in terragrunt.
+// Skips leading flags (arguments starting with "-") to find the actual command.
 func IsInteractiveCommand(arguments []string) bool {
-	if len(arguments) == 0 {
-		return false
+	for _, arg := range arguments {
+		if strings.HasPrefix(arg, "-") {
+			continue
+		}
+		return arg == "apply" || arg == "destroy"
 	}
-	return arguments[0] == "apply" || arguments[0] == "destroy"
+	return false
 }
 
 // HasReplyFlag checks if --reply, -r, --reply=<value>, or -r=<value> is present.
