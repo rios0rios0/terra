@@ -24,6 +24,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 - changed `--include` flag to `--only` and `--exclude` flag to `--skip` for terra's parallel module selection, eliminating name collisions with terragrunt's own `--include`/`--exclude` flags
 - changed `--all` flag to always forward to terragrunt (no longer intercepted by terra for state commands); use `--parallel=5` instead for terra-managed parallel state operations
+- changed self-update command to delegate to `cliforge/selfupdate` shared library, removing ~300 lines of duplicated GitHub API, archive extraction, and binary replacement logic
 
 ### Removed
 
