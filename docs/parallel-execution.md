@@ -41,56 +41,60 @@ terra state rm --all null_resource.example /path/to/infrastructure
 
 ## Filtering Specific Directories
 
-Use the `--filter` flag to specify which subdirectories should be processed in parallel. This is useful when you only want to run commands on specific modules rather than all discovered modules. You can also exclude specific directories by prefixing them with `!`.
+Use the `--include` and `--exclude` flags to control which subdirectories should be processed in parallel. This is useful when you only want to run commands on specific modules rather than all discovered modules.
 
-**Basic usage (inclusions):**
+**Including specific directories:**
 ```bash
 # Run init on specific folders (test1, test2, test3) within the target path
-terra init --parallel=4 --filter=test1,test2,test3 environments/xpto/prod
+terra init --parallel=4 --include=test1,test2,test3 environments/xpto/prod
 # This executes init on:
 # - environments/xpto/prod/test1
 # - environments/xpto/prod/test2
 # - environments/xpto/prod/test3
 ```
 
-**Exclusion usage:**
+**Excluding specific directories:**
 ```bash
 # Run apply on all folders except folder2
-terra apply --parallel=4 --filter=!folder2 /path/to/infrastructure
+terra apply --parallel=4 --exclude=folder2 /path/to/infrastructure
 
 # Run plan on all folders except folder1 and folder3
-terra plan --parallel=4 --filter=!folder1,!folder3 /path/to/infrastructure
+terra plan --parallel=4 --exclude=folder1,folder3 /path/to/infrastructure
+```
 
-# Combine inclusions and exclusions: include folder1, but exclude folder2
-terra init --parallel=4 --filter=folder1,!folder2 /path/to/infrastructure
+**Combining include and exclude:**
+```bash
+# Include specific folders but exclude a subset
+terra init --parallel=4 --include=folder1,folder2,folder3 --exclude=folder2 /path/to/infrastructure
 ```
 
 **How it works:**
-- **Inclusions**: Filter values (without `!`) are concatenated with the target path using `filepath.Join()`
-- **Exclusions**: Filter values prefixed with `!` exclude matching directories from processing
-- When only exclusions are provided, all subdirectories are discovered first, then exclusions are removed
-- When both inclusions and exclusions are provided, inclusions are processed first, then exclusions are removed
-- Only directories that exist and are valid will be processed
-- Non-existent or invalid filter paths are logged as warnings and skipped
-- If the number of threads (`--parallel=N`) exceeds the number of filter items, the thread count is automatically reduced to match
+- **`--include=`**: Values are concatenated with the target path using `filepath.Join()`. Only these directories are processed.
+- **`--exclude=`**: Matching directories are removed from processing.
+- When only `--exclude` is provided, all subdirectories are discovered first, then exclusions are removed.
+- When both `--include` and `--exclude` are provided, inclusions are processed first, then exclusions are applied.
+- Only directories that exist and are valid will be processed.
+- Non-existent or invalid paths are logged as warnings and skipped.
+- If the number of threads (`--parallel=N`) exceeds the number of modules, the thread count is automatically reduced to match.
+- The same module cannot appear in both `--include` and `--exclude` (validation error).
 
 **Examples:**
 ```bash
 # Apply changes to specific environments only
-terra apply --parallel=3 --filter=dev,staging,prod /path/to/infrastructure
+terra apply --parallel=3 --include=dev,staging,prod /path/to/infrastructure
 
 # Plan all modules except test environments
-terra plan --parallel=2 --filter=!test,!testing /path/to/infrastructure
+terra plan --parallel=2 --exclude=test,testing /path/to/infrastructure
 
 # Import resources in specific directories, excluding backup folders
-terra import --parallel=4 --filter=region1,region2,!backup null_resource.example resource-id /path/to/infrastructure
+terra import --parallel=4 --include=region1,region2 --exclude=backup null_resource.example resource-id /path/to/infrastructure
 ```
 
 **Thread count optimization:**
 ```bash
-# If you specify --parallel=4 but only provide 3 filter items,
+# If you specify --parallel=4 but only provide 3 included items,
 # the thread count is automatically reduced to 3
-terra init --parallel=4 --filter=test1,test2,test3 /path
+terra init --parallel=4 --include=test1,test2,test3 /path
 # Logs: "Reducing thread count to 3 (number of modules)"
 ```
 
@@ -125,20 +129,20 @@ terra plan --parallel=2 --no-parallel-bypass /path/to/infrastructure
 
 ## How It Works
 
-1. **Automatic Module Discovery**: Scans subdirectories for `.tf`, `.tfvars`, or `terragrunt.hcl` files (unless `--filter` is specified)
-2. **Selective Filtering**: When `--filter` is used, only the specified subdirectories are processed (concatenated with the target path)
+1. **Automatic Module Discovery**: Scans subdirectories for `.tf`, `.tfvars`, or `terragrunt.hcl` files (unless `--include` is specified)
+2. **Selective Filtering**: When `--include` or `--exclude` is used, only the matching subdirectories are processed
 3. **Parallel Execution**: Runs N jobs concurrently (where N is specified in `--parallel=N`, default is 5 for `--all` flag)
 4. **Thread Optimization**: Automatically reduces thread count if it exceeds the number of modules to process
 5. **Error Aggregation**: Collects and reports errors from all parallel operations
 6. **Progress Tracking**: Provides real-time logging of module processing status
-7. **Flag Filtering**: Removes Terra-specific flags (`--parallel=N`, `--all`, `--no-parallel-bypass`, `--filter=`) before passing to Terragrunt
+7. **Flag Filtering**: Removes Terra-specific flags (`--parallel=N`, `--all`, `--no-parallel-bypass`, `--include=`, `--exclude=`) before passing to Terragrunt
 
 ## Command Scenarios
 
 | Command | Behavior |
 |---------|----------|
 | `terra init --parallel=4` | Terra handles parallel execution with 4 threads across all modules |
-| `terra init --parallel=4 --filter=test1,test2,test3 /path` | Terra handles parallel execution with 4 threads on specified folders only |
+| `terra init --parallel=4 --include=test1,test2,test3 /path` | Terra handles parallel execution with 4 threads on specified folders only |
 | `terra import --parallel=4` | Terra handles parallel execution (equivalent to `--all` for state commands) |
 | `terra import --all` | Terra handles parallel execution with 5 threads (backward compatibility) |
 | `terra init --parallel=4 --no-parallel-bypass` | `--parallel=4` is forwarded to Terragrunt, Terra doesn't handle parallel execution |
@@ -149,7 +153,7 @@ terra plan --parallel=2 --no-parallel-bypass /path/to/infrastructure
 
 - **Performance**: Executes across multiple modules simultaneously instead of sequentially
 - **Flexibility**: Control the number of parallel threads with `--parallel=N`
-- **Selective Execution**: Use `--filter` to target specific directories instead of all discovered modules
+- **Selective Execution**: Use `--include` and `--exclude` to target specific directories instead of all discovered modules
 - **Thread Optimization**: Automatically adjusts thread count to match the number of modules
 - **Native Integration**: No need for external tools like GNU parallel
 - **Error Handling**: Comprehensive error reporting and aggregation

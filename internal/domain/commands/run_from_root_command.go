@@ -185,6 +185,81 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 				"Terragrunt needs --all to understand that it should apply to all modules.")
 		}
 	}
+
+	it.validateFilterFlags(arguments, hasParallelFlag, hasNoParallelBypass, hasAllFlag, isStateCommand)
+}
+
+// validateFilterFlags validates --include/--exclude flag usage.
+func (it *RunFromRootCommand) validateFilterFlags(
+	arguments []string,
+	hasParallelFlag, hasNoParallelBypass, hasAllFlag, isStateCommand bool,
+) {
+	hasIncludeFlag := HasIncludeFlag(arguments)
+	hasExcludeFlag := HasExcludeFlag(arguments)
+
+	if !hasIncludeFlag && !hasExcludeFlag {
+		return
+	}
+
+	it.validateFilterFlagValues(arguments, hasIncludeFlag, hasExcludeFlag)
+
+	// --include/--exclude require parallel execution context
+	if !hasParallelFlag && (!isStateCommand || !hasAllFlag) {
+		logger.Fatalf("Error: --include/--exclude flags require --parallel=N or state command with --all.")
+	}
+
+	// --include/--exclude are terra-specific and cannot be forwarded to terragrunt
+	if hasNoParallelBypass {
+		logger.Fatalf(
+			"Error: --include/--exclude flags cannot be used with --no-parallel-bypass. " +
+				"These flags are handled by terra's parallel execution and cannot be forwarded to terragrunt.",
+		)
+	}
+
+	it.validateFilterFlagConflicts(arguments, hasIncludeFlag, hasExcludeFlag)
+}
+
+// validateFilterFlagValues ensures present --include/--exclude flags have non-empty values.
+func (it *RunFromRootCommand) validateFilterFlagValues(
+	arguments []string,
+	hasIncludeFlag, hasExcludeFlag bool,
+) {
+	if hasIncludeFlag {
+		if values, found := GetIncludeValues(arguments); !found || len(values) == 0 {
+			logger.Fatalf("Error: --include flag is present but has no values. " +
+				"Provide comma-separated module names, e.g. --include=mod1,mod2.")
+		}
+	}
+
+	if hasExcludeFlag {
+		if values, found := GetExcludeValues(arguments); !found || len(values) == 0 {
+			logger.Fatalf("Error: --exclude flag is present but has no values. " +
+				"Provide comma-separated module names, e.g. --exclude=mod1,mod2.")
+		}
+	}
+}
+
+// validateFilterFlagConflicts detects modules appearing in both --include and --exclude.
+func (it *RunFromRootCommand) validateFilterFlagConflicts(
+	arguments []string,
+	hasIncludeFlag, hasExcludeFlag bool,
+) {
+	if !hasIncludeFlag || !hasExcludeFlag {
+		return
+	}
+
+	includes, _ := GetIncludeValues(arguments)
+	excludes, _ := GetExcludeValues(arguments)
+
+	for _, inc := range includes {
+		for _, exc := range excludes {
+			if inc == exc {
+				logger.Fatalf(
+					"Error: module %q appears in both --include and --exclude. Remove it from one flag.", inc,
+				)
+			}
+		}
+	}
 }
 
 // isParallelCommand checks if the command should be executed in parallel.
