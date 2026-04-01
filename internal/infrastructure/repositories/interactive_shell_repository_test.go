@@ -26,6 +26,46 @@ func TestNewInteractiveShellRepository(t *testing.T) {
 	})
 }
 
+func TestInteractiveShellRepository_ExecuteCommandWithAnswer(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should execute successfully with auto-answer when command exits quickly", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: An interactive shell repository and a command that exits immediately
+		repo := repositories.NewInteractiveShellRepository()
+
+		// WHEN: Executing with auto-answer
+		err := repo.ExecuteCommandWithAnswer("echo", []string{"hello"}, ".", "y")
+
+		// THEN: Should execute without error
+		assert.NoError(t, err)
+	})
+
+	t.Run("should return error when invalid command provided with auto-answer", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: An interactive shell repository and an invalid command
+		repo := repositories.NewInteractiveShellRepository()
+
+		// WHEN: Executing with auto-answer
+		err := repo.ExecuteCommandWithAnswer("nonexistentcommand12345", []string{}, ".", "n")
+
+		// THEN: Should return an error
+		require.Error(t, err)
+	})
+
+	t.Run("should handle multi-line output with ANSI codes when auto-answering", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: An interactive shell repository and a command producing ANSI-coded output
+		repo := repositories.NewInteractiveShellRepository()
+
+		// WHEN: Executing a command that produces colored output
+		err := repo.ExecuteCommandWithAnswer("sh", []string{"-c", "printf '\\033[32mgreen\\033[0m\\n'; printf '\\033[31mred\\033[0m\\n'"}, ".", "y")
+
+		// THEN: Should handle ANSI codes without error
+		assert.NoError(t, err)
+	})
+}
+
 func TestInteractiveShellRepository_ExecuteCommand(t *testing.T) {
 	t.Parallel()
 
