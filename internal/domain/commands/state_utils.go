@@ -219,3 +219,36 @@ func RemoveSelectionFlags(arguments []string) []string {
 	filtered := RemoveOnlyFlag(arguments)
 	return RemoveSkipFlag(filtered)
 }
+
+// IsInteractiveCommand checks if the command triggers yes/no prompts in terragrunt.
+func IsInteractiveCommand(arguments []string) bool {
+	if len(arguments) == 0 {
+		return false
+	}
+	return arguments[0] == "apply" || arguments[0] == "destroy"
+}
+
+// HasReplyFlag checks if --reply, -r, --reply=<value>, or -r=<value> is present.
+func HasReplyFlag(arguments []string) bool {
+	for _, arg := range arguments {
+		if arg == ReplyFlag || arg == ReplyShortFlag ||
+			strings.HasPrefix(arg, ReplyFlag+"=") ||
+			strings.HasPrefix(arg, ReplyShortFlag+"=") {
+			return true
+		}
+	}
+	return false
+}
+
+// RemoveReplyFlag removes --reply, -r, --reply=<value>, and -r=<value> from arguments.
+func RemoveReplyFlag(arguments []string) []string {
+	var filtered []string
+	for _, arg := range arguments {
+		if arg != ReplyFlag && arg != ReplyShortFlag &&
+			!strings.HasPrefix(arg, ReplyFlag+"=") &&
+			!strings.HasPrefix(arg, ReplyShortFlag+"=") {
+			filtered = append(filtered, arg)
+		}
+	}
+	return filtered
+}

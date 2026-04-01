@@ -366,3 +366,76 @@ func TestRemoveSelectionFlags(t *testing.T) {
 		})
 	}
 }
+
+func TestIsInteractiveCommand(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  bool
+	}{
+		{"should return true when apply command", []string{"apply"}, true},
+		{"should return true when destroy command", []string{"destroy"}, true},
+		{"should return false when plan command", []string{"plan"}, false},
+		{"should return false when init command", []string{"init"}, false},
+		{"should return false when import command", []string{"import", "addr", "id"}, false},
+		{"should return false when state rm command", []string{"state", "rm", "addr"}, false},
+		{"should return false when empty arguments", []string{}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.IsInteractiveCommand(tt.arguments))
+		})
+	}
+}
+
+func TestHasReplyFlag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  bool
+	}{
+		{"should return true when --reply present", []string{"apply", "--reply"}, true},
+		{"should return true when -r present", []string{"apply", "-r"}, true},
+		{"should return true when --reply=y present", []string{"apply", "--reply=y"}, true},
+		{"should return true when -r=n present", []string{"apply", "-r=n"}, true},
+		{"should return false when absent", []string{"apply"}, false},
+		{"should return false when empty arguments", []string{}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.HasReplyFlag(tt.arguments))
+		})
+	}
+}
+
+func TestRemoveReplyFlag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  []string
+	}{
+		{"should remove --reply", []string{"apply", "--reply"}, []string{"apply"}},
+		{"should remove -r", []string{"apply", "-r"}, []string{"apply"}},
+		{"should remove --reply=y", []string{"apply", "--reply=y"}, []string{"apply"}},
+		{"should remove -r=n", []string{"apply", "-r=n"}, []string{"apply"}},
+		{"should return unchanged when absent", []string{"plan"}, []string{"plan"}},
+		{"should return nil when only reply flag", []string{"--reply=y"}, nil},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.RemoveReplyFlag(tt.arguments))
+		})
+	}
+}

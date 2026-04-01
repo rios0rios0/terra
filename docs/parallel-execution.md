@@ -114,6 +114,22 @@ terra apply --all --parallelism=4 --filter="region-us-east" /path/to/infrastruct
 
 **Important:** `--parallel` and `--all` cannot be used together -- they represent competing execution strategies.
 
+## Interactive Commands Require `--reply`
+
+When using `--parallel` with `apply` or `destroy`, you **must** provide `--reply` because parallel workers cannot handle interactive stdin prompts. Terra automatically injects `--non-interactive` into each terragrunt worker invocation.
+
+```bash
+# ERROR: apply prompts for confirmation, but parallel workers can't handle stdin
+terra apply --parallel=4 /path/to/infrastructure
+
+# CORRECT: --reply=y tells terra to make workers non-interactive
+terra apply --parallel=4 --reply=y /path/to/infrastructure
+terra destroy --parallel=4 --reply=y /path/to/infrastructure
+
+# OK: plan never prompts, so --reply is not required
+terra plan --parallel=4 /path/to/infrastructure
+```
+
 ## Supported Commands
 
 **All Terragrunt commands support `--parallel=N`:**

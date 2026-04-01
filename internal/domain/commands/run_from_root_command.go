@@ -108,14 +108,7 @@ func (it *RunFromRootCommand) Execute(
 }
 
 func (it *RunFromRootCommand) hasReplyFlag(arguments []string) bool {
-	for _, arg := range arguments {
-		if arg == ReplyFlag || arg == ReplyShortFlag ||
-			strings.HasPrefix(arg, ReplyFlag+"=") ||
-			strings.HasPrefix(arg, ReplyShortFlag+"=") {
-			return true
-		}
-	}
-	return false
+	return HasReplyFlag(arguments)
 }
 
 func (it *RunFromRootCommand) getReplyValue(arguments []string) string {
@@ -151,7 +144,6 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 	it.validateDeprecatedFlags(arguments)
 
 	hasParallelFlag := HasParallelFlag(arguments)
-	hasReplyFlag := it.hasReplyFlag(arguments)
 	hasAllFlag := HasAllFlag(arguments)
 
 	// --parallel and --all cannot be used together (competing execution strategies)
@@ -162,11 +154,12 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 		)
 	}
 
-	// --reply cannot be used with --parallel (terra's parallel doesn't use interactive repo)
-	if hasParallelFlag && hasReplyFlag {
+	// --reply is required when --parallel is used with interactive commands (apply, destroy)
+	// because parallel workers cannot handle stdin prompts
+	if hasParallelFlag && IsInteractiveCommand(arguments) && !HasReplyFlag(arguments) {
 		logger.Fatalf(
-			"Error: --reply cannot be used with --parallel. " +
-				"Terra's parallel execution does not support interactive prompts.",
+			"Error: --reply is required when using --parallel with apply or destroy. " +
+				"Parallel workers cannot handle interactive prompts. Example: --reply=y",
 		)
 	}
 
