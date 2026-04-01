@@ -18,7 +18,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
-- added `--reply` requirement when using `--parallel` with `apply` or `destroy` to prevent workers from hanging on interactive prompts; terra injects `--non-interactive` into each terragrunt worker automatically
+- added `--reply` requirement when using `--parallel` with `apply` or `destroy` to prevent workers from hanging on interactive prompts; each worker gets its own PTY that auto-replies with the specified value
 
 ### Changed
 

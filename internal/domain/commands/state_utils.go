@@ -240,6 +240,23 @@ func HasReplyFlag(arguments []string) bool {
 	return false
 }
 
+// GetReplyValue extracts the value from --reply=<value> or -r=<value>.
+// Returns "n" as default when the boolean form (--reply or -r) is used.
+func GetReplyValue(arguments []string) string {
+	for _, arg := range arguments {
+		if arg == ReplyFlag || arg == ReplyShortFlag {
+			return "n"
+		}
+		if strings.HasPrefix(arg, ReplyFlag+"=") {
+			return arg[len(ReplyFlag+"="):]
+		}
+		if strings.HasPrefix(arg, ReplyShortFlag+"=") {
+			return arg[len(ReplyShortFlag+"="):]
+		}
+	}
+	return ""
+}
+
 // RemoveReplyFlag removes --reply, -r, --reply=<value>, and -r=<value> from arguments.
 func RemoveReplyFlag(arguments []string) []string {
 	var filtered []string
