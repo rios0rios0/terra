@@ -96,6 +96,92 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		assert.Contains(t, err.Error(), "not a parallel command")
 	})
 
+	t.Run("should skip hidden directories when discovering modules", func(t *testing.T) {
+		// GIVEN: A directory with hidden and non-hidden module directories
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"plan", "--parallel=2"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"visible_mod"})
+		// Create a hidden directory with terraform files
+		hiddenDir := tempDir + "/.hidden_mod"
+		require.NoError(t, mkdir(hiddenDir))
+		require.NoError(t, writeFile(hiddenDir+"/main.tf", "resource \"null_resource\" \"test\" {}"))
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should only find the visible module, not the hidden one
+		require.NoError(t, err)
+		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute only 1 command (hidden dir skipped)")
+	})
+
+	t.Run("should skip directories without terraform files", func(t *testing.T) {
+		// GIVEN: A directory with one tf module and one non-tf directory
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"plan", "--parallel=2"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"real_mod"})
+		// Create a directory without terraform files
+		nonTfDir := tempDir + "/not_terraform"
+		require.NoError(t, mkdir(nonTfDir))
+		require.NoError(t, writeFile(nonTfDir+"/readme.md", "# Not a terraform module"))
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should only find the real terraform module
+		require.NoError(t, err)
+		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute only 1 command (non-tf dir skipped)")
+	})
+
+	t.Run("should detect terragrunt.hcl files as valid modules", func(t *testing.T) {
+		// GIVEN: A directory with a terragrunt.hcl module (no .tf files)
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"plan", "--parallel=2"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		tgDir := tempDir + "/tg_module"
+		require.NoError(t, mkdir(tgDir))
+		require.NoError(t, writeFile(tgDir+"/terragrunt.hcl", "terraform { source = \".\" }"))
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should detect the terragrunt.hcl module
+		require.NoError(t, err)
+		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute 1 command for terragrunt.hcl module")
+	})
+
+	t.Run("should detect tfvars files as valid modules", func(t *testing.T) {
+		// GIVEN: A directory with only .tfvars files
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"plan", "--parallel=2"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		tfvarsDir := tempDir + "/vars_module"
+		require.NoError(t, mkdir(tfvarsDir))
+		require.NoError(t, writeFile(tfvarsDir+"/terraform.tfvars", "region = \"us-east-1\""))
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should detect the tfvars module
+		require.NoError(t, err)
+		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute 1 command for tfvars module")
+	})
+
 	t.Run("should return error when no modules found", func(t *testing.T) {
 		// GIVEN: A parallel state command and empty directory
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}

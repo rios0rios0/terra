@@ -27,6 +27,21 @@ func TestRegisterProviders(t *testing.T) {
 		// THEN: Should succeed without error
 		assert.NoError(t, err)
 	})
+
+	t.Run("should return error when called twice on same container", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A container that already has all providers registered
+		container := dig.New()
+		firstErr := controllers.RegisterProviders(container)
+		require.NoError(t, firstErr)
+
+		// WHEN: Attempting to register all providers again
+		err := controllers.RegisterProviders(container)
+
+		// THEN: Should return an error due to duplicate registration
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "already provided")
+	})
 }
 
 func TestNewControllers(t *testing.T) {
