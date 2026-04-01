@@ -11,10 +11,10 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
+	"github.com/rios0rios0/cliforge/selfupdate"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
 )
@@ -42,7 +42,7 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 				continue
 			}
 
-			comparison := compareVersions(currentVersion, latestVersion)
+			comparison := selfupdate.CompareVersions(currentVersion, latestVersion)
 			switch {
 			case comparison < 0:
 				// Current version is older than latest
@@ -136,64 +136,6 @@ func getCurrentVersion(name string) string {
 	}
 
 	return ""
-}
-
-// compare two semantic versions (returns: -1 if v1 < v2, 0 if v1 == v2, 1 if v1 > v2).
-func compareVersions(v1, v2 string) int {
-	// Development builds are always considered older than any release
-	if v1 == "dev" {
-		return -1
-	}
-	if v2 == "dev" {
-		return 1
-	}
-
-	// Only compare numeric parts, reject versions with non-numeric components
-	parts1 := strings.Split(v1, ".")
-	parts2 := strings.Split(v2, ".")
-
-	// Validate that all parts are numeric for proper semantic version comparison
-	for _, part := range parts1 {
-		if _, err := strconv.Atoi(part); err != nil {
-			logger.Warnf(
-				"Version %s contains non-numeric parts, cannot perform reliable comparison",
-				v1,
-			)
-			return strings.Compare(v1, v2)
-		}
-	}
-	for _, part := range parts2 {
-		if _, err := strconv.Atoi(part); err != nil {
-			logger.Warnf(
-				"Version %s contains non-numeric parts, cannot perform reliable comparison",
-				v2,
-			)
-			return strings.Compare(v1, v2)
-		}
-	}
-
-	// Pad versions to same length
-	maxLen := max(len(parts2), len(parts1))
-
-	for len(parts1) < maxLen {
-		parts1 = append(parts1, "0")
-	}
-	for len(parts2) < maxLen {
-		parts2 = append(parts2, "0")
-	}
-
-	for i := range maxLen {
-		num1, _ := strconv.Atoi(parts1[i])
-		num2, _ := strconv.Atoi(parts2[i])
-
-		if num1 < num2 {
-			return -1
-		} else if num1 > num2 {
-			return 1
-		}
-	}
-
-	return 0
 }
 
 // prompt user for update confirmation.
@@ -373,9 +315,9 @@ func install(url, name string) {
 	}
 }
 
-// CompareVersionsPublic is a public wrapper for testing the private compareVersions function.
+// CompareVersionsPublic is a public wrapper for testing.
 func CompareVersionsPublic(v1, v2 string) int {
-	return compareVersions(v1, v2)
+	return selfupdate.CompareVersions(v1, v2)
 }
 
 // FindBinaryInArchivePublic is a public wrapper for testing the private findBinaryInArchive function.
