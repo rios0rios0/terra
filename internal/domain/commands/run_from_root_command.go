@@ -10,10 +10,14 @@ import (
 )
 
 const (
-	// AutoAnswerFlag represents the --auto-answer flag.
-	AutoAnswerFlag = "--auto-answer"
-	// AutoAnswerShortFlag represents the -a flag.
-	AutoAnswerShortFlag = "-a"
+	// ReplyFlag represents the --reply flag for auto-answering terragrunt prompts.
+	ReplyFlag = "--reply"
+	// ReplyShortFlag represents the -r short flag for --reply.
+	ReplyShortFlag = "-r"
+	// DeprecatedAutoAnswerFlag is the renamed --auto-answer flag (now --reply).
+	DeprecatedAutoAnswerFlag = "--auto-answer"
+	// DeprecatedAutoAnswerShortFlag is the removed -a short flag (collides with terragrunt's -a for --all).
+	DeprecatedAutoAnswerShortFlag = "-a"
 )
 
 type RunFromRootCommand struct {
@@ -81,19 +85,16 @@ func (it *RunFromRootCommand) Execute(
 	// Normal execution path for non-parallel commands
 	it.additionalBefore.Execute(targetPath, arguments)
 
-	// Check if auto-answer flag is present and filter it out
-	useInteractive := it.hasAutoAnswerFlag(arguments)
-	autoAnswerValue := it.getAutoAnswerValue(arguments)
-	filteredArguments := it.removeAutoAnswerFlag(arguments)
-
-	// Remove --no-parallel-bypass flag before passing to terragrunt
-	filteredArguments = RemoveNoParallelBypassFlag(filteredArguments)
+	// Check if reply flag is present and filter it out
+	useInteractive := it.hasReplyFlag(arguments)
+	replyValue := it.getReplyValue(arguments)
+	filteredArguments := it.removeReplyFlag(arguments)
 
 	var err error
 	if useInteractive {
-		logger.Infof("Using interactive mode with auto-answering (%s)", autoAnswerValue)
+		logger.Infof("Using interactive mode with auto-replying (%s)", replyValue)
 		err = it.interactiveRepository.ExecuteCommandWithAnswer(
-			"terragrunt", filteredArguments, targetPath, autoAnswerValue)
+			"terragrunt", filteredArguments, targetPath, replyValue)
 	} else {
 		// Use upgrade-aware repository: automatically detects when init --upgrade
 		// is needed, runs it, and retries the original command.
@@ -106,38 +107,38 @@ func (it *RunFromRootCommand) Execute(
 	}
 }
 
-func (it *RunFromRootCommand) hasAutoAnswerFlag(arguments []string) bool {
+func (it *RunFromRootCommand) hasReplyFlag(arguments []string) bool {
 	for _, arg := range arguments {
-		if arg == AutoAnswerFlag || arg == AutoAnswerShortFlag ||
-			strings.HasPrefix(arg, AutoAnswerFlag+"=") ||
-			strings.HasPrefix(arg, AutoAnswerShortFlag+"=") {
+		if arg == ReplyFlag || arg == ReplyShortFlag ||
+			strings.HasPrefix(arg, ReplyFlag+"=") ||
+			strings.HasPrefix(arg, ReplyShortFlag+"=") {
 			return true
 		}
 	}
 	return false
 }
 
-func (it *RunFromRootCommand) getAutoAnswerValue(arguments []string) string {
+func (it *RunFromRootCommand) getReplyValue(arguments []string) string {
 	for _, arg := range arguments {
-		if arg == AutoAnswerFlag || arg == AutoAnswerShortFlag {
+		if arg == ReplyFlag || arg == ReplyShortFlag {
 			return "n" // Default backward compatibility behavior
 		}
-		if strings.HasPrefix(arg, AutoAnswerFlag+"=") {
-			return arg[len(AutoAnswerFlag+"="):]
+		if strings.HasPrefix(arg, ReplyFlag+"=") {
+			return arg[len(ReplyFlag+"="):]
 		}
-		if strings.HasPrefix(arg, AutoAnswerShortFlag+"=") {
-			return arg[len(AutoAnswerShortFlag+"="):]
+		if strings.HasPrefix(arg, ReplyShortFlag+"=") {
+			return arg[len(ReplyShortFlag+"="):]
 		}
 	}
 	return ""
 }
 
-func (it *RunFromRootCommand) removeAutoAnswerFlag(arguments []string) []string {
+func (it *RunFromRootCommand) removeReplyFlag(arguments []string) []string {
 	var filtered []string
 	for _, arg := range arguments {
-		if arg != AutoAnswerFlag && arg != AutoAnswerShortFlag &&
-			!strings.HasPrefix(arg, AutoAnswerFlag+"=") &&
-			!strings.HasPrefix(arg, AutoAnswerShortFlag+"=") {
+		if arg != ReplyFlag && arg != ReplyShortFlag &&
+			!strings.HasPrefix(arg, ReplyFlag+"=") &&
+			!strings.HasPrefix(arg, ReplyShortFlag+"=") {
 			filtered = append(filtered, arg)
 		}
 	}
@@ -147,136 +148,152 @@ func (it *RunFromRootCommand) removeAutoAnswerFlag(arguments []string) []string 
 // validateFlagCombinations validates that flag combinations are correct.
 // Errors and exits if invalid combinations are detected.
 func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
+	it.validateDeprecatedFlags(arguments)
+
 	hasParallelFlag := HasParallelFlag(arguments)
-	hasNoParallelBypass := HasNoParallelBypassFlag(arguments)
-	hasAutoAnswerFlag := it.hasAutoAnswerFlag(arguments)
+	hasReplyFlag := it.hasReplyFlag(arguments)
 	hasAllFlag := HasAllFlag(arguments)
-	isStateCommand := IsStateManipulationCommand(arguments)
 
-	// If --parallel is used without --no-parallel-bypass, terra handles parallel execution
-	// In this case, flags intended for terragrunt should not be used
-	if hasParallelFlag && !hasNoParallelBypass {
-		// Error if --auto-answer is used (intended for terragrunt, not terra's parallel execution)
-		if hasAutoAnswerFlag {
-			logger.Fatalf(
-				"Error: --auto-answer flag is intended for terragrunt and should only be used with --no-parallel-bypass. " +
-					"When using --parallel without --no-parallel-bypass, terra handles parallel execution and --auto-answer is not applicable.",
-			)
-		}
-
-		// Error if --all is used with --parallel (redundant, since --parallel already implies --all behavior)
-		if hasAllFlag {
-			logger.Fatalf("Error: --all flag is not needed when using --parallel flag. " +
-				"The --parallel flag already executes across all modules. Remove --all or use --no-parallel-bypass to forward --parallel to terragrunt.")
-		}
-	}
-
-	// If --no-parallel-bypass is used with state commands, error out (terragrunt doesn't handle state commands)
-	if hasNoParallelBypass && isStateCommand {
-		logger.Fatalf("Error: --no-parallel-bypass cannot be used with state commands. " +
-			"Terragrunt doesn't support state operations, so state commands must be handled by terra. " +
-			"Remove --no-parallel-bypass to let terra handle the parallel execution.")
-	}
-
-	// If --no-parallel-bypass is used, --all is required (for non-state commands)
-	if hasNoParallelBypass && hasParallelFlag && !isStateCommand {
-		if !hasAllFlag {
-			logger.Fatalf("Error: --all flag is required when using --no-parallel-bypass with --parallel. " +
-				"Terragrunt needs --all to understand that it should apply to all modules.")
-		}
-	}
-
-	it.validateFilterFlags(arguments, hasParallelFlag, hasNoParallelBypass, hasAllFlag, isStateCommand)
-}
-
-// validateFilterFlags validates --include/--exclude flag usage.
-func (it *RunFromRootCommand) validateFilterFlags(
-	arguments []string,
-	hasParallelFlag, hasNoParallelBypass, hasAllFlag, isStateCommand bool,
-) {
-	hasIncludeFlag := HasIncludeFlag(arguments)
-	hasExcludeFlag := HasExcludeFlag(arguments)
-
-	if !hasIncludeFlag && !hasExcludeFlag {
-		return
-	}
-
-	it.validateFilterFlagValues(arguments, hasIncludeFlag, hasExcludeFlag)
-
-	// --include/--exclude require parallel execution context
-	if !hasParallelFlag && (!isStateCommand || !hasAllFlag) {
-		logger.Fatalf("Error: --include/--exclude flags require --parallel=N or state command with --all.")
-	}
-
-	// --include/--exclude are terra-specific and cannot be forwarded to terragrunt
-	if hasNoParallelBypass {
+	// --parallel and --all cannot be used together (competing execution strategies)
+	if hasParallelFlag && hasAllFlag {
 		logger.Fatalf(
-			"Error: --include/--exclude flags cannot be used with --no-parallel-bypass. " +
-				"These flags are handled by terra's parallel execution and cannot be forwarded to terragrunt.",
+			"Error: --parallel and --all cannot be used together. " +
+				"Use --parallel=N for terra's parallel execution, or --all for terragrunt's run-all.",
 		)
 	}
 
-	it.validateFilterFlagConflicts(arguments, hasIncludeFlag, hasExcludeFlag)
+	// --reply cannot be used with --parallel (terra's parallel doesn't use interactive repo)
+	if hasParallelFlag && hasReplyFlag {
+		logger.Fatalf(
+			"Error: --reply cannot be used with --parallel. " +
+				"Terra's parallel execution does not support interactive prompts.",
+		)
+	}
+
+	it.validateSelectionFlags(arguments, hasParallelFlag)
 }
 
-// validateFilterFlagValues ensures present --include/--exclude flags have non-empty values.
-func (it *RunFromRootCommand) validateFilterFlagValues(
-	arguments []string,
-	hasIncludeFlag, hasExcludeFlag bool,
-) {
-	if hasIncludeFlag {
-		if values, found := GetIncludeValues(arguments); !found || len(values) == 0 {
-			logger.Fatalf("Error: --include flag is present but has no values. " +
-				"Provide comma-separated module names, e.g. --include=mod1,mod2.")
+// validateDeprecatedFlags detects removed/renamed flags and exits with migration guidance.
+func (it *RunFromRootCommand) validateDeprecatedFlags(arguments []string) {
+	// Detect -a short flag (removed: collides with terragrunt's -a for --all)
+	for _, arg := range arguments {
+		if arg == DeprecatedAutoAnswerShortFlag || strings.HasPrefix(arg, DeprecatedAutoAnswerShortFlag+"=") {
+			logger.Fatalf(
+				"Error: the -a short flag has been removed (conflicts with terragrunt's -a for --all). " +
+					"Use --reply or -r instead. Example: --reply=y",
+			)
 		}
 	}
 
-	if hasExcludeFlag {
-		if values, found := GetExcludeValues(arguments); !found || len(values) == 0 {
-			logger.Fatalf("Error: --exclude flag is present but has no values. " +
-				"Provide comma-separated module names, e.g. --exclude=mod1,mod2.")
+	// Detect --auto-answer (renamed to --reply)
+	for _, arg := range arguments {
+		if arg == DeprecatedAutoAnswerFlag || strings.HasPrefix(arg, DeprecatedAutoAnswerFlag+"=") {
+			logger.Fatalf(
+				"Error: --auto-answer has been renamed to --reply. " +
+					"Use --reply or -r instead. Example: --reply=y",
+			)
 		}
+	}
+
+	// Detect --all with state commands (no longer intercepted by terra)
+	if HasAllFlag(arguments) && IsStateManipulationCommand(arguments) {
+		logger.Fatalf(
+			"Error: --all cannot be used with state commands (terragrunt does not support this). " +
+				"Use --parallel=5 instead. Example: terra import --parallel=5 <address> <id> <directory>",
+		)
+	}
+
+	// Detect --no-parallel-bypass (removed entirely)
+	if HasDeprecatedNoParallelBypassFlag(arguments) {
+		logger.Fatalf(
+			"Error: --no-parallel-bypass has been removed. " +
+				"Use terragrunt's --parallelism=N directly for terragrunt-managed parallelism.",
+		)
+	}
+
+	// Detect --include= (renamed to --only=)
+	if HasDeprecatedIncludeFlag(arguments) {
+		logger.Fatalf(
+			"Error: --include has been renamed to --only. " +
+				"Use --only=mod1,mod2 instead.",
+		)
+	}
+
+	// Detect --exclude= (renamed to --skip=)
+	if HasDeprecatedExcludeFlag(arguments) {
+		logger.Fatalf(
+			"Error: --exclude has been renamed to --skip. " +
+				"Use --skip=mod1,mod2 instead.",
+		)
 	}
 }
 
-// validateFilterFlagConflicts detects modules appearing in both --include and --exclude.
-func (it *RunFromRootCommand) validateFilterFlagConflicts(
-	arguments []string,
-	hasIncludeFlag, hasExcludeFlag bool,
-) {
-	if !hasIncludeFlag || !hasExcludeFlag {
+// validateSelectionFlags validates --only/--skip flag usage.
+func (it *RunFromRootCommand) validateSelectionFlags(arguments []string, hasParallelFlag bool) {
+	hasOnlyFlag := HasOnlyFlag(arguments)
+	hasSkipFlag := HasSkipFlag(arguments)
+
+	if !hasOnlyFlag && !hasSkipFlag {
 		return
 	}
 
-	includes, _ := GetIncludeValues(arguments)
-	excludes, _ := GetExcludeValues(arguments)
+	it.validateSelectionFlagValues(arguments, hasOnlyFlag, hasSkipFlag)
 
-	for _, inc := range includes {
-		for _, exc := range excludes {
-			if inc == exc {
+	// --only/--skip require --parallel=N
+	if !hasParallelFlag {
+		logger.Fatalf("Error: --only/--skip flags require --parallel=N.")
+	}
+
+	it.validateSelectionFlagConflicts(arguments, hasOnlyFlag, hasSkipFlag)
+}
+
+// validateSelectionFlagValues ensures present --only/--skip flags have non-empty values.
+func (it *RunFromRootCommand) validateSelectionFlagValues(
+	arguments []string,
+	hasOnlyFlag, hasSkipFlag bool,
+) {
+	if hasOnlyFlag {
+		if values, found := GetOnlyValues(arguments); !found || len(values) == 0 {
+			logger.Fatalf("Error: --only flag is present but has no values. " +
+				"Provide comma-separated module names, e.g. --only=mod1,mod2.")
+		}
+	}
+
+	if hasSkipFlag {
+		if values, found := GetSkipValues(arguments); !found || len(values) == 0 {
+			logger.Fatalf("Error: --skip flag is present but has no values. " +
+				"Provide comma-separated module names, e.g. --skip=mod1,mod2.")
+		}
+	}
+}
+
+// validateSelectionFlagConflicts detects modules appearing in both --only and --skip.
+func (it *RunFromRootCommand) validateSelectionFlagConflicts(
+	arguments []string,
+	hasOnlyFlag, hasSkipFlag bool,
+) {
+	if !hasOnlyFlag || !hasSkipFlag {
+		return
+	}
+
+	onlyValues, _ := GetOnlyValues(arguments)
+	skipValues, _ := GetSkipValues(arguments)
+
+	for _, only := range onlyValues {
+		for _, skip := range skipValues {
+			if only == skip {
 				logger.Fatalf(
-					"Error: module %q appears in both --include and --exclude. Remove it from one flag.", inc,
+					"Error: module %q appears in both --only and --skip. Remove it from one flag.", only,
 				)
 			}
 		}
 	}
 }
 
-// isParallelCommand checks if the command should be executed in parallel.
-// Returns true if:
-// 1. It's a state command with --all flag (backward compatibility)
-// 2. It has --parallel=N flag (new functionality for any command), UNLESS --no-parallel-bypass is present
-// If --no-parallel-bypass is present, --parallel flag will be forwarded to terragrunt instead.
+// isParallelCommand checks if the command should be executed in parallel by terra.
+// Returns true if --parallel=N flag is present.
 func (it *RunFromRootCommand) isParallelCommand(arguments []string) bool {
-	// Check if --no-parallel-bypass is present
-	hasNoParallelBypass := HasNoParallelBypassFlag(arguments)
-
-	// New: support parallel=N for any command, but only if --no-parallel-bypass is NOT present
-	if HasParallelFlag(arguments) && !hasNoParallelBypass {
-		return true
-	}
-	// Backward compatibility: state commands with --all flag (always handled by terra, regardless of --no-parallel-bypass)
-	return HasAllFlag(arguments) && IsStateManipulationCommand(arguments)
+	return HasParallelFlag(arguments)
 }
 
 // configureCacheEnvironment sets environment variables for centralized Terragrunt module
@@ -359,17 +376,17 @@ func (it *RunFromRootCommand) ConfigureCacheEnvironmentPublic() {
 	it.configureCacheEnvironment()
 }
 
-// HasAutoAnswerFlagPublic is a public wrapper for testing the private hasAutoAnswerFlag method.
-func (it *RunFromRootCommand) HasAutoAnswerFlagPublic(arguments []string) bool {
-	return it.hasAutoAnswerFlag(arguments)
+// HasReplyFlagPublic is a public wrapper for testing the private hasReplyFlag method.
+func (it *RunFromRootCommand) HasReplyFlagPublic(arguments []string) bool {
+	return it.hasReplyFlag(arguments)
 }
 
-// GetAutoAnswerValuePublic is a public wrapper for testing the private getAutoAnswerValue method.
-func (it *RunFromRootCommand) GetAutoAnswerValuePublic(arguments []string) string {
-	return it.getAutoAnswerValue(arguments)
+// GetReplyValuePublic is a public wrapper for testing the private getReplyValue method.
+func (it *RunFromRootCommand) GetReplyValuePublic(arguments []string) string {
+	return it.getReplyValue(arguments)
 }
 
-// RemoveAutoAnswerFlagPublic is a public wrapper for testing the private removeAutoAnswerFlag method.
-func (it *RunFromRootCommand) RemoveAutoAnswerFlagPublic(arguments []string) []string {
-	return it.removeAutoAnswerFlag(arguments)
+// RemoveReplyFlagPublic is a public wrapper for testing the private removeReplyFlag method.
+func (it *RunFromRootCommand) RemoveReplyFlagPublic(arguments []string) []string {
+	return it.removeReplyFlag(arguments)
 }
