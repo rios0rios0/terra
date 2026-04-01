@@ -16,9 +16,15 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
-### Changed
-- changed `--filter` flag to separate `--include` and `--exclude` flags for parallel execution, eliminating Bash shell escaping issues with the `!` exclusion prefix
+## [1.11.0] - 2026-04-01
+
+### Added
+
 - added validation for `--include`/`--exclude` flag combinations with `--parallel`, `--no-parallel-bypass`, and conflict detection
+
+### Changed
+
+- changed `--filter` flag to separate `--include` and `--exclude` flags for parallel execution, eliminating Bash shell escaping issues with the `!` exclusion prefix
 
 ## [1.10.1] - 2026-03-31
 
