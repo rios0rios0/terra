@@ -23,6 +23,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - added validation requiring `--reply=<value>` (with explicit value) when used with `--all`, since the PTY auto-answering needs to know whether to respond "y" or "n"
 - added documentation for the Git `refs/files-backend.c` race condition that occurs during parallel execution with shared dependencies, including root cause analysis and workarounds
 
+### Changed
+
+- changed `cliforge` import paths to reflect upstream package restructuring
+
 ### Fixed
 
 - fixed parallel module discovery descending into `.terragrunt-cache` and other hidden directories, which caused hundreds of cached dependency modules to be processed as actual targets
