@@ -54,9 +54,15 @@ func (it *ParallelStateCommand) findSubdirectories(rootPath string) ([]string, e
 			return nil
 		}
 
-		// Skip hidden directories and the root directory itself
-		if strings.HasPrefix(d.Name(), ".") || path == rootPath {
+		// Skip the root directory itself (continue walking its children)
+		if path == rootPath {
 			return nil
+		}
+
+		// Skip hidden directories entirely (e.g., .terragrunt-cache, .terraform)
+		// to avoid processing cached dependency modules as actual targets.
+		if strings.HasPrefix(d.Name(), ".") {
+			return filepath.SkipDir
 		}
 
 		// Check if directory contains terraform files
@@ -283,10 +289,15 @@ func (it *ParallelStateCommand) executeInParallel(
 	hadReplyFlag := HasReplyFlag(arguments)
 	filteredArguments := it.removeParallelFlags(arguments)
 
-	// When --reply was provided, inject --non-interactive so terragrunt skips prompts
-	// in each worker (parallel workers cannot handle stdin prompts)
+	// When --reply was provided, inject flags so workers don't prompt:
+	// --non-interactive: tells terragrunt to skip its own prompts (e.g., "run-all" confirmations)
+	// -auto-approve: tells terraform to skip the "Do you want to perform these actions?" confirmation
+	//                (TF_INPUT=false from --non-interactive only suppresses variable input, not apply confirmation)
 	if hadReplyFlag {
 		filteredArguments = append(filteredArguments, "--non-interactive")
+		if IsInteractiveCommand(arguments) {
+			filteredArguments = append(filteredArguments, "-auto-approve")
+		}
 	}
 
 	executeErrors := it.runWorkers(modules, filteredArguments, maxJobs)

@@ -18,7 +18,14 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
-- added `--reply` requirement when using `--parallel` with `apply` or `destroy` to prevent workers from hanging on interactive prompts; when `--reply` is set, parallel workers run in non-interactive mode (using `--non-interactive`) instead of waiting for user input
+- added `--reply` requirement when using `--parallel` with `apply` or `destroy` to prevent workers from hanging on interactive prompts; for terra-managed parallel, just `--reply` (no value) is sufficient since terra always injects `--non-interactive` when `--reply` is present and adds `-auto-approve` automatically for interactive commands like `apply` and `destroy`
+- added warning when `--reply=<value>` is used with `--parallel`, informing the user the value is ignored and only meaningful with `--all` (terragrunt-managed parallelism)
+- added validation requiring `--reply=<value>` (with explicit value) when used with `--all`, since the PTY auto-answering needs to know whether to respond "y" or "n"
+
+### Fixed
+
+- fixed parallel module discovery descending into `.terragrunt-cache` and other hidden directories, which caused hundreds of cached dependency modules to be processed as actual targets
+- fixed parallel `apply`/`destroy` with `--reply` not injecting `-auto-approve`, causing terraform to prompt for confirmation and hang workers
 
 ### Changed
 
