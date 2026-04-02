@@ -187,7 +187,7 @@ terra apply --all --filter="region-us-east" /path/to/infrastructure
 
 > **Note:** `--parallel` and `--all` cannot be used together -- they represent competing execution strategies.
 
-For comprehensive documentation, see [docs/parallel-execution.md](docs/parallel-execution.md).
+For comprehensive documentation, see [docs/parallel-execution.md](docs/parallel-execution.md). If you encounter Git clone errors (`BUG: refs/files-backend.c`) during parallel execution, see [docs/parallel-git-clone-race.md](docs/parallel-git-clone-race.md).
 
 ### Version Management
 
