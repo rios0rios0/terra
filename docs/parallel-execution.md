@@ -116,7 +116,7 @@ terra apply --all --parallelism=4 --filter="region-us-east" /path/to/infrastruct
 
 ## Interactive Commands Require `--reply`
 
-When using `--parallel` with `apply` or `destroy`, you **must** provide `--reply` because parallel workers cannot share a single stdin for interactive prompts. Terra automatically injects `--non-interactive` and `-auto-approve` for each worker, so **just `--reply` without a value is sufficient** -- the value is ignored in terra-managed parallel mode.
+When using `--parallel` with `apply` or `destroy`, you **must** provide `--reply` because parallel workers cannot share a single stdin for interactive prompts. In this mode, Terra automatically injects `--non-interactive` for each worker, and also adds `-auto-approve` for interactive commands like `apply` and `destroy`, so **just `--reply` without a value is sufficient** -- the value is ignored in terra-managed parallel mode.
 
 ```bash
 # ERROR: apply prompts for confirmation, but parallel workers can't share stdin

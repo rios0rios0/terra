@@ -456,6 +456,8 @@ func TestHasExplicitReplyValue(t *testing.T) {
 		{"should return true for --reply=y", []string{"apply", "--reply=y"}, true},
 		{"should return true for -r=n", []string{"apply", "-r=n"}, true},
 		{"should return true for --reply=custom", []string{"apply", "--reply=custom"}, true},
+		{"should return false for empty --reply=", []string{"apply", "--reply="}, false},
+		{"should return false for empty -r=", []string{"apply", "-r="}, false},
 		{"should return false when absent", []string{"apply"}, false},
 		{"should return false for empty arguments", []string{}, false},
 	}

@@ -278,7 +278,7 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		var foundWarning bool
 		for _, entry := range hook.Entries {
 			if entry.Level == logger.WarnLevel &&
-				assert.ObjectsAreEqual("The --reply value is ignored for terra-managed parallel execution (--parallel). It is only used with --all for terragrunt-managed parallelism. Just --reply without a value is sufficient.", entry.Message) {
+				assert.ObjectsAreEqual("The --reply value is ignored for terra-managed parallel execution (--parallel). It is only used with --all for terragrunt-managed parallelism, where the PTY uses the value to answer prompts. Just --reply without a value is sufficient when using --parallel.", entry.Message) {
 				foundWarning = true
 			}
 		}

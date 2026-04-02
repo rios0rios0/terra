@@ -145,13 +145,14 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 	}
 
 	// Warn when --reply has an explicit value with --parallel: the value is ignored
-	// because terra injects --non-interactive and -auto-approve. The value is only
-	// meaningful with --all (terragrunt-managed parallelism) where the PTY uses it.
+	// for terra-managed parallel execution. The value is only meaningful with
+	// --all (terragrunt-managed parallelism) where the PTY uses it.
 	if hasParallelFlag && HasExplicitReplyValue(arguments) {
 		logger.Warnf(
 			"The --reply value is ignored for terra-managed parallel execution (--parallel). " +
-				"It is only used with --all for terragrunt-managed parallelism. " +
-				"Just --reply without a value is sufficient.",
+				"It is only used with --all for terragrunt-managed parallelism, where the PTY " +
+				"uses the value to answer prompts. Just --reply without a value is sufficient " +
+				"when using --parallel.",
 		)
 	}
 
