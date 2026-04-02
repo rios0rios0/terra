@@ -188,3 +188,4 @@ terra plan --parallel=4 /path/to/infrastructure
 - When using `--parallel=N`, Terra automatically handles parallel execution for **all commands**, including state commands.
 - Regular Terragrunt commands with `--all` (like `plan --all`, `apply --all`) are forwarded to Terragrunt's native implementation and are not handled by Terra's parallel execution.
 - `--parallel=N` and `--all` cannot be used together.
+- When modules share Terragrunt dependencies, concurrent `terraform init` may trigger a Git ref backend race condition. See [parallel-git-clone-race.md](parallel-git-clone-race.md) for details and workarounds.
