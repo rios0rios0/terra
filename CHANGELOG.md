@@ -21,6 +21,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - added `--reply` requirement when using `--parallel` with `apply` or `destroy` to prevent workers from hanging on interactive prompts; for terra-managed parallel, just `--reply` (no value) is sufficient since terra always injects `--non-interactive` when `--reply` is present and adds `-auto-approve` automatically for interactive commands like `apply` and `destroy`
 - added warning when `--reply=<value>` is used with `--parallel`, informing the user the value is ignored and only meaningful with `--all` (terragrunt-managed parallelism)
 - added validation requiring `--reply=<value>` (with explicit value) when used with `--all`, since the PTY auto-answering needs to know whether to respond "y" or "n"
+- added documentation for the Git `refs/files-backend.c` race condition that occurs during parallel execution with shared dependencies, including root cause analysis and workarounds
 
 ### Fixed
 
