@@ -248,6 +248,134 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
 		assert.Contains(t, lastEntry.Message, "--reply is required when using --parallel with apply or destroy")
 	})
+
+	t.Run("should warn when --reply has explicit value with --parallel", func(t *testing.T) {
+		// GIVEN: Arguments containing --parallel with --reply=y (explicit value)
+		hook, cleanup := setupFatalInterceptor()
+		defer cleanup()
+
+		parallelState := &commanddoubles.StubParallelState{}
+		cmd := commands.NewRunFromRootCommand(
+			entitybuilders.NewSettingsBuilder().
+				WithTerraModuleCacheDir("/tmp/terra-test-modules").
+				WithTerraProviderCacheDir("/tmp/terra-test-providers").
+				BuildSettings(),
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			parallelState,
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+		arguments := []string{"apply", "--parallel=2", "--reply=y"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute("/test/path", arguments, dependencies)
+
+		// THEN: Should log a warning about the reply value being ignored
+		var foundWarning bool
+		for _, entry := range hook.Entries {
+			if entry.Level == logger.WarnLevel &&
+				assert.ObjectsAreEqual("The --reply value is ignored for terra-managed parallel execution (--parallel). It is only used with --all for terragrunt-managed parallelism. Just --reply without a value is sufficient.", entry.Message) {
+				foundWarning = true
+			}
+		}
+		assert.True(t, foundWarning, "Should log a warning about --reply value being ignored")
+		assert.True(t, parallelState.ExecuteCalled, "Should still proceed to parallel execution")
+	})
+
+	t.Run("should not warn when --reply has no value with --parallel", func(t *testing.T) {
+		// GIVEN: Arguments containing --parallel with --reply (boolean form, no value)
+		hook, cleanup := setupFatalInterceptor()
+		defer cleanup()
+
+		parallelState := &commanddoubles.StubParallelState{}
+		cmd := commands.NewRunFromRootCommand(
+			entitybuilders.NewSettingsBuilder().
+				WithTerraModuleCacheDir("/tmp/terra-test-modules").
+				WithTerraProviderCacheDir("/tmp/terra-test-providers").
+				BuildSettings(),
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			parallelState,
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+		arguments := []string{"apply", "--parallel=2", "--reply"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute("/test/path", arguments, dependencies)
+
+		// THEN: Should not log any warning about reply value
+		for _, entry := range hook.Entries {
+			if entry.Level == logger.WarnLevel {
+				assert.NotContains(t, entry.Message, "--reply value is ignored",
+					"Should not warn when --reply has no explicit value")
+			}
+		}
+		assert.True(t, parallelState.ExecuteCalled, "Should proceed to parallel execution")
+	})
+
+	t.Run("should fatalf when --all is used with --reply without explicit value", func(t *testing.T) {
+		// GIVEN: Arguments containing --all with --reply (boolean form, no explicit value)
+		hook, cleanup := setupFatalInterceptor()
+		defer cleanup()
+		cmd := newRunFromRootForValidation()
+		arguments := []string{"apply", "--all", "--reply"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute("/test/path", arguments, dependencies)
+
+		// THEN: Should log a fatal error requiring an explicit value
+		// (execution continues after intercepted Fatalf, so search all entries)
+		var foundFatal bool
+		for _, entry := range hook.Entries {
+			if entry.Level == logger.FatalLevel {
+				assert.Contains(t, entry.Message, "--reply requires an explicit value when used with --all")
+				foundFatal = true
+				break
+			}
+		}
+		assert.True(t, foundFatal, "Should have logged a fatal error about --reply requiring an explicit value")
+	})
+
+	t.Run("should not fatalf when --all is used with --reply=y", func(t *testing.T) {
+		// GIVEN: Arguments containing --all with --reply=y (explicit value)
+		hook, cleanup := setupFatalInterceptor()
+		defer cleanup()
+
+		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
+		cmd := commands.NewRunFromRootCommand(
+			entitybuilders.NewSettingsBuilder().
+				WithTerraModuleCacheDir("/tmp/terra-test-modules").
+				WithTerraProviderCacheDir("/tmp/terra-test-providers").
+				BuildSettings(),
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
+			interactiveRepository,
+		)
+		arguments := []string{"apply", "--all", "--reply=y"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute("/test/path", arguments, dependencies)
+
+		// THEN: Should not log any fatal error (--all with explicit --reply=y is valid)
+		for _, entry := range hook.Entries {
+			assert.NotEqual(t, logger.FatalLevel, entry.Level,
+				"Should not produce a fatal log entry for --all with --reply=y")
+		}
+	})
 }
 
 func TestRunFromRootCommand_validateSelectionFlags(t *testing.T) {

@@ -140,7 +140,28 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 	if hasParallelFlag && IsInteractiveCommand(arguments) && !HasReplyFlag(arguments) {
 		logger.Fatalf(
 			"Error: --reply is required when using --parallel with apply or destroy. " +
-				"Parallel workers cannot handle interactive prompts. Example: --reply=y",
+				"Parallel workers cannot handle interactive prompts. Example: --reply",
+		)
+	}
+
+	// Warn when --reply has an explicit value with --parallel: the value is ignored
+	// because terra injects --non-interactive and -auto-approve. The value is only
+	// meaningful with --all (terragrunt-managed parallelism) where the PTY uses it.
+	if hasParallelFlag && HasExplicitReplyValue(arguments) {
+		logger.Warnf(
+			"The --reply value is ignored for terra-managed parallel execution (--parallel). " +
+				"It is only used with --all for terragrunt-managed parallelism. " +
+				"Just --reply without a value is sufficient.",
+		)
+	}
+
+	// --reply requires an explicit value when used with --all (terragrunt-managed parallelism)
+	// because the PTY auto-answering needs to know whether to respond "y" or "n".
+	if hasAllFlag && HasReplyFlag(arguments) && !HasExplicitReplyValue(arguments) {
+		logger.Fatalf(
+			"Error: --reply requires an explicit value when used with --all " +
+				"(e.g., --reply=y or --reply=n). The value is used to auto-answer " +
+				"terragrunt prompts in terragrunt-managed parallelism.",
 		)
 	}
 

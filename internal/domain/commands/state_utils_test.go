@@ -443,6 +443,31 @@ func TestRemoveReplyFlag(t *testing.T) {
 	}
 }
 
+func TestHasExplicitReplyValue(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  bool
+	}{
+		{"should return false for boolean --reply", []string{"apply", "--reply"}, false},
+		{"should return false for boolean -r", []string{"apply", "-r"}, false},
+		{"should return true for --reply=y", []string{"apply", "--reply=y"}, true},
+		{"should return true for -r=n", []string{"apply", "-r=n"}, true},
+		{"should return true for --reply=custom", []string{"apply", "--reply=custom"}, true},
+		{"should return false when absent", []string{"apply"}, false},
+		{"should return false for empty arguments", []string{}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.HasExplicitReplyValue(tt.arguments))
+		})
+	}
+}
+
 func TestGetReplyValue(t *testing.T) {
 	t.Parallel()
 
