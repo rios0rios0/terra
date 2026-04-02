@@ -138,25 +138,23 @@ The `--reply` (or `-r`) flag enables automatic responses to Terragrunt prompts, 
 - Switches to manual mode for confirmation prompts (like "Are you sure you want to run...")
 - Filters out the reply flag before passing arguments to Terragrunt
 
-**Usage Options:**
-- `--reply` or `-r` - Boolean flag (defaults to "n" for backward compatibility)
-- `--reply=y` or `-r=y` - Explicitly answer "y" to prompts
-- `--reply=n` or `-r=n` - Explicitly answer "n" to prompts
+**Usage with `--all` (terragrunt-managed parallelism):** requires an explicit value (`--reply=y` or `--reply=n`) because the PTY auto-answering needs to know how to respond.
 
-**Example:**
 ```bash
-# Without reply - requires manual input for each prompt
-terra apply --all /path
-
-# With boolean reply - automatically answers "n" (backward compatible)
-terra --reply apply --all /path
-
 # With explicit "y" answer - automatically answers "y" to prompts
 terra --reply=y apply --all /path
 
 # Short form syntax
 terra -r=y apply --all /path
 terra -r=n plan --all /path
+```
+
+**Usage with `--parallel` (terra-managed parallelism):** just `--reply` (no value) is sufficient. Terra injects `--non-interactive` and `-auto-approve` automatically; the value is ignored.
+
+```bash
+# Just --reply is enough for terra-managed parallel
+terra apply --parallel=4 --reply /path
+terra destroy --parallel=4 -r /path
 ```
 
 ### Parallel Execution

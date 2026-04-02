@@ -119,6 +119,32 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute only 1 command (hidden dir skipped)")
 	})
 
+	t.Run("should not descend into .terragrunt-cache and discover cached dependencies", func(t *testing.T) {
+		// GIVEN: A directory with a real module and a .terragrunt-cache containing cached dependency modules
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"plan", "--parallel=2"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"real_module"})
+
+		// Simulate .terragrunt-cache structure with nested dependency modules
+		cacheBase := tempDir + "/.terragrunt-cache/hashA/hashB/environments/01_shared"
+		require.NoError(t, mkdir(cacheBase+"/01_tfstate"))
+		require.NoError(t, writeFile(cacheBase+"/01_tfstate/main.tf", "resource \"null_resource\" \"cached\" {}"))
+		require.NoError(t, mkdir(cacheBase+"/02_common"))
+		require.NoError(t, writeFile(cacheBase+"/02_common/main.tf", "resource \"null_resource\" \"cached\" {}"))
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should only find the real module, not the cached dependencies
+		require.NoError(t, err)
+		assert.Equal(t, 1, repository.ExecuteCallCount, "Should execute only 1 command (cached deps skipped)")
+	})
+
 	t.Run("should skip directories without terraform files", func(t *testing.T) {
 		// GIVEN: A directory with one tf module and one non-tf directory
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
@@ -379,8 +405,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		}
 	})
 
-	t.Run("should strip --reply flag and inject --non-interactive when reply present", func(t *testing.T) {
-		// GIVEN: A parallel state command with --reply=y flag
+	t.Run("should strip --reply flag and inject --non-interactive and -auto-approve for apply", func(t *testing.T) {
+		// GIVEN: A parallel state command with --reply=y flag on an apply command
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
 		arguments := []string{"apply", "--parallel=2", "--reply=y"}
@@ -393,7 +419,7 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		// WHEN: Executing the command
 		err := cmd.Execute(tempDir, arguments, dependencies)
 
-		// THEN: Should strip --reply and inject --non-interactive
+		// THEN: Should strip --reply and inject both --non-interactive and -auto-approve
 		require.NoError(t, err)
 		require.NotEmpty(t, repository.CallHistory)
 		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
@@ -401,6 +427,29 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 			assert.NotContains(t, arg, "--reply", "Should not pass --reply flag to terragrunt")
 		}
 		assert.Contains(t, lastCall.Arguments, "--non-interactive", "Should inject --non-interactive when --reply was present")
+		assert.Contains(t, lastCall.Arguments, "-auto-approve", "Should inject -auto-approve for apply commands")
+	})
+
+	t.Run("should inject --non-interactive but not -auto-approve for plan with --reply", func(t *testing.T) {
+		// GIVEN: A parallel state command with --reply=y flag on a plan command (non-interactive)
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"plan", "--parallel=2", "--reply=y"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should inject --non-interactive but NOT -auto-approve (plan doesn't need it)
+		require.NoError(t, err)
+		require.NotEmpty(t, repository.CallHistory)
+		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
+		assert.Contains(t, lastCall.Arguments, "--non-interactive", "Should inject --non-interactive")
+		assert.NotContains(t, lastCall.Arguments, "-auto-approve", "Should not inject -auto-approve for plan")
 	})
 
 	t.Run("should not inject --non-interactive when reply not present", func(t *testing.T) {

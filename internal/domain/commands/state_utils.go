@@ -271,6 +271,18 @@ func GetReplyValue(arguments []string) string {
 	return ""
 }
 
+// HasExplicitReplyValue returns true when --reply=<value> or -r=<value> form is used
+// (i.e., an explicit value was provided). Returns false for the boolean form (--reply / -r).
+func HasExplicitReplyValue(arguments []string) bool {
+	for _, arg := range arguments {
+		if strings.HasPrefix(arg, ReplyFlag+"=") ||
+			strings.HasPrefix(arg, ReplyShortFlag+"=") {
+			return true
+		}
+	}
+	return false
+}
+
 // RemoveReplyFlag removes --reply, -r, --reply=<value>, and -r=<value> from arguments.
 func RemoveReplyFlag(arguments []string) []string {
 	var filtered []string

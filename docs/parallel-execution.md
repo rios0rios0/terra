@@ -116,21 +116,23 @@ terra apply --all --parallelism=4 --filter="region-us-east" /path/to/infrastruct
 
 ## Interactive Commands Require `--reply`
 
-When using `--parallel` with `apply` or `destroy`, you **must** provide `--reply` because parallel workers cannot share a single stdin for interactive prompts. In terra-managed parallel mode, the presence of `--reply` causes terragrunt to run in **non-interactive** mode (`--non-interactive`) for each worker, so prompts are skipped automatically.
+When using `--parallel` with `apply` or `destroy`, you **must** provide `--reply` because parallel workers cannot share a single stdin for interactive prompts. Terra automatically injects `--non-interactive` and `-auto-approve` for each worker, so **just `--reply` without a value is sufficient** -- the value is ignored in terra-managed parallel mode.
 
 ```bash
 # ERROR: apply prompts for confirmation, but parallel workers can't share stdin
 terra apply --parallel=4 /path/to/infrastructure
 
-# CORRECT: run apply in parallel with non-interactive mode
-terra apply --parallel=4 --reply=y /path/to/infrastructure
+# CORRECT: just --reply (no value needed) is enough for terra-managed parallel
+terra apply --parallel=4 --reply /path/to/infrastructure
 
 # Short form
-terra destroy --parallel=4 -r=y /path/to/infrastructure
+terra destroy --parallel=4 -r /path/to/infrastructure
 
 # OK: plan never prompts, so --reply is not required
 terra plan --parallel=4 /path/to/infrastructure
 ```
+
+> **Note:** The `--reply` value (e.g., `--reply=y`) is only meaningful with `--all` (terragrunt-managed parallelism), where the PTY uses it to auto-answer prompts. With `--parallel`, the value is ignored and a warning is shown if provided.
 
 ## Supported Commands
 
