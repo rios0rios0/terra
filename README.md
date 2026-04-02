@@ -103,15 +103,11 @@ terra plan --all /path/to/module
 # or using Terraform approach, plan just the "module" subdirectory inside "to"
 terra plan /path/to/module
 
-# with auto-replying to avoid manual prompts (defaults to "n" for backward compatibility)
-terra --reply apply --all /path
-terra -r plan --all /path/to
-
-# with explicit "y" responses to prompts
+# with auto-replying "y" to avoid manual prompts
 terra --reply=y apply --all /path
 terra -r=y plan --all /path/to
 
-# with explicit "n" responses to prompts
+# with auto-replying "n" to reject prompts
 terra --reply=n apply --all /path
 terra -r=n plan --all /path/to
 ```
@@ -149,7 +145,7 @@ terra -r=y apply --all /path
 terra -r=n plan --all /path
 ```
 
-**Usage with `--parallel` (terra-managed parallelism):** just `--reply` (no value) is sufficient. Terra injects `--non-interactive` and `-auto-approve` automatically; the value is ignored.
+**Usage with `--parallel` (terra-managed parallelism):** just `--reply` (no value) is sufficient. Terra always injects `--non-interactive` when `--reply` is present, and adds `-auto-approve` automatically for interactive commands like `apply` and `destroy`; the reply value is ignored in this mode.
 
 ```bash
 # Just --reply is enough for terra-managed parallel
