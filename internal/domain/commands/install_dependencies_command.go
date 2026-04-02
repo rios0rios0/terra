@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rios0rios0/cliforge/selfupdate"
+	"github.com/rios0rios0/cliforge/pkg/selfupdate"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
 )
