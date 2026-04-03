@@ -16,27 +16,26 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.12.0] - 2026-04-03
+
 ### Added
 
 - added `--reply` requirement when using `--parallel` with `apply` or `destroy` to prevent workers from hanging on interactive prompts; for terra-managed parallel, just `--reply` (no value) is sufficient since terra always injects `--non-interactive` when `--reply` is present and adds `-auto-approve` automatically for interactive commands like `apply` and `destroy`
-- added warning when `--reply=<value>` is used with `--parallel`, informing the user the value is ignored and only meaningful with `--all` (terragrunt-managed parallelism)
-- added validation requiring `--reply=<value>` (with explicit value) when used with `--all`, since the PTY auto-answering needs to know whether to respond "y" or "n"
 - added documentation for the Git `refs/files-backend.c` race condition that occurs during parallel execution with shared dependencies, including root cause analysis and workarounds
+- added validation requiring `--reply=<value>` (with explicit value) when used with `--all`, since the PTY auto-answering needs to know whether to respond "y" or "n"
+- added warning when `--reply=<value>` is used with `--parallel`, informing the user the value is ignored and only meaningful with `--all` (terragrunt-managed parallelism)
 
 ### Changed
 
+- changed `--all` flag to always forward to terragrunt (no longer intercepted by terra for state commands); use `--parallel=5` instead for terra-managed parallel state operations
+- changed `--include` flag to `--only` and `--exclude` flag to `--skip` for terra's parallel module selection, eliminating name collisions with terragrunt's own `--include`/`--exclude` flags
 - changed `cliforge` import paths to reflect upstream package restructuring
+- changed self-update command to delegate to `cliforge/selfupdate` shared library, removing ~300 lines of duplicated GitHub API, archive extraction, and binary replacement logic
 
 ### Fixed
 
-- fixed parallel module discovery descending into `.terragrunt-cache` and other hidden directories, which caused hundreds of cached dependency modules to be processed as actual targets
 - fixed parallel `apply`/`destroy` with `--reply` not injecting `-auto-approve`, causing terraform to prompt for confirmation and hang workers
-
-### Changed
-
-- changed `--include` flag to `--only` and `--exclude` flag to `--skip` for terra's parallel module selection, eliminating name collisions with terragrunt's own `--include`/`--exclude` flags
-- changed `--all` flag to always forward to terragrunt (no longer intercepted by terra for state commands); use `--parallel=5` instead for terra-managed parallel state operations
-- changed self-update command to delegate to `cliforge/selfupdate` shared library, removing ~300 lines of duplicated GitHub API, archive extraction, and binary replacement logic
+- fixed parallel module discovery descending into `.terragrunt-cache` and other hidden directories, which caused hundreds of cached dependency modules to be processed as actual targets
 
 ### Removed
 
