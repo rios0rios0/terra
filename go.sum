@@ -32,8 +32,8 @@ github.com/leodido/go-urn v1.4.0/go.mod h1:bvxc+MVxLKB4z00jd1z+Dvzr47oO32F/QSNjS
 github.com/pkg/diff v0.0.0-20210226163009-20ebb0f2a09e/go.mod h1:pJLUxLENpZxwdsKMEsNbx1VGcRFpLqf3715MtcvvzbA=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/rios0rios0/cliforge v0.1.1-0.20260402173400-cd7225c728db h1:uplUAe01ckRMX7GzquWtdmnYweYLh0yLr7UFZfjQ2nI=
-github.com/rios0rios0/cliforge v0.1.1-0.20260402173400-cd7225c728db/go.mod h1:xqHRf5C15as2KOOTXdyNZQnfExtXOpSkRljkhZ4hVsQ=
+github.com/rios0rios0/cliforge v0.2.1-0.20260404230949-b9683f7eded2 h1:cRuv/NTZ7B7UzTzO3JQy8VQlYxo45xC0RPhnVN6Ar7k=
+github.com/rios0rios0/cliforge v0.2.1-0.20260404230949-b9683f7eded2/go.mod h1:Ma0C18zImHW305Ezt+XCsmUmtSj3BM1mcBk7G5lttv0=
 github.com/rios0rios0/testkit v0.1.1 h1:EIMz9S2fo+19ESdQ7FL8bUap0Xf7Z2zlbgV6gnuHtd4=
 github.com/rios0rios0/testkit v0.1.1/go.mod h1:4yNptfPTrFn1TzsvZIvQjIia4PMl8hH8u+dqnLopmQA=
 github.com/rogpeppe/go-internal v1.9.0/go.mod h1:WtVeX8xhTBvf0smdhujwtBcq4Qrzq/fJaraNFVN+nFs=

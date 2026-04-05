@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/rios0rios0/cliforge/pkg/selfupdate"
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
@@ -124,6 +125,8 @@ func main() {
 	// all other commands are added as subcommands
 	appContext := injectAppContext()
 	addSubcommands(cobraRoot, appContext)
+
+	selfupdate.NewCommand("rios0rios0", "terra", "terra", commands.TerraVersion).CheckForUpdates()
 
 	err = cobraRoot.Execute()
 	if err != nil {
