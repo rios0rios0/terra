@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/rios0rios0/cliforge/pkg/selfupdate"
 	"github.com/rios0rios0/terra/internal/domain/commands"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
@@ -16,6 +17,20 @@ import (
 
 var version = "dev"
 
+// runUpdateCheck queries the cliforge selfupdate command for a newer version,
+// skipping local dev builds and the self-update / version subcommands to avoid
+// redundant GitHub API calls and noisy warnings.
+func runUpdateCheck(command *cobra.Command) {
+	if commands.TerraVersion == "dev" {
+		return
+	}
+	switch command.Name() {
+	case "self-update", "version":
+		return
+	}
+	selfupdate.NewCommand("rios0rios0", "terra", "terra", commands.TerraVersion).CheckForUpdates()
+}
+
 // buildRootCommand creates and configures the root cobra command.
 func buildRootCommand(rootController entities.Controller, enableFlagParsing bool) *cobra.Command {
 	bind := rootController.GetBind()
@@ -24,6 +39,9 @@ func buildRootCommand(rootController entities.Controller, enableFlagParsing bool
 		Use:   bind.Use,
 		Short: bind.Short,
 		Long:  bind.Long,
+		PersistentPreRun: func(command *cobra.Command, _ []string) {
+			runUpdateCheck(command)
+		},
 		Run: func(command *cobra.Command, arguments []string) {
 			rootController.Execute(command, arguments)
 		},
