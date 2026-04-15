@@ -8,6 +8,8 @@ Terra is a Go CLI tool that wraps Terraform and Terragrunt, providing simplified
 
 ## Build & Development Commands
 
+Requires Go 1.26+ (see `go.mod`). Make targets include `$(SCRIPTS_DIR)/makefiles/{common,golang}.mk` from the [pipelines](https://github.com/rios0rios0/pipelines) project — defaults to `$HOME/Development/github.com/rios0rios0/pipelines`, override with `SCRIPTS_DIR=...`.
+
 ```bash
 make build              # Build binary to bin/terra (stripped, ~15-20s)
 make install            # Build and copy to ~/.local/bin/terra
@@ -27,6 +29,11 @@ go vet ./...
 # Run tests by category
 go test -tags unit ./...         # Unit tests only
 go test -tags integration ./...  # Integration tests only
+
+# Run a single test / subtest (pass the build tag the file declares)
+go test -tags unit ./internal/domain/commands -run TestRunFromRootCommand_Execute
+go test -tags unit ./internal/domain/commands -run 'TestRunFromRootCommand_Execute/should_error_when.*'
+go test -tags unit -v -run TestParallelStateCommand_Execute ./internal/domain/commands
 ```
 
 Never call tool binaries directly — always use Makefile targets which load correct configs from the pipelines project.
@@ -74,6 +81,8 @@ test/                  # Test helpers only (never in production folders)
 - **Parallel execution (terragrunt-managed):** `--all`, `--parallelism=N`, and `--filter=query` are forwarded to terragrunt as-is. Filter modules on this path with terragrunt's `--filter='!mod'` (preferred) or `--queue-exclude-dir=mod`. `--parallel` and `--all` cannot be combined.
 - **Selection-flag errors are educational:** Using `--only`/`--skip` without `--parallel` is fatal; the error echoes the user's command and prints both valid forms (`--parallel=5 --skip=mod` AND `--all --filter='!mod'`). Using terragrunt's `--filter`/`--queue-exclude-dir`/`--queue-include-dir` with `--parallel` is non-fatal; it logs a warning because terra's worker pool silently ignores those flags. When editing validation, update `BuildSelectionFlagsError` / `BuildParallelAllConflictError` in `internal/domain/commands/run_from_root_error_builders.go`, not the call sites in `run_from_root_command.go`.
 - **Reply:** `--reply=<value>` (or `-r=<value>`) uses `creack/pty` for PTY-based prompt automation
+
+Deep-dive docs for the parallel subsystem live in `docs/parallel-execution.md` and `docs/parallel-git-clone-race.md` — read these before touching worker-pool, filter, or git-clone-race logic.
 
 ## Testing Conventions
 
