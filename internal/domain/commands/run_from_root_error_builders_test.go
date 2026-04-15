@@ -161,6 +161,100 @@ func TestBuildSelectionFlagsError(t *testing.T) {
 		// THEN: The error points at the documentation
 		assert.Contains(t, message, "docs/parallel-execution.md")
 	})
+
+	t.Run("should preserve 'state rm' in suggestions for state commands", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A state rm invocation with --skip (two-word subcommand)
+		arguments := []string{"state", "rm", "--skip=mod1", "null_resource.foo"}
+		targetPath := "/infra"
+
+		// WHEN: Building the error
+		message := commands.BuildSelectionFlagsError(arguments, targetPath)
+
+		// THEN: Both suggestions preserve the full "state rm" prefix so the
+		// user can copy-paste them without producing broken syntax
+		assert.Contains(t, message, "terra state rm --parallel=5 --skip=mod1 /infra")
+		assert.Contains(t, message, "terra state rm --all --filter='!mod1' /infra")
+	})
+
+	t.Run("should preserve 'state mv' in suggestions for state commands", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A state mv invocation with --skip
+		arguments := []string{"state", "mv", "--only=mod1"}
+		targetPath := "/infra"
+
+		// WHEN: Building the error
+		message := commands.BuildSelectionFlagsError(arguments, targetPath)
+
+		// THEN: Both suggestions include "state mv"
+		assert.Contains(t, message, "terra state mv --parallel=5 --only=mod1 /infra")
+		assert.Contains(t, message, "terra state mv --all --filter='mod1' /infra")
+	})
+
+	t.Run("should redact -var secret values in the echoed command", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A command that passes a sensitive -var flag alongside --skip
+		arguments := []string{"apply", "--all", "-var=db_password=s3cret", "--skip=mod1"}
+		targetPath := "/infra"
+
+		// WHEN: Building the error
+		message := commands.BuildSelectionFlagsError(arguments, targetPath)
+
+		// THEN: The echoed command does not contain the secret, but still keeps
+		// the structure so the user can see what they typed
+		assert.NotContains(t, message, "s3cret")
+		assert.Contains(t, message, "-var=<redacted>")
+		assert.Contains(
+			t,
+			message,
+			"You used: terra apply --all -var=<redacted> --skip=mod1 /infra",
+		)
+	})
+
+	t.Run("should redact space-separated -var secret values", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A command that uses the space-separated -var form
+		arguments := []string{"apply", "--all", "-var", "db_password=s3cret", "--skip=mod1"}
+		targetPath := "/infra"
+
+		// WHEN: Building the error
+		message := commands.BuildSelectionFlagsError(arguments, targetPath)
+
+		// THEN: The token after -var is redacted, not the flag itself
+		assert.NotContains(t, message, "s3cret")
+		assert.Contains(t, message, "-var <redacted>")
+	})
+
+	t.Run("should redact -backend-config secret values", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A command that passes a sensitive -backend-config flag
+		arguments := []string{
+			"apply", "--all",
+			"-backend-config=access_key=AKIA1234", "--skip=mod1",
+		}
+		targetPath := "/infra"
+
+		// WHEN: Building the error
+		message := commands.BuildSelectionFlagsError(arguments, targetPath)
+
+		// THEN: The access key is redacted
+		assert.NotContains(t, message, "AKIA1234")
+		assert.Contains(t, message, "-backend-config=<redacted>")
+	})
+
+	t.Run("should NOT redact -var-file paths", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A command that passes -var-file (a filename, not a secret)
+		arguments := []string{"apply", "--all", "-var-file=prod.tfvars", "--skip=mod1"}
+		targetPath := "/infra"
+
+		// WHEN: Building the error
+		message := commands.BuildSelectionFlagsError(arguments, targetPath)
+
+		// THEN: The -var-file argument is preserved verbatim
+		assert.Contains(t, message, "-var-file=prod.tfvars")
+		assert.NotContains(t, message, "-var-file=<redacted>")
+	})
 }
 
 func TestBuildParallelAllConflictError(t *testing.T) {
