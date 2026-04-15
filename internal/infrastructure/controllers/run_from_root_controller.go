@@ -34,7 +34,9 @@ func (it *RunFromRootController) GetBind() entities.ControllerBind {
 			"\n" +
 			"  --parallel=N   Terra-managed worker pool. Supports --only=mod1,mod2 and\n" +
 			"                 --skip=mod1,mod2 for basename-matched module selection.\n" +
-			"                 Required for state operations (import, state rm, state mv).\n" +
+			"                 Required for Terra-managed multi-module state operations\n" +
+			"                 from the root (import, state rm, state mv); single-module\n" +
+			"                 state commands can run without --parallel.\n" +
 			"\n" +
 			"  --all          Terragrunt-managed run-all. Uses terragrunt's DAG. Filter\n" +
 			"                 with --filter='!mod' (recommended; supports globs, graph,\n" +

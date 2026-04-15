@@ -120,7 +120,7 @@ terra apply --all --parallelism=4 --filter='region-us-east' /path/to/infrastruct
 
 Use this checklist to pick the right strategy before writing the command:
 
-1. **State operation (`state rm`, `import`, `state mv`, ...)?** → must use `--parallel=N`. Terragrunt's `--all` does not support state commands; terra rejects this combination.
+1. **State operation across multiple modules from a root directory?** → must use `--parallel=N`. Terragrunt's `--all` does not support state commands, and terra rejects that combination. Single-module state commands (e.g., `terra state rm <addr> /path/to/one/module`) still work without `--parallel` — terra just forwards them directly to terragrunt.
 2. **Need terragrunt DAG ordering / `dependencies` block awareness?** → must use `--all`. Terra's worker pool runs modules in parallel without resolving dependencies between them.
 3. **Flat stack, want simple basename filtering?** → either works. `--parallel=N` is slightly faster and its `--only`/`--skip` syntax is shorter for flat stacks.
 4. **Need glob, graph, or git-diff filtering?** → must use `--all` with terragrunt's `--filter`. Terra's `--only`/`--skip` only match literal basenames.

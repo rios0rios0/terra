@@ -2,26 +2,106 @@ package commands
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
-// extractSubcommand returns the first non-flag argument from the argument list,
-// which is the terragrunt subcommand (apply, plan, destroy, import, etc.). Returns
-// an empty string when no non-flag argument is present.
+// sensitiveFlagPrefixes lists terraform/terragrunt flags whose values commonly
+// carry secrets (variable values, backend credentials). Both single-dash and
+// double-dash variants are handled. When these flags appear in argv, the error
+// echo replaces their values with "<redacted>" so credentials cannot leak into
+// error logs or CI output. Note: "-var-file" is NOT included because its value
+// is a filename, not a secret.
+func sensitiveFlagPrefixes() []string {
+	return []string{
+		"-var",
+		"--var",
+		"-backend-config",
+		"--backend-config",
+	}
+}
+
+// extractSubcommand returns the terragrunt command prefix from the argument list.
+// For most commands this is the first non-flag argument (apply, plan, destroy,
+// import, etc.). For multi-word state commands it preserves the second token as
+// well (for example: "state rm", "state mv") so generated suggestions remain
+// copy-pasteable. Returns an empty string when no non-flag argument is present.
 func extractSubcommand(arguments []string) string {
-	for _, arg := range arguments {
-		if !strings.HasPrefix(arg, "-") {
+	for index, arg := range arguments {
+		if strings.HasPrefix(arg, "-") {
+			continue
+		}
+
+		if arg != "state" {
 			return arg
 		}
+
+		subcommandParts := []string{arg}
+		for _, nextArg := range arguments[index+1:] {
+			if strings.HasPrefix(nextArg, "-") {
+				continue
+			}
+
+			subcommandParts = append(subcommandParts, nextArg)
+			break
+		}
+
+		return strings.Join(subcommandParts, " ")
 	}
 	return ""
 }
 
+// sanitizeArgvForEcho returns a copy of arguments in which the values of known
+// sensitive flags (see sensitiveFlagPrefixes) are replaced with "<redacted>".
+// Both "-var=key=secret" and "-var key=secret" forms are handled. Filenames
+// (e.g. "-var-file=prod.tfvars") are left untouched.
+func sanitizeArgvForEcho(arguments []string) []string {
+	sanitized := make([]string, 0, len(arguments))
+	redactNext := false
+	for _, arg := range arguments {
+		if redactNext {
+			sanitized = append(sanitized, "<redacted>")
+			redactNext = false
+			continue
+		}
+		if prefix, matched := matchSensitiveFlagWithValue(arg); matched {
+			sanitized = append(sanitized, prefix+"=<redacted>")
+			continue
+		}
+		if isSensitiveFlagWithoutValue(arg) {
+			sanitized = append(sanitized, arg)
+			redactNext = true
+			continue
+		}
+		sanitized = append(sanitized, arg)
+	}
+	return sanitized
+}
+
+// matchSensitiveFlagWithValue returns the flag prefix (e.g. "-var") and true when
+// the argument matches the "<flag>=<value>" form of a sensitive flag.
+func matchSensitiveFlagWithValue(arg string) (string, bool) {
+	for _, prefix := range sensitiveFlagPrefixes() {
+		if strings.HasPrefix(arg, prefix+"=") {
+			return prefix, true
+		}
+	}
+	return "", false
+}
+
+// isSensitiveFlagWithoutValue returns true when the argument is exactly a sensitive
+// flag name (e.g. "-var"), indicating the next argument carries its value.
+func isSensitiveFlagWithoutValue(arg string) bool {
+	return slices.Contains(sensitiveFlagPrefixes(), arg)
+}
+
 // buildEchoedCommand reconstructs the command the user typed so the error message
-// can quote it back verbatim. Format: "terra <arguments joined> <targetPath>".
+// can quote it back. Values of known sensitive flags (-var, -backend-config) are
+// redacted so credentials cannot leak into error output. Format:
+// "terra <sanitized arguments joined> <targetPath>".
 func buildEchoedCommand(arguments []string, targetPath string) string {
 	parts := []string{"terra"}
-	parts = append(parts, arguments...)
+	parts = append(parts, sanitizeArgvForEcho(arguments)...)
 	if targetPath != "" {
 		parts = append(parts, targetPath)
 	}

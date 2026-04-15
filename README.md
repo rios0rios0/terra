@@ -159,7 +159,7 @@ Terra provides two independent parallel execution strategies. **They are not int
 
 **Choosing a strategy:**
 
-- State operation (`state rm`, `import`, ...)? → must use `--parallel=N`. Terragrunt's `--all` does not support state commands.
+- State operation across multiple modules from a root directory? → must use `--parallel=N`. Terragrunt's `--all` does not support state commands. Single-module state commands (e.g., `terra state rm <addr> /path/to/one/module`) still work without `--parallel`.
 - Need terragrunt DAG ordering / `dependencies` block awareness? → must use `--all`.
 - Flat stack, want basename filtering? → either works; `--parallel=N` is simpler.
 - Need glob, graph, or git-diff filtering? → must use `--all` with terragrunt's `--filter`.
@@ -175,7 +175,8 @@ terra plan --parallel=4 --only=dev,staging,prod /path/to/infrastructure
 # Skip specific directories with --skip
 terra apply --parallel=4 --skip=test,backup /path/to/infrastructure
 
-# State commands (only --parallel supports these)
+# State commands across a root with multiple modules use --parallel
+# (single-module state commands can still be forwarded without --parallel)
 terra import --parallel=4 null_resource.example resource-id /path/to/infrastructure
 terra state rm --parallel=2 null_resource.example /path/to/infrastructure
 ```
