@@ -16,6 +16,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-04-15
+
 ### Added
 
 - added a non-fatal warning when terragrunt-only flags (`--filter`, `--queue-exclude-dir`, `--queue-include-dir`) are combined with terra's `--parallel=N`, since they are silently ignored by terra's worker pool; the warning nudges users toward `--only`/`--skip` or toward switching to `--all`
