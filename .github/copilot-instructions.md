@@ -164,6 +164,12 @@ terra apply --parallel=3 --only=module1,module2 /path/to/infrastructure
 # Exclude specific modules from parallel execution
 terra apply --parallel=3 --skip=excluded_module /path/to/infrastructure
 
+# Terragrunt-managed run-all: filter with terragrunt's --filter (preferred, strictly more expressive)
+terra apply --all --filter='!excluded_module' /path/to/infrastructure
+
+# Terragrunt-managed run-all: legacy filter syntax
+terra apply --all --queue-exclude-dir=excluded_module /path/to/infrastructure
+
 # Auto-reply to interactive prompts (defaults to "n")
 terra apply --reply=y /path/to/infrastructure/module
 terra apply -r=y /path/to/infrastructure/module
@@ -436,7 +442,8 @@ test/                    # Test helpers organized by domain/infrastructure layer
 - **Provider caching**: Terra uses the Terragrunt Provider Cache Server (`TG_PROVIDER_CACHE=1`) for concurrent-safe provider deduplication with file locking. This replaced `TF_PLUGIN_CACHE_DIR` which caused "text file busy" errors during parallel execution. Disable with `TERRA_NO_PROVIDER_CACHE=true`.
 - **Partial Parse Config Cache**: Terra enables the Terragrunt Partial Parse Config Cache by default (`TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true`), which caches parsed HCL configs across modules sharing the same root include. Disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`.
 - **Auto-initialization with upgrade**: `UpgradeAwareShellRepository` wraps command execution. When a terragrunt command fails with output matching upgrade-needed patterns (backend changed, provider conflicts, uninitialized modules), it automatically runs `init --upgrade` and retries the original command. This is used in the normal (non-interactive) execution path of `RunFromRootCommand`.
-- **Parallel execution**: Two independent strategies exist. **Terra-managed**: `--parallel=N` runs terragrunt across multiple modules using N goroutine workers; use `--only=mod1,mod2` to select modules or `--skip=mod3` to exclude. **Terragrunt-managed**: `--all`, `--parallelism=N`, and `--filter=query` are forwarded directly to terragrunt for its native run-all behavior. These two strategies cannot be combined (`--parallel` and `--all` together is an error).
+- **Parallel execution**: Two independent strategies exist. **Terra-managed**: `--parallel=N` runs terragrunt across multiple modules using N goroutine workers; use `--only=mod1,mod2` to select modules or `--skip=mod3` to exclude. **Terragrunt-managed**: `--all`, `--parallelism=N`, and `--filter=query` (and the legacy `--queue-exclude-dir`/`--queue-include-dir`) are forwarded directly to terragrunt for its native run-all behavior. These two strategies cannot be combined (`--parallel` and `--all` together is an error). Terra's `--only`/`--skip` only work with `--parallel=N`; on the `--all` path you must use terragrunt's own filter flags (prefer `--filter='!mod'` which is strictly more expressive than `--queue-exclude-dir`).
+- **Educational validation errors**: When a user passes `--only`/`--skip` without `--parallel`, terra fatalfs with a multi-line error that echoes the command they typed and prints both valid escape hatches (`--parallel=5 --skip=mod` AND `--all --filter='!mod'`) as copy-pasteable examples. Same treatment for the `--parallel` + `--all` conflict. When a user passes terragrunt-only queue/filter flags (`--filter`, `--queue-exclude-dir`, `--queue-include-dir`) alongside `--parallel=N`, terra logs a non-fatal warning because the flags are silently ignored by the worker pool. These error builders live in `internal/domain/commands/run_from_root_error_builders.go` as `BuildSelectionFlagsError` and `BuildParallelAllConflictError`; update them (and the unit tests in `run_from_root_error_builders_test.go`) when changing validation messages.
 - **Reply mode**: Use `--reply=<value>` (or `-r=<value>`) to automatically answer interactive prompts from terragrunt. Uses `creack/pty` for PTY-based interaction.
 - **Pre-execution steps**: `RunAdditionalBeforeCommand` runs before the main terragrunt command: switches cloud account (if `TERRA_CLOUD` is set), initializes terraform (if not already done), and selects the workspace (if `TERRA_WORKSPACE` is set).
 - **Clearing caches**: `terra clear` removes local `.terraform` and `.terragrunt-cache` directories. Use `terra clear --global` to also remove the centralized cache directories.

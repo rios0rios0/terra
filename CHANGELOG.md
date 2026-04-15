@@ -16,8 +16,15 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added a non-fatal warning when terragrunt-only flags (`--filter`, `--queue-exclude-dir`, `--queue-include-dir`) are combined with terra's `--parallel=N`, since they are silently ignored by terra's worker pool; the warning nudges users toward `--only`/`--skip` or toward switching to `--all`
+
 ### Changed
 
+- changed the `--only`/`--skip` validation error to echo the user's command and show both valid forms (`--parallel=N --skip=mod1` and `--all --filter='!mod1'`), teaching the `--filter` alternative for the `--all` path instead of leaving users to discover terragrunt's native flags on their own
+- changed the `--parallel` + `--all` conflict error to echo the user's command and offer both alternative forms as copy-pasteable examples
+- changed the `terra --help` text to include a "Parallel execution strategies" block that summarizes when to use `--parallel=N` versus `--all`, making the split discoverable without reading the docs
 - changed the Go version to `1.26.2` and updated all module dependencies
 
 ## [1.13.0] - 2026-04-14
