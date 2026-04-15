@@ -50,14 +50,16 @@ func TestRunFromRootController_GetBind(t *testing.T) {
 		// WHEN: Getting the controller bind
 		bind := controller.GetBind()
 
-		// THEN: Should return correct bind configuration
+		// THEN: Should return correct bind configuration with the two parallel
+		// strategies clearly documented in the Long text
 		assert.Equal(t, "terra [flags] [terragrunt command] [directory]", bind.Use)
 		assert.Equal(t, "Terra is a CLI wrapper for Terragrunt", bind.Short)
-		assert.Equal(
-			t,
-			"Terra is a CLI wrapper for Terragrunt that allows changing directory before executing commands. It also allows changing the account/subscription and workspace for AWS and Azure.",
-			bind.Long,
-		)
+		assert.Contains(t, bind.Long, "Terra is a CLI wrapper for Terragrunt")
+		assert.Contains(t, bind.Long, "Parallel execution strategies:")
+		assert.Contains(t, bind.Long, "--parallel=N")
+		assert.Contains(t, bind.Long, "--all")
+		assert.Contains(t, bind.Long, "--filter='!mod'")
+		assert.Contains(t, bind.Long, "docs/parallel-execution.md")
 	})
 }
 

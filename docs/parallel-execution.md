@@ -92,27 +92,61 @@ terra init --parallel=4 --only=test1,test2,test3 /path
 
 ## Terragrunt's `--all` and `--parallelism`
 
-Terra's `--parallel=N` is separate from Terragrunt's native `--all` and `--parallelism` flags. They serve different purposes:
+Terra's `--parallel=N` is separate from Terragrunt's native `--all` and `--parallelism` flags. They serve different purposes and own different filter flags:
 
-| Flag | Owner | Purpose |
-|------|-------|---------|
-| `--parallel=N` | Terra | Terra manages goroutine workers across module directories |
-| `--all` | Terragrunt | Terragrunt's native run-all behavior (forwarded as-is) |
-| `--parallelism=N` | Terragrunt | Terragrunt's concurrency for `--all` (forwarded as-is) |
-| `--filter=query` | Terragrunt | Terragrunt's config filter language (forwarded as-is) |
+| Flag                   | Owner      | Purpose                                                              | Filter flags                    |
+|------------------------|------------|----------------------------------------------------------------------|---------------------------------|
+| `--parallel=N`         | Terra      | Terra manages goroutine workers across module directories           | `--only=mod1,mod2`, `--skip=mod1,mod2` |
+| `--all`                | Terragrunt | Terragrunt's native run-all behavior (forwarded as-is)              | `--filter`, `--queue-exclude-dir`, `--queue-include-dir` |
+| `--parallelism=N`      | Terragrunt | Terragrunt's concurrency for `--all` (forwarded as-is)              | n/a                             |
+| `--filter=query`       | Terragrunt | Terragrunt's expressive module filter (forwarded as-is)             | n/a                             |
 
 ```bash
 # Terra-managed parallel execution (terra discovers modules, runs N workers)
 terra plan --parallel=4 /path/to/infrastructure
+terra plan --parallel=4 --skip=mod1,mod2 /path/to/infrastructure
 
 # Terragrunt-managed run-all (forwarded directly to terragrunt)
 terra apply --all /path/to/infrastructure
+terra apply --all --filter='!mod1' /path/to/infrastructure
 
 # Terragrunt-managed run-all with parallelism and filter
-terra apply --all --parallelism=4 --filter="region-us-east" /path/to/infrastructure
+terra apply --all --parallelism=4 --filter='region-us-east' /path/to/infrastructure
 ```
 
 **Important:** `--parallel` and `--all` cannot be used together -- they represent competing execution strategies.
+
+## Choosing a strategy
+
+Use this checklist to pick the right strategy before writing the command:
+
+1. **State operation (`state rm`, `import`, `state mv`, ...)?** → must use `--parallel=N`. Terragrunt's `--all` does not support state commands; terra rejects this combination.
+2. **Need terragrunt DAG ordering / `dependencies` block awareness?** → must use `--all`. Terra's worker pool runs modules in parallel without resolving dependencies between them.
+3. **Flat stack, want simple basename filtering?** → either works. `--parallel=N` is slightly faster and its `--only`/`--skip` syntax is shorter for flat stacks.
+4. **Need glob, graph, or git-diff filtering?** → must use `--all` with terragrunt's `--filter`. Terra's `--only`/`--skip` only match literal basenames.
+
+## Filter equivalence table
+
+`--only`/`--skip` (terra-managed) and `--filter`/`--queue-exclude-dir` (terragrunt-managed) are **not interchangeable at runtime**, but they have equivalents for common cases. Use the column that matches the strategy you picked above:
+
+| Intent                  | With `--parallel=N`  | With `--all`                          |
+|-------------------------|----------------------|---------------------------------------|
+| Skip one module         | `--skip=mod1`        | `--filter='!mod1'`                    |
+| Skip multiple           | `--skip=mod1,mod2`   | `--filter='!mod1' --filter='!mod2'`   |
+| Only specific modules   | `--only=mod1,mod2`   | `--filter='mod1' --filter='mod2'`     |
+| Path glob               | *(not supported)*    | `--filter='./prod/**'`                |
+| Graph expression        | *(not supported)*    | `--filter='service...'`               |
+| Git-diff expression     | *(not supported)*    | `--filter='[main...HEAD]'`            |
+
+## Known differences between the two strategies
+
+Terra deliberately does **not** translate `--skip`/`--only` into `--queue-exclude-dir`/`--filter` on the `--all` path, and does not translate terragrunt's filter flags into terra's worker-pool selection on the `--parallel` path. There are three reasons:
+
+1. **Matching semantics differ.** Terra's `--skip=lab3` matches modules by basename anywhere in the subtree. Terragrunt's `--queue-exclude-dir=lab3` matches paths relative to the working directory and follows terragrunt-specific glob rules. Any automatic translation would either lie about semantics or require terra to walk the module tree itself, which defeats the purpose of `--all`.
+2. **Upstream parsing quirks.** [gruntwork-io/terragrunt#5124](https://github.com/gruntwork-io/terragrunt/issues/5124) documents that `--queue-exclude-dir` still parses excluded directories during dependency discovery. A module skipped by terra's native `--skip` is never touched; the same name forwarded to terragrunt's queue flag still goes through DAG parsing. Surfacing that divergence as a silent translation would cause subtle incidents in CI.
+3. **`--filter` is strictly more expressive.** Translating `--skip=a,b` to `--queue-exclude-dir` would downgrade capability for `--all` users who have access to graph and git-diff expressions.
+
+Instead, terra provides **discoverability**: when you use `--skip` with `--all`, the validation error echoes your command and shows the exact `--filter` form you should type. When you use terragrunt's `--filter`/`--queue-exclude-dir` with `--parallel=N`, terra logs a warning pointing you at `--only`/`--skip`.
 
 ## Interactive Commands Require `--reply`
 
@@ -181,7 +215,7 @@ terra plan --parallel=4 /path/to/infrastructure
 - **Native Integration**: No need for external tools like GNU parallel
 - **Error Handling**: Comprehensive error reporting and aggregation
 - **Logging**: Detailed progress and completion status for each module
-- **Clean Separation**: Terra's `--parallel` and Terragrunt's `--all`/`--parallelism`/`--filter` are independent and unambiguous
+- **Clean Separation**: Terra's `--parallel` and Terragrunt's `--all`/`--parallelism`/`--filter` are independent and unambiguous; mixing them produces educational validation errors that show the correct form for your command rather than silently doing the wrong thing
 
 ## Notes
 

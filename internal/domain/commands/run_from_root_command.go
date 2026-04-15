@@ -69,7 +69,7 @@ func (it *RunFromRootCommand) Execute(
 	}
 
 	// Validate flag combinations before execution
-	it.validateFlagCombinations(arguments)
+	it.validateFlagCombinations(arguments, targetPath)
 
 	// Check if this is a parallel command (either state command with --all or any command with --parallel=N)
 	if it.isParallelCommand(arguments) {
@@ -121,7 +121,7 @@ func (it *RunFromRootCommand) removeReplyFlag(arguments []string) []string {
 
 // validateFlagCombinations validates that flag combinations are correct.
 // Errors and exits if invalid combinations are detected.
-func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
+func (it *RunFromRootCommand) validateFlagCombinations(arguments []string, targetPath string) {
 	it.validateDeprecatedFlags(arguments)
 
 	hasParallelFlag := HasParallelFlag(arguments)
@@ -129,10 +129,7 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 
 	// --parallel and --all cannot be used together (competing execution strategies)
 	if hasParallelFlag && hasAllFlag {
-		logger.Fatalf(
-			"Error: --parallel and --all cannot be used together. " +
-				"Use --parallel=N for terra's parallel execution, or --all for terragrunt's run-all.",
-		)
+		logger.Fatalf("%s", BuildParallelAllConflictError(arguments, targetPath))
 	}
 
 	// --reply is required when --parallel is used with interactive commands (apply, destroy)
@@ -156,6 +153,18 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 		)
 	}
 
+	// Warn when terragrunt queue/filter flags are combined with --parallel: they are
+	// silently ignored by terra's worker pool, which is the inverse misuse of the
+	// --only/--skip + --all error path. The warning nudges users to the right tool.
+	if hasParallelFlag && hasTerragruntQueueFlag(arguments) {
+		logger.Warnf(
+			"--filter, --queue-exclude-dir, and --queue-include-dir are terragrunt flags " +
+				"and have no effect with --parallel=N (terra-managed parallelism). " +
+				"Use --only=mod1,mod2 or --skip=mod1,mod2 for module selection, " +
+				"or switch to --all to let terragrunt handle filtering natively.",
+		)
+	}
+
 	// --reply requires an explicit value when used with --all (terragrunt-managed parallelism)
 	// because the PTY auto-answering needs to know whether to respond "y" or "n".
 	if hasAllFlag && HasReplyFlag(arguments) && !HasExplicitReplyValue(arguments) {
@@ -166,7 +175,16 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string) {
 		)
 	}
 
-	it.validateSelectionFlags(arguments, hasParallelFlag)
+	it.validateSelectionFlags(arguments, hasParallelFlag, targetPath)
+}
+
+// hasTerragruntQueueFlag returns true when any terragrunt-only queue/filter flag is
+// present. Used to warn when these flags are combined with terra's --parallel=N,
+// where they are silently ignored because terra manages module selection itself.
+func hasTerragruntQueueFlag(arguments []string) bool {
+	return HasFilterFlag(arguments) ||
+		HasQueueExcludeDirFlag(arguments) ||
+		HasQueueIncludeDirFlag(arguments)
 }
 
 // validateDeprecatedFlags detects removed/renamed flags and exits with migration guidance.
@@ -225,7 +243,11 @@ func (it *RunFromRootCommand) validateDeprecatedFlags(arguments []string) {
 }
 
 // validateSelectionFlags validates --only/--skip flag usage.
-func (it *RunFromRootCommand) validateSelectionFlags(arguments []string, hasParallelFlag bool) {
+func (it *RunFromRootCommand) validateSelectionFlags(
+	arguments []string,
+	hasParallelFlag bool,
+	targetPath string,
+) {
 	hasOnlyFlag := HasOnlyFlag(arguments)
 	hasSkipFlag := HasSkipFlag(arguments)
 
@@ -237,7 +259,7 @@ func (it *RunFromRootCommand) validateSelectionFlags(arguments []string, hasPara
 
 	// --only/--skip require --parallel=N
 	if !hasParallelFlag {
-		logger.Fatalf("Error: --only/--skip flags require --parallel=N.")
+		logger.Fatalf("%s", BuildSelectionFlagsError(arguments, targetPath))
 	}
 
 	it.validateSelectionFlagConflicts(arguments, hasOnlyFlag, hasSkipFlag)

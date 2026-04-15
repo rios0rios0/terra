@@ -155,9 +155,16 @@ terra destroy --parallel=4 -r /path
 
 ### Parallel Execution
 
-Terra provides two independent parallel execution strategies:
+Terra provides two independent parallel execution strategies. **They are not interchangeable** -- each one owns its own set of filter flags, and mixing them produces a validation error.
 
-**Terra-managed parallel** (`--parallel=N`) -- terra discovers modules and runs N goroutine workers:
+**Choosing a strategy:**
+
+- State operation (`state rm`, `import`, ...)? → must use `--parallel=N`. Terragrunt's `--all` does not support state commands.
+- Need terragrunt DAG ordering / `dependencies` block awareness? → must use `--all`.
+- Flat stack, want basename filtering? → either works; `--parallel=N` is simpler.
+- Need glob, graph, or git-diff filtering? → must use `--all` with terragrunt's `--filter`.
+
+**Terra-managed parallel** (`--parallel=N`) -- terra discovers modules and runs N goroutine workers. Filter modules with terra's `--only`/`--skip`:
 ```bash
 # Run init across all modules with 4 parallel threads
 terra init --parallel=4 /path/to/infrastructure
@@ -168,12 +175,12 @@ terra plan --parallel=4 --only=dev,staging,prod /path/to/infrastructure
 # Skip specific directories with --skip
 terra apply --parallel=4 --skip=test,backup /path/to/infrastructure
 
-# State commands
+# State commands (only --parallel supports these)
 terra import --parallel=4 null_resource.example resource-id /path/to/infrastructure
 terra state rm --parallel=2 null_resource.example /path/to/infrastructure
 ```
 
-**Terragrunt-managed parallel** (`--all` + `--parallelism`) -- forwarded directly to terragrunt:
+**Terragrunt-managed parallel** (`--all`) -- forwarded directly to terragrunt. Filter modules with terragrunt's `--filter` (preferred) or `--queue-exclude-dir`:
 ```bash
 # Terragrunt's native run-all
 terra apply --all /path/to/infrastructure
@@ -181,11 +188,25 @@ terra apply --all /path/to/infrastructure
 # Terragrunt's run-all with concurrency control
 terra plan --all --parallelism=4 /path/to/infrastructure
 
-# Terragrunt's run-all with filter
-terra apply --all --filter="region-us-east" /path/to/infrastructure
+# Terragrunt's run-all skipping a module with --filter (preferred)
+terra apply --all --filter='!1051-lab3' /path/to/infrastructure
+
+# Terragrunt's run-all skipping a module with the legacy flag
+terra apply --all --queue-exclude-dir=1051-lab3 /path/to/infrastructure
 ```
 
-> **Note:** `--parallel` and `--all` cannot be used together -- they represent competing execution strategies.
+**Filter equivalence table** -- use the column that matches your chosen strategy:
+
+| Intent                  | With `--parallel=N`  | With `--all`                          |
+|-------------------------|----------------------|---------------------------------------|
+| Skip one module         | `--skip=mod1`        | `--filter='!mod1'`                    |
+| Skip multiple           | `--skip=mod1,mod2`   | `--filter='!mod1' --filter='!mod2'`   |
+| Only specific modules   | `--only=mod1,mod2`   | `--filter='mod1' --filter='mod2'`     |
+| Path glob               | *(not supported)*    | `--filter='./prod/**'`                |
+| Graph expression        | *(not supported)*    | `--filter='service...'`               |
+| Git-diff expression     | *(not supported)*    | `--filter='[main...HEAD]'`            |
+
+> **Note:** `--parallel` and `--all` cannot be used together -- they represent competing execution strategies. Similarly, terra's `--only`/`--skip` only work with `--parallel`; passing them alongside `--all` produces an educational validation error that shows the `--filter` equivalent for your command. In the reverse direction, terragrunt-owned flags (`--filter`, `--queue-exclude-dir`, `--queue-include-dir`) trigger a warning when combined with `--parallel=N` because terra's worker pool silently ignores them.
 
 For comprehensive documentation, see [docs/parallel-execution.md](docs/parallel-execution.md). If you encounter Git clone errors (`BUG: refs/files-backend.c`) during parallel execution, see [docs/parallel-git-clone-race.md](docs/parallel-git-clone-race.md).
 
