@@ -23,6 +23,16 @@ const (
 	DeprecatedIncludeFlagPrefix = "--include="
 	// DeprecatedExcludeFlagPrefix is the renamed --exclude flag (now --skip).
 	DeprecatedExcludeFlagPrefix = "--exclude="
+
+	// FilterFlagPrefix represents the prefix for terragrunt's --filter flag.
+	// Forwarded to terragrunt as-is; only meaningful with --all.
+	FilterFlagPrefix = "--filter="
+	// QueueExcludeDirFlag represents terragrunt's --queue-exclude-dir flag.
+	// Forwarded to terragrunt as-is; only meaningful with --all.
+	QueueExcludeDirFlag = "--queue-exclude-dir"
+	// QueueIncludeDirFlag represents terragrunt's --queue-include-dir flag.
+	// Forwarded to terragrunt as-is; only meaningful with --all.
+	QueueIncludeDirFlag = "--queue-include-dir"
 )
 
 // IsStateManipulationCommand checks if the given arguments represent a state manipulation command.
@@ -115,6 +125,49 @@ func HasDeprecatedNoParallelBypassFlag(arguments []string) bool {
 // HasDeprecatedIncludeFlag checks if the renamed --include= flag is present.
 func HasDeprecatedIncludeFlag(arguments []string) bool {
 	return hasFlagWithPrefix(arguments, DeprecatedIncludeFlagPrefix)
+}
+
+// HasFilterFlag checks if terragrunt's --filter flag is present (either --filter=<query>
+// or the space form --filter <query>). Used only by validation to warn when terragrunt
+// queue flags are combined with terra's --parallel=N (where they have no effect).
+func HasFilterFlag(arguments []string) bool {
+	for i, arg := range arguments {
+		if strings.HasPrefix(arg, FilterFlagPrefix) {
+			return true
+		}
+		if arg == "--filter" && i+1 < len(arguments) {
+			return true
+		}
+	}
+	return false
+}
+
+// HasQueueExcludeDirFlag checks if terragrunt's --queue-exclude-dir flag is present
+// (either --queue-exclude-dir=<dir> or the space form --queue-exclude-dir <dir>).
+func HasQueueExcludeDirFlag(arguments []string) bool {
+	for i, arg := range arguments {
+		if strings.HasPrefix(arg, QueueExcludeDirFlag+"=") {
+			return true
+		}
+		if arg == QueueExcludeDirFlag && i+1 < len(arguments) {
+			return true
+		}
+	}
+	return false
+}
+
+// HasQueueIncludeDirFlag checks if terragrunt's --queue-include-dir flag is present
+// (either --queue-include-dir=<dir> or the space form --queue-include-dir <dir>).
+func HasQueueIncludeDirFlag(arguments []string) bool {
+	for i, arg := range arguments {
+		if strings.HasPrefix(arg, QueueIncludeDirFlag+"=") {
+			return true
+		}
+		if arg == QueueIncludeDirFlag && i+1 < len(arguments) {
+			return true
+		}
+	}
+	return false
 }
 
 // HasDeprecatedExcludeFlag checks if the renamed --exclude= flag is present.

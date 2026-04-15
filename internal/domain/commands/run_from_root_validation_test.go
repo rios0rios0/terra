@@ -3,6 +3,7 @@
 package commands_test
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/commands"
@@ -206,11 +207,14 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		// WHEN: Executing the command
 		cmd.Execute("/test/path", arguments, dependencies)
 
-		// THEN: Should log a fatal error about conflicting flags
+		// THEN: Should log a fatal error about conflicting flags with educational details
 		require.NotEmpty(t, hook.Entries)
 		lastEntry := hook.LastEntry()
 		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
 		assert.Contains(t, lastEntry.Message, "--parallel and --all cannot be used together")
+		assert.Contains(t, lastEntry.Message, "You used: terra plan --parallel=5 --all /test/path")
+		assert.Contains(t, lastEntry.Message, "terra plan --parallel=5 /test/path")
+		assert.Contains(t, lastEntry.Message, "terra plan --all /test/path")
 	})
 
 	t.Run("should fatalf when --parallel is used with apply without --reply", func(t *testing.T) {
@@ -390,11 +394,14 @@ func TestRunFromRootCommand_validateSelectionFlags(t *testing.T) {
 		// WHEN: Executing the command
 		cmd.Execute("/test/path", arguments, dependencies)
 
-		// THEN: Should log a fatal error about missing --parallel flag
+		// THEN: Should log a fatal error that teaches both escape hatches
 		require.NotEmpty(t, hook.Entries)
 		lastEntry := hook.LastEntry()
 		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
-		assert.Contains(t, lastEntry.Message, "--only/--skip flags require --parallel=N")
+		assert.Contains(t, lastEntry.Message, "--only/--skip are terra-managed flags")
+		assert.Contains(t, lastEntry.Message, "You used: terra plan --only=mod1,mod2 /test/path")
+		assert.Contains(t, lastEntry.Message, "terra plan --parallel=5 --only=mod1,mod2 /test/path")
+		assert.Contains(t, lastEntry.Message, "terra plan --all --filter='mod1' --filter='mod2' /test/path")
 	})
 
 	t.Run("should fatalf when --skip is used without --parallel", func(t *testing.T) {
@@ -408,11 +415,172 @@ func TestRunFromRootCommand_validateSelectionFlags(t *testing.T) {
 		// WHEN: Executing the command
 		cmd.Execute("/test/path", arguments, dependencies)
 
-		// THEN: Should log a fatal error about missing --parallel flag
+		// THEN: Should log a fatal error that teaches both escape hatches and
+		// negates the skip value for the --filter suggestion
 		require.NotEmpty(t, hook.Entries)
 		lastEntry := hook.LastEntry()
 		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
-		assert.Contains(t, lastEntry.Message, "--only/--skip flags require --parallel=N")
+		assert.Contains(t, lastEntry.Message, "--only/--skip are terra-managed flags")
+		assert.Contains(t, lastEntry.Message, "You used: terra plan --skip=mod1 /test/path")
+		assert.Contains(t, lastEntry.Message, "terra plan --parallel=5 --skip=mod1 /test/path")
+		assert.Contains(t, lastEntry.Message, "terra plan --all --filter='!mod1' /test/path")
+	})
+
+	t.Run("should include --reply in the --parallel suggestion for apply", func(t *testing.T) {
+		// GIVEN: apply with --skip but without --parallel (and without --all)
+		hook, cleanup := setupFatalInterceptor()
+		defer cleanup()
+		cmd := newRunFromRootForValidation()
+		arguments := []string{"apply", "--skip=mod1"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute("/test/path", arguments, dependencies)
+
+		// THEN: The suggestion for the --parallel path includes --reply because
+		// apply is interactive and terra rejects --parallel apply without it
+		require.NotEmpty(t, hook.Entries)
+		lastEntry := hook.LastEntry()
+		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
+		assert.Contains(
+			t,
+			lastEntry.Message,
+			"terra apply --parallel=5 --skip=mod1 --reply /test/path",
+		)
+	})
+}
+
+func TestRunFromRootCommand_warnWhenTerragruntQueueFlagsUsedWithParallel(t *testing.T) {
+	t.Run("should warn when --filter is used with --parallel", func(t *testing.T) {
+		// GIVEN: A terra-managed parallel command that also passes terragrunt's --filter
+		hook, cleanup := setupFatalInterceptor()
+		defer cleanup()
+
+		parallelState := &commanddoubles.StubParallelState{}
+		cmd := commands.NewRunFromRootCommand(
+			entitybuilders.NewSettingsBuilder().
+				WithTerraModuleCacheDir("/tmp/terra-test-modules").
+				WithTerraProviderCacheDir("/tmp/terra-test-providers").
+				BuildSettings(),
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			parallelState,
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+		arguments := []string{"plan", "--parallel=3", "--filter=foo"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute("/test/path", arguments, dependencies)
+
+		// THEN: Should log a non-fatal warning about the ignored terragrunt flag
+		// and still proceed to parallel execution
+		var foundWarning bool
+		for _, entry := range hook.Entries {
+			if entry.Level == logger.WarnLevel &&
+				strings.Contains(
+					entry.Message,
+					"--filter, --queue-exclude-dir, and --queue-include-dir are terragrunt flags",
+				) {
+				foundWarning = true
+			}
+		}
+		assert.True(t, foundWarning, "Should warn about ignored terragrunt queue flags")
+		for _, entry := range hook.Entries {
+			assert.NotEqual(t, logger.FatalLevel, entry.Level,
+				"Should not produce a fatal log entry for --filter combined with --parallel")
+		}
+		assert.True(t, parallelState.ExecuteCalled, "Should still proceed to parallel execution")
+	})
+
+	t.Run(
+		"should warn when --queue-exclude-dir is used with --parallel",
+		func(t *testing.T) {
+			// GIVEN: A terra-managed parallel command that also passes --queue-exclude-dir
+			hook, cleanup := setupFatalInterceptor()
+			defer cleanup()
+
+			parallelState := &commanddoubles.StubParallelState{}
+			cmd := commands.NewRunFromRootCommand(
+				entitybuilders.NewSettingsBuilder().
+					WithTerraModuleCacheDir("/tmp/terra-test-modules").
+					WithTerraProviderCacheDir("/tmp/terra-test-providers").
+					BuildSettings(),
+				&commanddoubles.StubInstallDependencies{},
+				&commanddoubles.StubFormatFiles{},
+				&commanddoubles.StubRunAdditionalBefore{},
+				parallelState,
+				&repositorydoubles.StubShellRepositoryForRoot{},
+				&repositorydoubles.StubUpgradeShellRepository{},
+				&repositorydoubles.StubInteractiveShellRepository{},
+			)
+			arguments := []string{"plan", "--parallel=3", "--queue-exclude-dir=foo"}
+			dependencies := []entities.Dependency{}
+
+			// WHEN: Executing the command
+			cmd.Execute("/test/path", arguments, dependencies)
+
+			// THEN: Should log a warning and still proceed
+			var foundWarning bool
+			for _, entry := range hook.Entries {
+				if entry.Level == logger.WarnLevel &&
+					strings.Contains(
+						entry.Message,
+						"--filter, --queue-exclude-dir, and --queue-include-dir are terragrunt flags",
+					) {
+					foundWarning = true
+				}
+			}
+			assert.True(t, foundWarning, "Should warn about ignored terragrunt queue flags")
+			assert.True(
+				t,
+				parallelState.ExecuteCalled,
+				"Should still proceed to parallel execution",
+			)
+		},
+	)
+
+	t.Run("should not warn when --filter is used with --all", func(t *testing.T) {
+		// GIVEN: Arguments combining --all with terragrunt's own --filter flag (valid)
+		hook, cleanup := setupFatalInterceptor()
+		defer cleanup()
+
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
+		cmd := commands.NewRunFromRootCommand(
+			entitybuilders.NewSettingsBuilder().
+				WithTerraModuleCacheDir("/tmp/terra-test-modules").
+				WithTerraProviderCacheDir("/tmp/terra-test-providers").
+				BuildSettings(),
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			upgradeRepository,
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+		arguments := []string{"plan", "--all", "--filter=foo"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute("/test/path", arguments, dependencies)
+
+		// THEN: Should not log any warning about the terragrunt flags being ignored
+		for _, entry := range hook.Entries {
+			if entry.Level == logger.WarnLevel {
+				assert.NotContains(
+					t,
+					entry.Message,
+					"terragrunt flags and have no effect with --parallel",
+					"Should not warn about terragrunt flags when combined with --all",
+				)
+			}
+		}
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount,
+			"Should proceed to normal (forwarded) execution")
 	})
 }
 
