@@ -358,6 +358,18 @@ func (it *RunFromRootCommand) configureCacheEnvironment() {
 	// file busy" errors during parallel execution.
 	setOrUnsetEnv("TG_PROVIDER_CACHE", "1", it.settings.TerraNoProviderCache)
 
+	// Force Terragrunt to honor TG_PROVIDER_CACHE_DIR when the Provider Cache Server
+	// is enabled. Terragrunt 0.99+ ships an experimental "auto-provider-cache-dir"
+	// feature (auto-enabled together with TG_EXPERIMENT=cas) that ignores
+	// TG_PROVIDER_CACHE_DIR and writes providers into a per-module directory inside
+	// TG_DOWNLOAD_DIR. That defeats the whole point of the centralized provider cache:
+	// the path terra advertises stays empty and each new go-getter source hash pays
+	// the full provider download cost, even across two terminals pointed at the same
+	// cache. Setting TG_NO_AUTO_PROVIDER_CACHE_DIR=true keeps the Provider Cache
+	// Server writing to the path terra just configured, so one download serves every
+	// stack, repo, and terminal until the provider version changes.
+	setOrUnsetEnv("TG_NO_AUTO_PROVIDER_CACHE_DIR", "true", it.settings.TerraNoProviderCache)
+
 	// Enable Terragrunt CAS (Content Addressable Store) experiment by default.
 	// CAS deduplicates Git clones via hard links, reducing disk usage and clone times.
 	setOrUnsetEnv("TG_EXPERIMENT", "cas", it.settings.TerraNoCAS)
