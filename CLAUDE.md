@@ -70,8 +70,9 @@ test/                  # Test helpers only (never in production folders)
 - **Provider caching:** Uses `TG_PROVIDER_CACHE` (Provider Cache Server) for concurrent-safe provider deduplication with file locking; disable with `TERRA_NO_PROVIDER_CACHE=true`
 - **Partial Parse Config Cache:** Enables `TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true` by default (disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`)
 - **Auto-upgrade:** `UpgradeAwareShellRepository` detects backend/provider failures and retries with `init --upgrade`
-- **Parallel execution (terra-managed):** `--parallel=N` runs across modules via `ParallelStateCommand`; use `--only=mod1,mod2` to select modules or `--skip=mod3` to exclude them
-- **Parallel execution (terragrunt-managed):** `--all`, `--parallelism=N`, and `--filter=query` are forwarded to terragrunt as-is; `--parallel` and `--all` cannot be combined
+- **Parallel execution (terra-managed):** `--parallel=N` runs across modules via `ParallelStateCommand`; use `--only=mod1,mod2` to select modules or `--skip=mod3` to exclude them. These are terra-managed flags and only work with `--parallel=N`.
+- **Parallel execution (terragrunt-managed):** `--all`, `--parallelism=N`, and `--filter=query` are forwarded to terragrunt as-is. Filter modules on this path with terragrunt's `--filter='!mod'` (preferred) or `--queue-exclude-dir=mod`. `--parallel` and `--all` cannot be combined.
+- **Selection-flag errors are educational:** Using `--only`/`--skip` without `--parallel` is fatal; the error echoes the user's command and prints both valid forms (`--parallel=5 --skip=mod` AND `--all --filter='!mod'`). Using terragrunt's `--filter`/`--queue-exclude-dir`/`--queue-include-dir` with `--parallel` is non-fatal; it logs a warning because terra's worker pool silently ignores those flags. When editing validation, update `BuildSelectionFlagsError` / `BuildParallelAllConflictError` in `internal/domain/commands/run_from_root_error_builders.go`, not the call sites in `run_from_root_command.go`.
 - **Reply:** `--reply=<value>` (or `-r=<value>`) uses `creack/pty` for PTY-based prompt automation
 
 ## Testing Conventions
