@@ -16,6 +16,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.14.3] - 2026-04-20
+
 ### Fixed
 
 - fixed the centralized provider cache being silently bypassed: terra now sets `TG_NO_AUTO_PROVIDER_CACHE_DIR=true` whenever the Provider Cache Server is enabled, so Terragrunt `0.99+`'s CAS-auto-enabled `auto-provider-cache-dir` experiment stops overriding `TG_PROVIDER_CACHE_DIR`. Before this fix, providers were duplicated into `TG_DOWNLOAD_DIR/<hash>/.../.terraform/providers/` per go-getter source, `~/.cache/terra/providers/` stayed empty, and every new stack or concurrent terminal paid a full provider download. After the fix, providers download once and are shared across every stack, repo, and terminal until the version changes. Opt out with `TERRA_NO_PROVIDER_CACHE=true`.
