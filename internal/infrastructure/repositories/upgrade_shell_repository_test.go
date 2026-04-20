@@ -4,12 +4,27 @@ package repositories_test
 
 import (
 	"os"
+	"os/exec"
+	"strings"
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/infrastructure/repositories"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// writeExecutableScript creates an executable script at path by piping the content through
+// a subprocess. Using a subprocess ensures no write fd for the script ever lives in the
+// test process itself, which prevents the ETXTBSY ("text file busy") race that otherwise
+// hits when a concurrent t.Parallel() test forks and inherits our write fd before the
+// kernel marks the script executable-safe (see golang/go#22315).
+func writeExecutableScript(t *testing.T, path, content string) {
+	t.Helper()
+	cmd := exec.Command("sh", "-c", `cat > "$1"`, "sh", path)
+	cmd.Stdin = strings.NewReader(content)
+	require.NoError(t, cmd.Run())
+	require.NoError(t, os.Chmod(path, 0o755)) //nolint:gosec // Test script with intentional permissions
+}
 
 func TestNewUpgradeAwareShellRepository(t *testing.T) {
 	t.Parallel()
@@ -359,7 +374,7 @@ echo "Error: terraform init has not been run" >&2
 exit 1
 `
 		scriptPath := dir + "/fake_terraform.sh"
-		require.NoError(t, os.WriteFile(scriptPath, []byte(scriptContent), 0o755)) //nolint:gosec // Test file with intentional permissions
+		writeExecutableScript(t, scriptPath, scriptContent)
 
 		// WHEN: Running the command that will trigger upgrade detection, init, and retry
 		err := repo.ExecuteCommandWithUpgrade(scriptPath, []string{"plan"}, dir)
@@ -390,7 +405,7 @@ echo "Error: terraform init has not been run" >&2
 exit 1
 `
 		scriptPath := dir + "/fake_terraform.sh"
-		require.NoError(t, os.WriteFile(scriptPath, []byte(scriptContent), 0o755)) //nolint:gosec // Test file with intentional permissions
+		writeExecutableScript(t, scriptPath, scriptContent)
 
 		// WHEN: Running the command where both initial and retry commands fail
 		err := repo.ExecuteCommandWithUpgrade(scriptPath, []string{"plan"}, dir)
