@@ -20,6 +20,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Fixed
 
+- fixed a flaky `TestUpgradeAwareShellRepository_ExecuteCommandWithUpgrade` subtest that intermittently failed in CI with `fork/exec ...: text file busy`. The test writes an executable shell script and immediately runs it; under `t.Parallel()` another goroutine could inherit to write fd during a fork, so `execve` saw the inode as still open-for-write and returned `ETXTBSY` (see `golang/go#22315`). Script creation now pipes through a subprocess, so no write fd for the script ever lives in the test process.
 - fixed the centralized provider cache being silently bypassed: terra now sets `TG_NO_AUTO_PROVIDER_CACHE_DIR=true` whenever the Provider Cache Server is enabled, so Terragrunt `0.99+`'s CAS-auto-enabled `auto-provider-cache-dir` experiment stops overriding `TG_PROVIDER_CACHE_DIR`. Before this fix, providers were duplicated into `TG_DOWNLOAD_DIR/<hash>/.../.terraform/providers/` per go-getter source, `~/.cache/terra/providers/` stayed empty, and every new stack or concurrent terminal paid a full provider download. After the fix, providers download once and are shared across every stack, repo, and terminal until the version changes. Opt out with `TERRA_NO_PROVIDER_CACHE=true`.
 
 ## [1.14.2] - 2026-04-17
@@ -38,7 +39,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Added
 
-- added a non-fatal warning when terragrunt-only flags (`--filter`, `--queue-exclude-dir`, `--queue-include-dir`) are combined with terra's `--parallel=N`, since they are silently ignored by terra's worker pool; the warning nudges users toward `--only`/`--skip` or toward switching to `--all`
+- added a non-fatal warning when Terragrunt-only flags (`--filter`, `--queue-exclude-dir`, `--queue-include-dir`) are combined with terra's `--parallel=N`, since they are silently ignored by terra's worker pool; the warning nudges users toward `--only`/`--skip` or toward switching to `--all`
 
 ### Changed
 
@@ -64,11 +65,11 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - added `--reply` requirement when using `--parallel` with `apply` or `destroy` to prevent workers from hanging on interactive prompts; for terra-managed parallel, just `--reply` (no value) is sufficient since terra always injects `--non-interactive` when `--reply` is present and adds `-auto-approve` automatically for interactive commands like `apply` and `destroy`
 - added documentation for the Git `refs/files-backend.c` race condition that occurs during parallel execution with shared dependencies, including root cause analysis and workarounds
 - added validation requiring `--reply=<value>` (with explicit value) when used with `--all`, since the PTY auto-answering needs to know whether to respond "y" or "n"
-- added warning when `--reply=<value>` is used with `--parallel`, informing the user the value is ignored and only meaningful with `--all` (terragrunt-managed parallelism)
+- added warning when `--reply=<value>` is used with `--parallel`, informing the user the value is ignored and only meaningful with `--all` (Terragrunt-managed parallelism)
 
 ### Changed
 
-- changed `--all` flag to always forward to terragrunt (no longer intercepted by terra for state commands); use `--parallel=5` instead for terra-managed parallel state operations
+- changed `--all` flag to always forward to Terragrunt (no longer intercepted by terra for state commands); use `--parallel=5` instead for terra-managed parallel state operations
 - changed `--include` flag to `--only` and `--exclude` flag to `--skip` for terra's parallel module selection, eliminating name collisions with terragrunt's own `--include`/`--exclude` flags
 - changed `cliforge` import paths to reflect upstream package restructuring
 - changed self-update command to delegate to `cliforge/selfupdate` shared library, removing ~300 lines of duplicated GitHub API, archive extraction, and binary replacement logic
@@ -80,8 +81,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Removed
 
-- removed `--auto-answer` / `-a` flags; replaced with `--reply` / `-r` to avoid collision with terragrunt's `-a` shorthand for `--all`
-- removed `--no-parallel-bypass` flag (`--all` now always forwards to terragrunt; use terragrunt's `--parallelism=N` directly for terragrunt-managed parallelism)
+- removed `--auto-answer` / `-a` flags; replaced with `--reply` / `-r` to avoid collision with Terragrunt's `-a` shorthand for `--all`
+- removed `--no-parallel-bypass` flag (`--all` now always forwards to Terragrunt; use Terragrunt's `--parallelism=N` directly for Terragrunt-managed parallelism)
 - removed legacy `--all` support for state commands (`import`, `state rm`, etc.); use `--parallel=N` instead
 
 ## [1.11.0] - 2026-04-01
@@ -112,7 +113,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ### Fixed
 
-- fixed upgrade-aware retry triggering `init --upgrade` after user-cancelled apply/plan/destroy operations
+- fixed upgrade-aware retry triggering `init --upgrade` after user-canceled apply/plan/destroy operations
 
 ## [1.9.0] - 2026-03-24
 
