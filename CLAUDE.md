@@ -74,7 +74,7 @@ test/                  # Test helpers only (never in production folders)
 
 - **Centralized caching:** Sets `TG_DOWNLOAD_DIR` and `TG_PROVIDER_CACHE_DIR` automatically
 - **CAS:** Enables `TG_EXPERIMENT=cas` by default (disable with `TERRA_NO_CAS=true`)
-- **Provider caching:** Uses `TG_PROVIDER_CACHE` (Provider Cache Server) for concurrent-safe provider deduplication with file locking; disable with `TERRA_NO_PROVIDER_CACHE=true`
+- **Provider caching:** Uses `TG_PROVIDER_CACHE` (Provider Cache Server) for concurrent-safe provider deduplication with file locking; disable with `TERRA_NO_PROVIDER_CACHE=true`. Terra also sets `TG_NO_AUTO_PROVIDER_CACHE_DIR=true` alongside it — without this, Terragrunt 0.99+'s CAS-auto-enabled `auto-provider-cache-dir` experiment silently overrides `TG_PROVIDER_CACHE_DIR` and writes providers per-module inside `TG_DOWNLOAD_DIR`, which bypasses the shared cache terra advertises. Keep these two env vars paired in `configureCacheEnvironment`
 - **Partial Parse Config Cache:** Enables `TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true` by default (disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`)
 - **Auto-upgrade:** `UpgradeAwareShellRepository` detects backend/provider failures and retries with `init --upgrade`
 - **Parallel execution (terra-managed):** `--parallel=N` runs across modules via `ParallelStateCommand`; use `--only=mod1,mod2` to select modules or `--skip=mod3` to exclude them. These are terra-managed flags and only work with `--parallel=N`.
