@@ -232,7 +232,7 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		require.NotEmpty(t, hook.Entries)
 		lastEntry := hook.LastEntry()
 		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
-		assert.Contains(t, lastEntry.Message, "--yes is required when using --parallel with apply or destroy")
+		assert.Contains(t, lastEntry.Message, "a confirmation flag is required when using --parallel with apply or destroy")
 	})
 
 	t.Run("should fatalf when --parallel is used with destroy without confirmation flag", func(t *testing.T) {
@@ -250,7 +250,7 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		require.NotEmpty(t, hook.Entries)
 		lastEntry := hook.LastEntry()
 		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
-		assert.Contains(t, lastEntry.Message, "--yes is required when using --parallel with apply or destroy")
+		assert.Contains(t, lastEntry.Message, "a confirmation flag is required when using --parallel with apply or destroy")
 	})
 
 	t.Run("should not fatalf when --parallel is used with apply and --yes", func(t *testing.T) {

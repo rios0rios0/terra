@@ -395,17 +395,32 @@ func HasConfirmationFlag(arguments []string) bool {
 }
 
 // RemoveConfirmationFlags removes every terra-level confirmation flag from arguments
-// (--yes/-y, --no/-n, and all forms of the deprecated --reply/-r).
+// (--yes/-y, --no/-n, and all forms of the deprecated --reply/-r, including the
+// space-separated form --reply y / -r y where the value is a separate argument).
+//
+// The space-form heuristic only consumes the next argument when it is a recognised
+// reply value (y/yes/n/no/true/false/0/1). This avoids swallowing the subcommand
+// in inputs like "--reply plan" (bare --reply followed by the Terragrunt command).
 func RemoveConfirmationFlags(arguments []string) []string {
 	filtered := make([]string, 0, len(arguments))
-	for _, arg := range arguments {
+	skipNext := false
+	for index, arg := range arguments {
+		if skipNext {
+			skipNext = false
+			continue
+		}
 		if arg == YesFlag || arg == YesShortFlag ||
 			arg == NoFlag || arg == NoShortFlag {
 			continue
 		}
-		if arg == ReplyFlag || arg == ReplyShortFlag ||
-			strings.HasPrefix(arg, ReplyFlag+"=") ||
+		if strings.HasPrefix(arg, ReplyFlag+"=") ||
 			strings.HasPrefix(arg, ReplyShortFlag+"=") {
+			continue
+		}
+		if arg == ReplyFlag || arg == ReplyShortFlag {
+			if index+1 < len(arguments) && isRecognisedReplyValue(arguments[index+1]) {
+				skipNext = true
+			}
 			continue
 		}
 		filtered = append(filtered, arg)
@@ -413,12 +428,25 @@ func RemoveConfirmationFlags(arguments []string) []string {
 	return filtered
 }
 
+// isRecognisedReplyValue returns true when the token is one of the literal reply
+// values that could follow --reply / -r in the space-separated form. Anything
+// else (subcommands, paths, targets) is not a reply value and must not be consumed.
+func isRecognisedReplyValue(token string) bool {
+	switch strings.ToLower(token) {
+	case "y", "yes", "true", "1", "n", "no", "false", "0":
+		return true
+	default:
+		return false
+	}
+}
+
 // ResolveConfirmation returns which terra-level confirmation intent is present
 // as a pair of booleans (isYes, isNo). Legacy --reply/-r forms are mapped:
-// --reply=y maps to yes, --reply=n maps to no, and bare --reply (or -r) defaults
-// to yes. The bare default matches the old --parallel path, which injected
-// --non-interactive -auto-approve for bare --reply; the PTY path's "answer n"
-// default was an accidental side effect that often blocked CI pipelines.
+// --reply=y and --reply y map to yes, --reply=n and --reply n map to no, and
+// bare --reply (or -r) with no following value defaults to yes. The bare default
+// matches the old --parallel path, which injected --non-interactive -auto-approve
+// for bare --reply; the PTY path's "answer n" default was an accidental side
+// effect that often blocked CI pipelines.
 func ResolveConfirmation(arguments []string) (bool, bool) {
 	if HasYesFlag(arguments) {
 		return true, false
@@ -431,15 +459,24 @@ func ResolveConfirmation(arguments []string) (bool, bool) {
 		return false, false
 	}
 
-	for _, arg := range arguments {
+	for index, arg := range arguments {
 		if after, ok := strings.CutPrefix(arg, ReplyFlag+"="); ok {
 			return mapReplyValueToConfirmation(after)
 		}
 		if after, ok := strings.CutPrefix(arg, ReplyShortFlag+"="); ok {
 			return mapReplyValueToConfirmation(after)
 		}
+		if arg == ReplyFlag || arg == ReplyShortFlag {
+			// Space-separated form: --reply y / -r n. Only consume the next
+			// argument as the value when it is a recognised reply value, so
+			// we don't misinterpret "--reply plan" (bare --reply + subcommand).
+			if index+1 < len(arguments) && isRecognisedReplyValue(arguments[index+1]) {
+				return mapReplyValueToConfirmation(arguments[index+1])
+			}
+			// Bare --reply / -r with no following value: default to yes.
+			return true, false
+		}
 	}
-	// Bare --reply or -r with no value: default to yes.
 	return true, false
 }
 

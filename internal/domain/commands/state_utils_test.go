@@ -597,6 +597,26 @@ func TestRemoveConfirmationFlags(t *testing.T) {
 			[]string{"apply"},
 		},
 		{
+			"should strip space-separated --reply y",
+			[]string{"apply", "--reply", "y"},
+			[]string{"apply"},
+		},
+		{
+			"should strip space-separated -r n and keep trailing target path",
+			[]string{"apply", "-r", "n", "/path/to/module"},
+			[]string{"apply", "/path/to/module"},
+		},
+		{
+			"should keep a following flag when --reply has no value",
+			[]string{"apply", "--reply", "--parallel=4"},
+			[]string{"apply", "--parallel=4"},
+		},
+		{
+			"should not consume the subcommand after bare --reply",
+			[]string{"--reply", "plan", "--detailed-exitcode"},
+			[]string{"plan", "--detailed-exitcode"},
+		},
+		{
 			"should leave arguments unchanged when no confirmation flag present",
 			[]string{"apply", "-target=mod"},
 			[]string{"apply", "-target=mod"},
@@ -627,6 +647,9 @@ func TestResolveConfirmation(t *testing.T) {
 		{"should map bare --reply to yes (default)", []string{"apply", "--reply"}, true, false},
 		{"should map bare -r to yes (default)", []string{"apply", "-r"}, true, false},
 		{"should map --reply=no to no", []string{"apply", "--reply=no"}, false, true},
+		{"should map space-separated --reply y to yes", []string{"apply", "--reply", "y"}, true, false},
+		{"should map space-separated -r n to no", []string{"apply", "-r", "n"}, false, true},
+		{"should map bare --reply followed by another flag to yes", []string{"apply", "--reply", "--parallel=4"}, true, false},
 		{"should return false,false when no confirmation flag", []string{"apply"}, false, false},
 	}
 
