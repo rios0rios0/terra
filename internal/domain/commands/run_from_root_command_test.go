@@ -245,13 +245,14 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		assert.Equal(t, arguments, upgradeRepository.LastArguments, "Should pass arguments unchanged")
 	})
 
-	t.Run("should use interactive mode with default 'n' when boolean reply flag", func(t *testing.T) {
+	t.Run("should inject --non-interactive when boolean --reply maps to yes on plan", func(t *testing.T) {
 		t.Parallel()
-		// GIVEN: A command with boolean reply flag in arguments
+		// GIVEN: A command with the deprecated boolean --reply flag on a non-interactive command
 		installCommand := &commanddoubles.StubInstallDependencies{}
 		formatCommand := &commanddoubles.StubFormatFiles{}
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
 		cmd := commands.NewRunFromRootCommand(
 			entitybuilders.NewSettingsBuilder().BuildSettings(),
@@ -260,7 +261,7 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
-			&repositorydoubles.StubUpgradeShellRepository{},
+			upgradeRepository,
 			interactiveRepository,
 		)
 
@@ -271,20 +272,26 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 		// WHEN: Executing the command
 		cmd.Execute(targetPath, arguments, dependencies)
 
-		// THEN: Should use interactive repository with default 'n' answer
-		assert.Equal(t, 1, interactiveRepository.ExecuteWithAnswerCallCount, "Should use interactive repository")
-		assert.Equal(t, []string{"plan", "--detailed-exitcode"}, interactiveRepository.LastArguments, "Should filter out reply flag")
-		assert.Equal(t, "n", interactiveRepository.LastAutoAnswer, "Should default to 'n' for boolean flag")
+		// THEN: Routes through the upgrade repository with --non-interactive injected
+		// (no -auto-approve because plan is not an interactive command).
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should use upgrade repository")
+		assert.Equal(t,
+			[]string{"plan", "--detailed-exitcode", "--non-interactive"},
+			upgradeRepository.LastArguments,
+			"Should strip --reply and append --non-interactive",
+		)
+		assert.Equal(t, 0, interactiveRepository.ExecuteWithAnswerCallCount, "PTY path is no longer used")
 		assert.Equal(t, 0, repository.ExecuteCallCount, "Should not use normal repository")
 	})
 
-	t.Run("should use interactive mode with specified 'y' when reply=y flag", func(t *testing.T) {
+	t.Run("should inject --non-interactive and -auto-approve when --reply=y maps to yes on apply", func(t *testing.T) {
 		t.Parallel()
-		// GIVEN: A command with --reply=y flag in arguments
+		// GIVEN: A command with the deprecated --reply=y flag on apply
 		installCommand := &commanddoubles.StubInstallDependencies{}
 		formatCommand := &commanddoubles.StubFormatFiles{}
 		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
 		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
 		cmd := commands.NewRunFromRootCommand(
 			entitybuilders.NewSettingsBuilder().BuildSettings(),
@@ -293,22 +300,103 @@ func TestRunFromRootCommand_Execute(t *testing.T) {
 			additionalBefore,
 			&commanddoubles.StubParallelState{},
 			repository,
-			&repositorydoubles.StubUpgradeShellRepository{},
+			upgradeRepository,
 			interactiveRepository,
 		)
 
 		targetPath := "/test/path"
-		arguments := []string{"--reply=y", "apply", "--auto-approve"}
+		arguments := []string{"--reply=y", "apply"}
 		dependencies := []entities.Dependency{}
 
 		// WHEN: Executing the command
 		cmd.Execute(targetPath, arguments, dependencies)
 
-		// THEN: Should use interactive repository with 'y' answer
-		assert.Equal(t, 1, interactiveRepository.ExecuteWithAnswerCallCount, "Should use interactive repository")
-		assert.Equal(t, []string{"apply", "--auto-approve"}, interactiveRepository.LastArguments, "Should filter out reply flag")
-		assert.Equal(t, "y", interactiveRepository.LastAutoAnswer, "Should use specified 'y' value")
+		// THEN: Routes through the upgrade repository with --non-interactive AND
+		// -auto-approve injected (terraform apply needs -auto-approve to skip its
+		// "Enter a value:" prompt; --non-interactive alone does not cover that).
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should use upgrade repository")
+		assert.Equal(t,
+			[]string{"apply", "--non-interactive", "-auto-approve"},
+			upgradeRepository.LastArguments,
+			"Should strip --reply and append --non-interactive and -auto-approve",
+		)
+		assert.Equal(t, 0, interactiveRepository.ExecuteWithAnswerCallCount, "PTY path is no longer used")
 		assert.Equal(t, 0, repository.ExecuteCallCount, "Should not use normal repository")
+	})
+
+	t.Run("should inject --non-interactive and -auto-approve when --yes is used on apply", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A command with the new --yes flag on apply
+		installCommand := &commanddoubles.StubInstallDependencies{}
+		formatCommand := &commanddoubles.StubFormatFiles{}
+		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
+		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
+		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
+		cmd := commands.NewRunFromRootCommand(
+			entitybuilders.NewSettingsBuilder().BuildSettings(),
+			installCommand,
+			formatCommand,
+			additionalBefore,
+			&commanddoubles.StubParallelState{},
+			repository,
+			upgradeRepository,
+			interactiveRepository,
+		)
+
+		targetPath := "/test/path"
+		arguments := []string{"apply", "--yes"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments, dependencies)
+
+		// THEN: Routes through the upgrade repository with native flags injected
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should use upgrade repository")
+		assert.Equal(t,
+			[]string{"apply", "--non-interactive", "-auto-approve"},
+			upgradeRepository.LastArguments,
+			"Should strip --yes and append --non-interactive and -auto-approve",
+		)
+		assert.Equal(t, 0, interactiveRepository.ExecuteWithAnswerCallCount, "PTY path is no longer used")
+	})
+
+	t.Run("should inject only --non-interactive when --no is used on apply", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A command with the new --no flag on apply
+		installCommand := &commanddoubles.StubInstallDependencies{}
+		formatCommand := &commanddoubles.StubFormatFiles{}
+		additionalBefore := &commanddoubles.StubRunAdditionalBefore{}
+		repository := &repositorydoubles.StubShellRepositoryForRoot{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
+		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
+		cmd := commands.NewRunFromRootCommand(
+			entitybuilders.NewSettingsBuilder().BuildSettings(),
+			installCommand,
+			formatCommand,
+			additionalBefore,
+			&commanddoubles.StubParallelState{},
+			repository,
+			upgradeRepository,
+			interactiveRepository,
+		)
+
+		targetPath := "/test/path"
+		arguments := []string{"apply", "--no"}
+		dependencies := []entities.Dependency{}
+
+		// WHEN: Executing the command
+		cmd.Execute(targetPath, arguments, dependencies)
+
+		// THEN: --non-interactive is injected but not -auto-approve, so terraform's
+		// apply prompt aborts instead of proceeding, matching "no" semantics.
+		assert.Equal(t, 1, upgradeRepository.ExecuteCallCount, "Should use upgrade repository")
+		assert.Equal(t,
+			[]string{"apply", "--non-interactive"},
+			upgradeRepository.LastArguments,
+			"Should strip --no and append only --non-interactive",
+		)
+		assert.Equal(t, 0, interactiveRepository.ExecuteWithAnswerCallCount, "PTY path is no longer used")
 	})
 }
 
