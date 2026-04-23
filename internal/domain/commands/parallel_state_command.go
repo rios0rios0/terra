@@ -33,11 +33,12 @@ func (it *ParallelStateCommand) shouldExecuteInParallel(arguments []string) bool
 	return HasParallelFlag(arguments)
 }
 
-// removeParallelFlags removes --parallel=N, --only=, --skip=, and --reply/-r flags from arguments.
+// removeParallelFlags removes terra-managed flags (--parallel=N, --only=, --skip=)
+// and all confirmation flags (--yes/-y, --no/-n, --reply/-r) from arguments.
 func (it *ParallelStateCommand) removeParallelFlags(arguments []string) []string {
 	filtered := RemoveParallelFlag(arguments)
 	filtered = RemoveSelectionFlags(filtered)
-	return RemoveReplyFlag(filtered)
+	return RemoveConfirmationFlags(filtered)
 }
 
 // findSubdirectories finds all subdirectories that contain terraform/terragrunt files.
@@ -286,19 +287,9 @@ func (it *ParallelStateCommand) executeInParallel(
 		logger.Infof("Reducing thread count to %d (number of modules)", maxJobs)
 	}
 
-	hadReplyFlag := HasReplyFlag(arguments)
+	injected := BuildConfirmationInjection(arguments)
 	filteredArguments := it.removeParallelFlags(arguments)
-
-	// When --reply was provided, inject flags so workers don't prompt:
-	// --non-interactive: tells terragrunt to skip its own prompts (e.g., "run-all" confirmations)
-	// -auto-approve: tells terraform to skip the "Do you want to perform these actions?" confirmation
-	//                (TF_INPUT=false from --non-interactive only suppresses variable input, not apply confirmation)
-	if hadReplyFlag {
-		filteredArguments = append(filteredArguments, "--non-interactive")
-		if IsInteractiveCommand(arguments) {
-			filteredArguments = append(filteredArguments, "-auto-approve")
-		}
-	}
+	filteredArguments = append(filteredArguments, injected...)
 
 	executeErrors := it.runWorkers(modules, filteredArguments, maxJobs)
 	duration := time.Since(startTime)

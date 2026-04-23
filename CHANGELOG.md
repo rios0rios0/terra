@@ -16,6 +16,22 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added `--yes` / `-y` and `--no` / `-n` confirmation flags that translate to native Terraform and Terragrunt flags. `--yes` injects Terragrunt's `--non-interactive` plus Terraform's `-auto-approve` for `apply` / `destroy`; `--no` injects only `--non-interactive`, so Terraform's apply prompt aborts instead of proceeding. This aligns terra with the `apt` / `npm` / `az` convention and replaces the previous PTY-based approach with reliable flag injection.
+
+### Changed
+
+- changed the validation error for `--parallel` with `apply` / `destroy` from "`--reply` is required" to "`--yes` is required", matching the new flag names in error messages and copy-pasteable suggestions.
+
+### Deprecated
+
+- deprecated the `--reply` / `-r` flags. They still work and are translated to the new `--yes` / `--no` flag injection (`--reply=y` and bare `--reply` map to `--yes`; `--reply=n` maps to `--no`), but now emit a one-time migration warning. `--reply` will be removed in a future release.
+
+### Fixed
+
+- fixed `terra apply --reply=y` silently waiting forever on Terraform's "Do you want to perform these actions? Enter a value:" prompt. The previous PTY-based auto-responder only matched `[y/n]` and "external dependency" prompts, so Terraform's apply confirmation (which requires the literal word `yes`) was never answered. Users had to fall back to `-auto-approve`. The new flag-injection path invokes `-auto-approve` natively, so `terra apply --yes` (and the deprecated `--reply=y`) now work reliably.
+
 ## [1.14.3] - 2026-04-20
 
 ### Fixed

@@ -148,25 +148,31 @@ Terra deliberately does **not** translate `--skip`/`--only` into `--queue-exclud
 
 Instead, terra provides **discoverability**: when you use `--skip` with `--all`, the validation error echoes your command and shows the exact `--filter` form you should type. When you use terragrunt's `--filter`/`--queue-exclude-dir` with `--parallel=N`, terra logs a warning pointing you at `--only`/`--skip`.
 
-## Interactive Commands Require `--reply`
+## Interactive Commands Require `--yes` (or `--no`)
 
-When using `--parallel` with `apply` or `destroy`, you **must** provide `--reply` because parallel workers cannot share a single stdin for interactive prompts. In this mode, Terra automatically injects `--non-interactive` for each worker, and also adds `-auto-approve` for interactive commands like `apply` and `destroy`, so **just `--reply` without a value is sufficient** -- the value is ignored in terra-managed parallel mode.
+When using `--parallel` with `apply` or `destroy`, you **must** provide a confirmation flag because parallel workers cannot share a single stdin for interactive prompts. Terra translates these flags into native Terraform and Terragrunt flags before forwarding the command, so there is no PTY pattern matching involved:
+
+- `--yes` / `-y` injects Terragrunt's `--non-interactive` plus Terraform's `-auto-approve` for `apply` / `destroy`.
+- `--no` / `-n` injects only Terragrunt's `--non-interactive`, which causes Terraform's apply prompt to abort instead of proceeding -- matching a "no" answer.
 
 ```bash
 # ERROR: apply prompts for confirmation, but parallel workers can't share stdin
 terra apply --parallel=4 /path/to/infrastructure
 
-# CORRECT: just --reply (no value needed) is enough for terra-managed parallel
-terra apply --parallel=4 --reply /path/to/infrastructure
+# CORRECT: --yes maps to --non-interactive -auto-approve
+terra apply --parallel=4 --yes /path/to/infrastructure
 
 # Short form
-terra destroy --parallel=4 -r /path/to/infrastructure
+terra destroy --parallel=4 -y /path/to/infrastructure
 
-# OK: plan never prompts, so --reply is not required
+# Non-interactive, but abort instead of auto-approving
+terra apply --parallel=4 --no /path/to/infrastructure
+
+# OK: plan never prompts, so no confirmation flag is required
 terra plan --parallel=4 /path/to/infrastructure
 ```
 
-> **Note:** The `--reply` value (e.g., `--reply=y`) is only meaningful with `--all` (terragrunt-managed parallelism), where the PTY uses it to auto-answer prompts. With `--parallel`, the value is ignored and a warning is shown if provided.
+> **Note:** The legacy `--reply` / `-r` flags still work and emit a deprecation warning. `--reply=y` and bare `--reply` map to `--yes`; `--reply=n` maps to `--no`. Migrate to `--yes` / `--no` at your earliest convenience; `--reply` will be removed in a future release.
 
 ## Supported Commands
 

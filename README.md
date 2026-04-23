@@ -23,7 +23,7 @@ A powerful wrapper for Terragrunt and Terraform that revolutionizes infrastructu
 - Enhanced state management
 - Simplified module path specification
 - Cross-platform compatibility
-- Auto-replying to Terragrunt prompts via `--reply` / `-r` to avoid manual intervention
+- Non-interactive execution via `--yes` / `-y` (or `--no` / `-n`) that maps to Terraform's `-auto-approve` and Terragrunt's `--non-interactive` -- no PTY pattern matching, works reliably with `terraform apply`
 - Self-update capability to automatically update terra to the latest version
 - Version checking for Terra, Terraform, and Terragrunt dependencies
 - Automatic dependency installation and management
@@ -103,13 +103,13 @@ terra plan --all /path/to/module
 # or using Terraform approach, plan just the "module" subdirectory inside "to"
 terra plan /path/to/module
 
-# with auto-replying "y" to avoid manual prompts
-terra --reply=y apply --all /path
-terra -r=y plan --all /path/to
+# skip all confirmation prompts (apply/destroy use Terraform's -auto-approve)
+terra apply --yes --all /path
+terra -y plan --all /path/to
 
-# with auto-replying "n" to reject prompts
-terra --reply=n apply --all /path
-terra -r=n plan --all /path/to
+# run non-interactively and abort on any confirmation prompt (no auto-approve)
+terra apply --no --all /path
+terra -n plan --all /path/to
 ```
 
 ### Command Reference
@@ -123,35 +123,48 @@ self-update Update terra to the latest version
 version     Show Terra, Terraform, and Terragrunt versions
 ```
 
-### Reply Feature
+### Confirmation Flags: `--yes` and `--no`
 
-The `--reply` (or `-r`) flag enables automatic responses to Terragrunt prompts, eliminating the need for manual intervention during long-running operations. This is particularly useful in CI/CD pipelines or when running multiple Terragrunt commands.
+Terra translates two terra-level confirmation flags into native Terraform and Terragrunt flags so CI/CD pipelines and parallel workers never get stuck on prompts:
 
-**What it does:**
-- Automatically answers "n" to external dependency prompts (when using boolean flag or explicit `--reply=n`)
-- Automatically answers "y" to external dependency prompts (when using `--reply=y`)
-- Automatically answers general yes/no prompts with the specified value
-- Switches to manual mode for confirmation prompts (like "Are you sure you want to run...")
-- Filters out the reply flag before passing arguments to Terragrunt
+| Flag | Short | Injected into the forwarded command |
+|------|-------|-------------------------------------|
+| `--yes` | `-y` | Terragrunt's `--non-interactive` + Terraform's `-auto-approve` (for `apply` / `destroy`) |
+| `--no` | `-n` | Terragrunt's `--non-interactive` only (Terraform's apply prompt aborts instead of proceeding, matching a "no" answer) |
 
-**Usage with `--all` (terragrunt-managed parallelism):** requires an explicit value (`--reply=y` or `--reply=n`) because the PTY auto-answering needs to know how to respond.
+No PTY, no regex-based prompt detection. The translation happens before the command is forwarded to Terragrunt, so the behavior is reliable across Terraform and Terragrunt versions.
 
 ```bash
-# With explicit "y" answer - automatically answers "y" to prompts
-terra --reply=y apply --all /path
+# Non-interactive apply across a stack (Terraform's -auto-approve is injected automatically)
+terra apply --yes /path
+terra -y apply --all /path
+terra apply --parallel=4 --yes /path
 
-# Short form syntax
-terra -r=y apply --all /path
-terra -r=n plan --all /path
+# Non-interactive execution that aborts on any confirmation prompt
+terra plan --no --all /path
+terra apply --parallel=4 --no /path
 ```
 
-**Usage with `--parallel` (terra-managed parallelism):** just `--reply` (no value) is sufficient. Terra always injects `--non-interactive` when `--reply` is present, and adds `-auto-approve` automatically for interactive commands like `apply` and `destroy`; the reply value is ignored in this mode.
+**When using `--parallel` with `apply` / `destroy`**, a confirmation flag is required because parallel workers cannot share stdin:
 
 ```bash
-# Just --reply is enough for terra-managed parallel
-terra apply --parallel=4 --reply /path
-terra destroy --parallel=4 -r /path
+# ERROR: parallel workers cannot prompt
+terra apply --parallel=4 /path
+
+# CORRECT: inject native non-interactive flags
+terra apply --parallel=4 --yes /path
 ```
+
+#### Deprecated: `--reply` / `-r`
+
+The legacy `--reply` and `-r` flags still work but emit a deprecation warning. They are translated to the same native flags as their `--yes` / `--no` equivalents:
+
+| Legacy form | Mapped to |
+|-------------|-----------|
+| `--reply=y`, `-r=y`, bare `--reply`, bare `-r` | `--yes` |
+| `--reply=n`, `-r=n` | `--no` |
+
+Migrate scripts at your earliest convenience; `--reply` will be removed in a future release.
 
 ### Parallel Execution
 

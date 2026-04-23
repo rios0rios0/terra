@@ -17,6 +17,15 @@ const (
 	// SkipFlagPrefix represents the prefix for the --skip flag (exclude specific modules).
 	SkipFlagPrefix = "--skip="
 
+	// YesFlag represents the --yes flag (auto-approve, non-interactive).
+	YesFlag = "--yes"
+	// YesShortFlag represents the -y short flag for --yes.
+	YesShortFlag = "-y"
+	// NoFlag represents the --no flag (non-interactive, abort on confirm prompts).
+	NoFlag = "--no"
+	// NoShortFlag represents the -n short flag for --no.
+	NoShortFlag = "-n"
+
 	// DeprecatedNoParallelBypassFlag is the removed --no-parallel-bypass flag.
 	DeprecatedNoParallelBypassFlag = "--no-parallel-bypass"
 	// DeprecatedIncludeFlagPrefix is the renamed --include flag (now --only).
@@ -357,4 +366,115 @@ func RemoveReplyFlag(arguments []string) []string {
 		}
 	}
 	return filtered
+}
+
+// HasYesFlag checks if --yes or -y is present in arguments.
+func HasYesFlag(arguments []string) bool {
+	for _, arg := range arguments {
+		if arg == YesFlag || arg == YesShortFlag {
+			return true
+		}
+	}
+	return false
+}
+
+// HasNoFlag checks if --no or -n is present in arguments.
+func HasNoFlag(arguments []string) bool {
+	for _, arg := range arguments {
+		if arg == NoFlag || arg == NoShortFlag {
+			return true
+		}
+	}
+	return false
+}
+
+// HasConfirmationFlag returns true when any terra-level confirmation flag is present:
+// --yes/-y, --no/-n, or the deprecated --reply/-r forms.
+func HasConfirmationFlag(arguments []string) bool {
+	return HasYesFlag(arguments) || HasNoFlag(arguments) || HasReplyFlag(arguments)
+}
+
+// RemoveConfirmationFlags removes every terra-level confirmation flag from arguments
+// (--yes/-y, --no/-n, and all forms of the deprecated --reply/-r).
+func RemoveConfirmationFlags(arguments []string) []string {
+	filtered := make([]string, 0, len(arguments))
+	for _, arg := range arguments {
+		if arg == YesFlag || arg == YesShortFlag ||
+			arg == NoFlag || arg == NoShortFlag {
+			continue
+		}
+		if arg == ReplyFlag || arg == ReplyShortFlag ||
+			strings.HasPrefix(arg, ReplyFlag+"=") ||
+			strings.HasPrefix(arg, ReplyShortFlag+"=") {
+			continue
+		}
+		filtered = append(filtered, arg)
+	}
+	return filtered
+}
+
+// ResolveConfirmation returns which terra-level confirmation intent is present
+// as a pair of booleans (isYes, isNo). Legacy --reply/-r forms are mapped:
+// --reply=y maps to yes, --reply=n maps to no, and bare --reply (or -r) defaults
+// to yes. The bare default matches the old --parallel path, which injected
+// --non-interactive -auto-approve for bare --reply; the PTY path's "answer n"
+// default was an accidental side effect that often blocked CI pipelines.
+func ResolveConfirmation(arguments []string) (bool, bool) {
+	if HasYesFlag(arguments) {
+		return true, false
+	}
+	if HasNoFlag(arguments) {
+		return false, true
+	}
+
+	if !HasReplyFlag(arguments) {
+		return false, false
+	}
+
+	for _, arg := range arguments {
+		if after, ok := strings.CutPrefix(arg, ReplyFlag+"="); ok {
+			return mapReplyValueToConfirmation(after)
+		}
+		if after, ok := strings.CutPrefix(arg, ReplyShortFlag+"="); ok {
+			return mapReplyValueToConfirmation(after)
+		}
+	}
+	// Bare --reply or -r with no value: default to yes.
+	return true, false
+}
+
+// mapReplyValueToConfirmation translates a legacy --reply=<value> suffix into
+// the equivalent (isYes, isNo) intent. Anything that looks like a negative
+// answer maps to no; everything else (including unknown values) maps to yes.
+func mapReplyValueToConfirmation(value string) (bool, bool) {
+	switch strings.ToLower(value) {
+	case "n", "no", "false", "0":
+		return false, true
+	default:
+		return true, false
+	}
+}
+
+// BuildConfirmationInjection returns the native Terraform/Terragrunt flags that
+// should be appended to the forwarded argument list based on the presence of
+// --yes/--no (or the deprecated --reply forms).
+//
+//   - --yes injects --non-interactive (so Terragrunt assumes "yes" for its own
+//     prompts) and, for apply/destroy, -auto-approve (so Terraform skips its own
+//     confirmation, which --non-interactive alone does not suppress).
+//   - --no injects only --non-interactive. Without -auto-approve, Terraform's
+//     apply/destroy prompt aborts instead of proceeding, which matches "no".
+//
+// Returns nil when no confirmation flag is present.
+func BuildConfirmationInjection(arguments []string) []string {
+	yes, no := ResolveConfirmation(arguments)
+	if !yes && !no {
+		return nil
+	}
+
+	injected := []string{"--non-interactive"}
+	if yes && IsInteractiveCommand(arguments) {
+		injected = append(injected, "-auto-approve")
+	}
+	return injected
 }

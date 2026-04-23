@@ -85,26 +85,40 @@ func (it *RunFromRootCommand) Execute(
 	// Normal execution path for non-parallel commands
 	it.additionalBefore.Execute(targetPath, arguments)
 
-	// Check if reply flag is present and filter it out
-	useInteractive := it.hasReplyFlag(arguments)
-	replyValue := it.getReplyValue(arguments)
-	filteredArguments := it.removeReplyFlag(arguments)
+	// Translate terra confirmation flags (--yes/-y, --no/-n, legacy --reply/-r)
+	// into native Terraform/Terragrunt flags, then strip the terra-level flags.
+	it.warnDeprecatedReplyFlag(arguments)
+	injected := BuildConfirmationInjection(arguments)
+	filteredArguments := RemoveConfirmationFlags(arguments)
+	filteredArguments = append(filteredArguments, injected...)
 
-	var err error
-	if useInteractive {
-		logger.Infof("Using interactive mode with auto-replying (%s)", replyValue)
-		err = it.interactiveRepository.ExecuteCommandWithAnswer(
-			"terragrunt", filteredArguments, targetPath, replyValue)
-	} else {
-		// Use upgrade-aware repository: automatically detects when init --upgrade
-		// is needed, runs it, and retries the original command.
-		err = it.upgradeRepository.ExecuteCommandWithUpgrade(
-			"terragrunt", filteredArguments, targetPath)
-	}
-
+	// Use upgrade-aware repository: automatically detects when init --upgrade
+	// is needed, runs it, and retries the original command.
+	err := it.upgradeRepository.ExecuteCommandWithUpgrade(
+		"terragrunt", filteredArguments, targetPath)
 	if err != nil {
 		logger.Fatalf("Terragrunt command failed: %s", err)
 	}
+}
+
+// warnDeprecatedReplyFlag emits a one-time migration warning when --reply/-r is used.
+// The flag keeps working (mapped via BuildConfirmationInjection), but users should
+// migrate to --yes/-y or --no/-n.
+func (it *RunFromRootCommand) warnDeprecatedReplyFlag(arguments []string) {
+	if !HasReplyFlag(arguments) {
+		return
+	}
+	yes, _ := ResolveConfirmation(arguments)
+	replacement := NoFlag
+	if yes {
+		replacement = YesFlag
+	}
+	logger.Warnf(
+		"--reply/-r is deprecated and will be removed in a future release. "+
+			"Use %s instead. It maps to Terraform's -auto-approve and Terragrunt's "+
+			"--non-interactive, which reliably skips prompts without PTY pattern matching.",
+		replacement,
+	)
 }
 
 func (it *RunFromRootCommand) hasReplyFlag(arguments []string) bool {
@@ -132,24 +146,13 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string, targe
 		logger.Fatalf("%s", BuildParallelAllConflictError(arguments, targetPath))
 	}
 
-	// --reply is required when --parallel is used with interactive commands (apply, destroy)
-	// because parallel workers cannot handle stdin prompts
-	if hasParallelFlag && IsInteractiveCommand(arguments) && !HasReplyFlag(arguments) {
+	// A confirmation flag (--yes/-y, --no/-n, or the deprecated --reply/-r) is
+	// required when --parallel is used with interactive commands (apply, destroy)
+	// because parallel workers cannot share stdin for prompts.
+	if hasParallelFlag && IsInteractiveCommand(arguments) && !HasConfirmationFlag(arguments) {
 		logger.Fatalf(
-			"Error: --reply is required when using --parallel with apply or destroy. " +
-				"Parallel workers cannot handle interactive prompts. Example: --reply",
-		)
-	}
-
-	// Warn when --reply has an explicit value with --parallel: the value is ignored
-	// for terra-managed parallel execution. The value is only meaningful with
-	// --all (terragrunt-managed parallelism) where the PTY uses it.
-	if hasParallelFlag && HasExplicitReplyValue(arguments) {
-		logger.Warnf(
-			"The --reply value is ignored for terra-managed parallel execution (--parallel). " +
-				"It is only used with --all for terragrunt-managed parallelism, where the PTY " +
-				"uses the value to answer prompts. Just --reply without a value is sufficient " +
-				"when using --parallel.",
+			"Error: --yes is required when using --parallel with apply or destroy. " +
+				"Parallel workers cannot share stdin for prompts. Example: --yes (or -y).",
 		)
 	}
 
@@ -162,16 +165,6 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string, targe
 				"and have no effect with --parallel=N (terra-managed parallelism). " +
 				"Use --only=mod1,mod2 or --skip=mod1,mod2 for module selection, " +
 				"or switch to --all to let terragrunt handle filtering natively.",
-		)
-	}
-
-	// --reply requires an explicit value when used with --all (terragrunt-managed parallelism)
-	// because the PTY auto-answering needs to know whether to respond "y" or "n".
-	if hasAllFlag && HasReplyFlag(arguments) && !HasExplicitReplyValue(arguments) {
-		logger.Fatalf(
-			"Error: --reply requires an explicit value when used with --all " +
-				"(e.g., --reply=y or --reply=n). The value is used to auto-answer " +
-				"terragrunt prompts in terragrunt-managed parallelism.",
 		)
 	}
 
@@ -194,17 +187,17 @@ func (it *RunFromRootCommand) validateDeprecatedFlags(arguments []string) {
 		if arg == DeprecatedAutoAnswerShortFlag || strings.HasPrefix(arg, DeprecatedAutoAnswerShortFlag+"=") {
 			logger.Fatalf(
 				"Error: the -a short flag has been removed (conflicts with terragrunt's -a for --all). " +
-					"Use --reply or -r instead. Example: --reply=y",
+					"Use --yes or -y instead.",
 			)
 		}
 	}
 
-	// Detect --auto-answer (renamed to --reply)
+	// Detect --auto-answer (renamed to --yes)
 	for _, arg := range arguments {
 		if arg == DeprecatedAutoAnswerFlag || strings.HasPrefix(arg, DeprecatedAutoAnswerFlag+"=") {
 			logger.Fatalf(
-				"Error: --auto-answer has been renamed to --reply. " +
-					"Use --reply or -r instead. Example: --reply=y",
+				"Error: --auto-answer has been replaced by --yes. " +
+					"Use --yes or -y instead.",
 			)
 		}
 	}
