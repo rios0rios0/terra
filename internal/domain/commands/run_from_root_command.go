@@ -112,14 +112,15 @@ func (it *RunFromRootCommand) warnDeprecatedReplyFlag(arguments []string) {
 	}
 	yes, _ := ResolveConfirmation(arguments)
 	replacement := NoFlag
+	injection := "Terragrunt's --non-interactive (so the Terraform apply prompt aborts instead of proceeding)"
 	if yes {
 		replacement = YesFlag
+		injection = "Terragrunt's --non-interactive plus Terraform's -auto-approve for apply/destroy"
 	}
 	logger.Warnf(
 		"--reply/-r is deprecated and will be removed in a future release. "+
-			"Use %s instead. It maps to Terraform's -auto-approve and Terragrunt's "+
-			"--non-interactive, which reliably skips prompts without PTY pattern matching.",
-		replacement,
+			"Use %s instead. It maps to %s, which reliably skips prompts without PTY pattern matching.",
+		replacement, injection,
 	)
 }
 
