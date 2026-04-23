@@ -109,12 +109,13 @@ func buildEchoedCommand(arguments []string, targetPath string) string {
 }
 
 // buildParallelSuggestion builds the terra-managed parallel form of the user's intent,
-// suitable as a copy-pasteable example in a validation error. --reply is appended only
-// when the command is interactive (apply/destroy), because terra rejects those without it.
+// suitable as a copy-pasteable example in a validation error. --yes is appended only
+// when the command is interactive (apply/destroy), because terra rejects those without
+// a confirmation flag.
 func buildParallelSuggestion(
 	subcommand string,
 	onlyValues, skipValues []string,
-	needsReply bool,
+	needsConfirmation bool,
 	targetPath string,
 ) string {
 	parts := []string{"terra"}
@@ -128,8 +129,8 @@ func buildParallelSuggestion(
 	if len(skipValues) > 0 {
 		parts = append(parts, "--skip="+strings.Join(skipValues, ","))
 	}
-	if needsReply {
-		parts = append(parts, "--reply")
+	if needsConfirmation {
+		parts = append(parts, "--yes")
 	}
 	if targetPath != "" {
 		parts = append(parts, targetPath)
@@ -170,11 +171,11 @@ func BuildSelectionFlagsError(arguments []string, targetPath string) string {
 	subcommand := extractSubcommand(arguments)
 	onlyValues, _ := GetOnlyValues(arguments)
 	skipValues, _ := GetSkipValues(arguments)
-	needsReply := IsInteractiveCommand(arguments)
+	needsConfirmation := IsInteractiveCommand(arguments)
 
 	echoed := buildEchoedCommand(arguments, targetPath)
 	parallelSuggestion := buildParallelSuggestion(
-		subcommand, onlyValues, skipValues, needsReply, targetPath,
+		subcommand, onlyValues, skipValues, needsConfirmation, targetPath,
 	)
 	allSuggestion := buildAllWithFilterSuggestion(subcommand, onlyValues, skipValues, targetPath)
 
@@ -205,11 +206,11 @@ func BuildParallelAllConflictError(arguments []string, targetPath string) string
 	subcommand := extractSubcommand(arguments)
 	onlyValues, _ := GetOnlyValues(arguments)
 	skipValues, _ := GetSkipValues(arguments)
-	needsReply := IsInteractiveCommand(arguments)
+	needsConfirmation := IsInteractiveCommand(arguments)
 
 	echoed := buildEchoedCommand(arguments, targetPath)
 	parallelSuggestion := buildParallelSuggestion(
-		subcommand, onlyValues, skipValues, needsReply, targetPath,
+		subcommand, onlyValues, skipValues, needsConfirmation, targetPath,
 	)
 	allSuggestion := buildAllWithFilterSuggestion(subcommand, onlyValues, skipValues, targetPath)
 

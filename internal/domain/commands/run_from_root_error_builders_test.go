@@ -68,20 +68,20 @@ func TestBuildSelectionFlagsError(t *testing.T) {
 		assert.Contains(t, message, "terra plan --all --filter='mod1' --filter='mod2' /infra")
 	})
 
-	t.Run("should include --reply in the --parallel suggestion for apply", func(t *testing.T) {
+	t.Run("should include --yes in the --parallel suggestion for apply", func(t *testing.T) {
 		t.Parallel()
-		// GIVEN: apply is an interactive command and terra requires --reply for it
+		// GIVEN: apply is an interactive command and terra requires a confirmation flag for it
 		arguments := []string{"apply", "--skip=mod1"}
 		targetPath := "/infra"
 
 		// WHEN: Building the error
 		message := commands.BuildSelectionFlagsError(arguments, targetPath)
 
-		// THEN: The --parallel suggestion includes --reply
-		assert.Contains(t, message, "terra apply --parallel=5 --skip=mod1 --reply /infra")
+		// THEN: The --parallel suggestion includes --yes
+		assert.Contains(t, message, "terra apply --parallel=5 --skip=mod1 --yes /infra")
 	})
 
-	t.Run("should include --reply in the --parallel suggestion for destroy", func(t *testing.T) {
+	t.Run("should include --yes in the --parallel suggestion for destroy", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: destroy is also interactive
 		arguments := []string{"destroy", "--only=mod1"}
@@ -90,11 +90,11 @@ func TestBuildSelectionFlagsError(t *testing.T) {
 		// WHEN: Building the error
 		message := commands.BuildSelectionFlagsError(arguments, targetPath)
 
-		// THEN: The --parallel suggestion includes --reply
-		assert.Contains(t, message, "terra destroy --parallel=5 --only=mod1 --reply /infra")
+		// THEN: The --parallel suggestion includes --yes
+		assert.Contains(t, message, "terra destroy --parallel=5 --only=mod1 --yes /infra")
 	})
 
-	t.Run("should NOT include --reply in the --parallel suggestion for plan", func(t *testing.T) {
+	t.Run("should NOT include --yes in the --parallel suggestion for plan", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: plan is not an interactive command
 		arguments := []string{"plan", "--skip=mod1"}
@@ -103,9 +103,9 @@ func TestBuildSelectionFlagsError(t *testing.T) {
 		// WHEN: Building the error
 		message := commands.BuildSelectionFlagsError(arguments, targetPath)
 
-		// THEN: The --parallel suggestion does NOT include --reply
+		// THEN: The --parallel suggestion does NOT include --yes
 		assert.Contains(t, message, "terra plan --parallel=5 --skip=mod1 /infra")
-		assert.NotContains(t, message, "terra plan --parallel=5 --skip=mod1 --reply")
+		assert.NotContains(t, message, "terra plan --parallel=5 --skip=mod1 --yes")
 	})
 
 	t.Run("should preserve the target path in both suggestion lines", func(t *testing.T) {

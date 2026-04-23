@@ -101,7 +101,7 @@ func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
 		require.NotEmpty(t, hook.Entries)
 		lastEntry := hook.LastEntry()
 		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
-		assert.Contains(t, lastEntry.Message, "--auto-answer has been renamed to --reply")
+		assert.Contains(t, lastEntry.Message, "--auto-answer has been replaced by --yes")
 	})
 
 	t.Run("should fatalf when --auto-answer boolean flag is used", func(t *testing.T) {
@@ -119,7 +119,7 @@ func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
 		require.NotEmpty(t, hook.Entries)
 		lastEntry := hook.LastEntry()
 		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
-		assert.Contains(t, lastEntry.Message, "--auto-answer has been renamed to --reply")
+		assert.Contains(t, lastEntry.Message, "--auto-answer has been replaced by --yes")
 	})
 
 	t.Run("should fatalf when --all is used with state commands", func(t *testing.T) {
@@ -217,8 +217,8 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "terra plan --all /test/path")
 	})
 
-	t.Run("should fatalf when --parallel is used with apply without --reply", func(t *testing.T) {
-		// GIVEN: Arguments containing --parallel with apply but no --reply
+	t.Run("should fatalf when --parallel is used with apply without confirmation flag", func(t *testing.T) {
+		// GIVEN: Arguments containing --parallel with apply but no --yes/--no/--reply
 		hook, cleanup := setupFatalInterceptor()
 		defer cleanup()
 		cmd := newRunFromRootForValidation()
@@ -228,15 +228,15 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		// WHEN: Executing the command
 		cmd.Execute("/test/path", arguments, dependencies)
 
-		// THEN: Should log a fatal error about missing --reply flag
+		// THEN: Should log a fatal error requiring a confirmation flag
 		require.NotEmpty(t, hook.Entries)
 		lastEntry := hook.LastEntry()
 		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
-		assert.Contains(t, lastEntry.Message, "--reply is required when using --parallel with apply or destroy")
+		assert.Contains(t, lastEntry.Message, "--yes is required when using --parallel with apply or destroy")
 	})
 
-	t.Run("should fatalf when --parallel is used with destroy without --reply", func(t *testing.T) {
-		// GIVEN: Arguments containing --parallel with destroy but no --reply
+	t.Run("should fatalf when --parallel is used with destroy without confirmation flag", func(t *testing.T) {
+		// GIVEN: Arguments containing --parallel with destroy but no --yes/--no/--reply
 		hook, cleanup := setupFatalInterceptor()
 		defer cleanup()
 		cmd := newRunFromRootForValidation()
@@ -246,15 +246,15 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		// WHEN: Executing the command
 		cmd.Execute("/test/path", arguments, dependencies)
 
-		// THEN: Should log a fatal error about missing --reply flag
+		// THEN: Should log a fatal error requiring a confirmation flag
 		require.NotEmpty(t, hook.Entries)
 		lastEntry := hook.LastEntry()
 		assert.Equal(t, logger.FatalLevel, lastEntry.Level)
-		assert.Contains(t, lastEntry.Message, "--reply is required when using --parallel with apply or destroy")
+		assert.Contains(t, lastEntry.Message, "--yes is required when using --parallel with apply or destroy")
 	})
 
-	t.Run("should warn when --reply has explicit value with --parallel", func(t *testing.T) {
-		// GIVEN: Arguments containing --parallel with --reply=y (explicit value)
+	t.Run("should not fatalf when --parallel is used with apply and --yes", func(t *testing.T) {
+		// GIVEN: Arguments containing --parallel with apply and the new --yes flag
 		hook, cleanup := setupFatalInterceptor()
 		defer cleanup()
 
@@ -272,89 +272,50 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 			&repositorydoubles.StubUpgradeShellRepository{},
 			&repositorydoubles.StubInteractiveShellRepository{},
 		)
-		arguments := []string{"apply", "--parallel=2", "--reply=y"}
+		arguments := []string{"apply", "--parallel=2", "--yes"}
 		dependencies := []entities.Dependency{}
 
 		// WHEN: Executing the command
 		cmd.Execute("/test/path", arguments, dependencies)
 
-		// THEN: Should log a warning about the reply value being ignored
-		var foundWarning bool
+		// THEN: Validation passes and parallel execution proceeds
 		for _, entry := range hook.Entries {
-			if entry.Level == logger.WarnLevel &&
-				assert.ObjectsAreEqual("The --reply value is ignored for terra-managed parallel execution (--parallel). It is only used with --all for terragrunt-managed parallelism, where the PTY uses the value to answer prompts. Just --reply without a value is sufficient when using --parallel.", entry.Message) {
-				foundWarning = true
-			}
-		}
-		assert.True(t, foundWarning, "Should log a warning about --reply value being ignored")
-		assert.True(t, parallelState.ExecuteCalled, "Should still proceed to parallel execution")
-	})
-
-	t.Run("should not warn when --reply has no value with --parallel", func(t *testing.T) {
-		// GIVEN: Arguments containing --parallel with --reply (boolean form, no value)
-		hook, cleanup := setupFatalInterceptor()
-		defer cleanup()
-
-		parallelState := &commanddoubles.StubParallelState{}
-		cmd := commands.NewRunFromRootCommand(
-			entitybuilders.NewSettingsBuilder().
-				WithTerraModuleCacheDir("/tmp/terra-test-modules").
-				WithTerraProviderCacheDir("/tmp/terra-test-providers").
-				BuildSettings(),
-			&commanddoubles.StubInstallDependencies{},
-			&commanddoubles.StubFormatFiles{},
-			&commanddoubles.StubRunAdditionalBefore{},
-			parallelState,
-			&repositorydoubles.StubShellRepositoryForRoot{},
-			&repositorydoubles.StubUpgradeShellRepository{},
-			&repositorydoubles.StubInteractiveShellRepository{},
-		)
-		arguments := []string{"apply", "--parallel=2", "--reply"}
-		dependencies := []entities.Dependency{}
-
-		// WHEN: Executing the command
-		cmd.Execute("/test/path", arguments, dependencies)
-
-		// THEN: Should not log any warning about reply value
-		for _, entry := range hook.Entries {
-			if entry.Level == logger.WarnLevel {
-				assert.NotContains(t, entry.Message, "--reply value is ignored",
-					"Should not warn when --reply has no explicit value")
-			}
+			assert.NotEqual(t, logger.FatalLevel, entry.Level,
+				"Should not produce a fatal log entry for --parallel apply with --yes")
 		}
 		assert.True(t, parallelState.ExecuteCalled, "Should proceed to parallel execution")
 	})
 
-	t.Run("should fatalf when --all is used with --reply without explicit value", func(t *testing.T) {
-		// GIVEN: Arguments containing --all with --reply (boolean form, no explicit value)
+	t.Run("should warn when --reply is used with any command", func(t *testing.T) {
+		// GIVEN: Arguments containing the deprecated --reply flag
 		hook, cleanup := setupFatalInterceptor()
 		defer cleanup()
 		cmd := newRunFromRootForValidation()
-		arguments := []string{"apply", "--all", "--reply"}
+		arguments := []string{"plan", "--reply=y"}
 		dependencies := []entities.Dependency{}
 
 		// WHEN: Executing the command
 		cmd.Execute("/test/path", arguments, dependencies)
 
-		// THEN: Should log a fatal error requiring an explicit value
-		// (execution continues after intercepted Fatalf, so search all entries)
-		var foundFatal bool
+		// THEN: Emits a migration warning pointing at --yes
+		var foundWarning bool
 		for _, entry := range hook.Entries {
-			if entry.Level == logger.FatalLevel {
-				assert.Contains(t, entry.Message, "--reply requires an explicit value when used with --all")
-				foundFatal = true
-				break
+			if entry.Level == logger.WarnLevel &&
+				strings.Contains(entry.Message, "--reply/-r is deprecated") &&
+				strings.Contains(entry.Message, "Use --yes") {
+				foundWarning = true
 			}
 		}
-		assert.True(t, foundFatal, "Should have logged a fatal error about --reply requiring an explicit value")
+		assert.True(t, foundWarning, "Should log a deprecation warning for --reply")
 	})
 
 	t.Run("should not fatalf when --all is used with --reply=y", func(t *testing.T) {
-		// GIVEN: Arguments containing --all with --reply=y (explicit value)
+		// GIVEN: Arguments containing --all with --reply=y (valid under the new
+		// flag-injection path; the old PTY-era "requires explicit value" rule is gone).
 		hook, cleanup := setupFatalInterceptor()
 		defer cleanup()
 
-		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{}
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{}
 		cmd := commands.NewRunFromRootCommand(
 			entitybuilders.NewSettingsBuilder().
 				WithTerraModuleCacheDir("/tmp/terra-test-modules").
@@ -365,8 +326,8 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
 			&repositorydoubles.StubShellRepositoryForRoot{},
-			&repositorydoubles.StubUpgradeShellRepository{},
-			interactiveRepository,
+			upgradeRepository,
+			&repositorydoubles.StubInteractiveShellRepository{},
 		)
 		arguments := []string{"apply", "--all", "--reply=y"}
 		dependencies := []entities.Dependency{}
@@ -374,7 +335,7 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		// WHEN: Executing the command
 		cmd.Execute("/test/path", arguments, dependencies)
 
-		// THEN: Should not log any fatal error (--all with explicit --reply=y is valid)
+		// THEN: Should not log any fatal error
 		for _, entry := range hook.Entries {
 			assert.NotEqual(t, logger.FatalLevel, entry.Level,
 				"Should not produce a fatal log entry for --all with --reply=y")
@@ -426,7 +387,7 @@ func TestRunFromRootCommand_validateSelectionFlags(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "terra plan --all --filter='!mod1' /test/path")
 	})
 
-	t.Run("should include --reply in the --parallel suggestion for apply", func(t *testing.T) {
+	t.Run("should include --yes in the --parallel suggestion for apply", func(t *testing.T) {
 		// GIVEN: apply with --skip but without --parallel (and without --all)
 		hook, cleanup := setupFatalInterceptor()
 		defer cleanup()
@@ -437,7 +398,7 @@ func TestRunFromRootCommand_validateSelectionFlags(t *testing.T) {
 		// WHEN: Executing the command
 		cmd.Execute("/test/path", arguments, dependencies)
 
-		// THEN: The suggestion for the --parallel path includes --reply because
+		// THEN: The suggestion for the --parallel path includes --yes because
 		// apply is interactive and terra rejects --parallel apply without it
 		require.NotEmpty(t, hook.Entries)
 		lastEntry := hook.LastEntry()
@@ -445,7 +406,7 @@ func TestRunFromRootCommand_validateSelectionFlags(t *testing.T) {
 		assert.Contains(
 			t,
 			lastEntry.Message,
-			"terra apply --parallel=5 --skip=mod1 --reply /test/path",
+			"terra apply --parallel=5 --skip=mod1 --yes /test/path",
 		)
 	})
 }
@@ -816,14 +777,13 @@ func TestRunFromRootCommand_Execute_terragruntFails(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "Terragrunt command failed")
 	})
 
-	t.Run("should fatalf when interactive repository returns error", func(t *testing.T) {
-		// GIVEN: An interactive repository that returns an error
+	t.Run("should fatalf when upgrade repository returns error with --yes", func(t *testing.T) {
+		// GIVEN: An upgrade repository that returns an error while --yes is set
 		hook, cleanup := setupFatalInterceptor()
 		defer cleanup()
 
-		interactiveRepository := &repositorydoubles.StubInteractiveShellRepository{
-			ShouldReturnError: true,
-			ExecuteError:      assert.AnError,
+		upgradeRepository := &repositorydoubles.StubUpgradeShellRepository{
+			ErrorToReturn: assert.AnError,
 		}
 		cmd := commands.NewRunFromRootCommand(
 			entitybuilders.NewSettingsBuilder().
@@ -835,10 +795,10 @@ func TestRunFromRootCommand_Execute_terragruntFails(t *testing.T) {
 			&commanddoubles.StubRunAdditionalBefore{},
 			&commanddoubles.StubParallelState{},
 			&repositorydoubles.StubShellRepositoryForRoot{},
-			&repositorydoubles.StubUpgradeShellRepository{},
-			interactiveRepository,
+			upgradeRepository,
+			&repositorydoubles.StubInteractiveShellRepository{},
 		)
-		arguments := []string{"--reply=y", "plan"}
+		arguments := []string{"--yes", "apply"}
 		dependencies := []entities.Dependency{}
 
 		// WHEN: Executing the command
