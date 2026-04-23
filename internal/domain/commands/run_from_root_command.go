@@ -101,9 +101,11 @@ func (it *RunFromRootCommand) Execute(
 	}
 }
 
-// warnDeprecatedReplyFlag emits a one-time migration warning when --reply/-r is used.
+// warnDeprecatedReplyFlag emits a migration warning when --reply/-r is used.
 // The flag keeps working (mapped via BuildConfirmationInjection), but users should
-// migrate to --yes/-y or --no/-n.
+// migrate to --yes/-y or --no/-n. Execute runs once per CLI invocation, so this
+// fires at most once per process, but the warning is not deduplicated across
+// repeated Execute calls within the same process (e.g., in tests).
 func (it *RunFromRootCommand) warnDeprecatedReplyFlag(arguments []string) {
 	if !HasReplyFlag(arguments) {
 		return
@@ -151,8 +153,8 @@ func (it *RunFromRootCommand) validateFlagCombinations(arguments []string, targe
 	// because parallel workers cannot share stdin for prompts.
 	if hasParallelFlag && IsInteractiveCommand(arguments) && !HasConfirmationFlag(arguments) {
 		logger.Fatalf(
-			"Error: --yes is required when using --parallel with apply or destroy. " +
-				"Parallel workers cannot share stdin for prompts. Example: --yes (or -y).",
+			"Error: a confirmation flag is required when using --parallel with apply or destroy. " +
+				"Parallel workers cannot share stdin for prompts. Use --yes (or -y), --no (or -n), or --reply (or -r).",
 		)
 	}
 
