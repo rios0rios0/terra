@@ -494,3 +494,224 @@ func TestGetReplyValue(t *testing.T) {
 		})
 	}
 }
+
+func TestHasYesFlag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  bool
+	}{
+		{"should return true when --yes present", []string{"apply", "--yes"}, true},
+		{"should return true when -y present", []string{"apply", "-y"}, true},
+		{"should return false when only --no present", []string{"apply", "--no"}, false},
+		{"should return false when absent", []string{"apply"}, false},
+		{"should return false when empty arguments", []string{}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.HasYesFlag(tt.arguments))
+		})
+	}
+}
+
+func TestHasNoFlag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  bool
+	}{
+		{"should return true when --no present", []string{"apply", "--no"}, true},
+		{"should return true when -n present", []string{"apply", "-n"}, true},
+		{"should return false when only --yes present", []string{"apply", "--yes"}, false},
+		{"should return false when absent", []string{"apply"}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.HasNoFlag(tt.arguments))
+		})
+	}
+}
+
+func TestHasConfirmationFlag(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  bool
+	}{
+		{"should return true when --yes present", []string{"apply", "--yes"}, true},
+		{"should return true when --no present", []string{"apply", "--no"}, true},
+		{"should return true when deprecated --reply present", []string{"apply", "--reply"}, true},
+		{"should return true when deprecated --reply=y present", []string{"apply", "--reply=y"}, true},
+		{"should return false when absent", []string{"apply"}, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.HasConfirmationFlag(tt.arguments))
+		})
+	}
+}
+
+func TestRemoveConfirmationFlags(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  []string
+	}{
+		{
+			"should strip --yes",
+			[]string{"apply", "--yes", "-target=mod"},
+			[]string{"apply", "-target=mod"},
+		},
+		{
+			"should strip -y",
+			[]string{"apply", "-y"},
+			[]string{"apply"},
+		},
+		{
+			"should strip --no",
+			[]string{"apply", "--no"},
+			[]string{"apply"},
+		},
+		{
+			"should strip -n",
+			[]string{"apply", "-n"},
+			[]string{"apply"},
+		},
+		{
+			"should strip deprecated --reply and its value forms",
+			[]string{"apply", "--reply", "-r", "--reply=y", "-r=n"},
+			[]string{"apply"},
+		},
+		{
+			"should strip space-separated --reply y",
+			[]string{"apply", "--reply", "y"},
+			[]string{"apply"},
+		},
+		{
+			"should strip space-separated -r n and keep trailing target path",
+			[]string{"apply", "-r", "n", "/path/to/module"},
+			[]string{"apply", "/path/to/module"},
+		},
+		{
+			"should keep a following flag when --reply has no value",
+			[]string{"apply", "--reply", "--parallel=4"},
+			[]string{"apply", "--parallel=4"},
+		},
+		{
+			"should not consume the subcommand after bare --reply",
+			[]string{"--reply", "plan", "--detailed-exitcode"},
+			[]string{"plan", "--detailed-exitcode"},
+		},
+		{
+			"should leave arguments unchanged when no confirmation flag present",
+			[]string{"apply", "-target=mod"},
+			[]string{"apply", "-target=mod"},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.RemoveConfirmationFlags(tt.arguments))
+		})
+	}
+}
+
+func TestResolveConfirmation(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name       string
+		arguments  []string
+		expectYes  bool
+		expectNo   bool
+	}{
+		{"should resolve --yes to yes", []string{"apply", "--yes"}, true, false},
+		{"should resolve --no to no", []string{"apply", "--no"}, false, true},
+		{"should map --reply=y to yes", []string{"apply", "--reply=y"}, true, false},
+		{"should map --reply=n to no", []string{"apply", "--reply=n"}, false, true},
+		{"should map bare --reply to yes (default)", []string{"apply", "--reply"}, true, false},
+		{"should map bare -r to yes (default)", []string{"apply", "-r"}, true, false},
+		{"should map --reply=no to no", []string{"apply", "--reply=no"}, false, true},
+		{"should map space-separated --reply y to yes", []string{"apply", "--reply", "y"}, true, false},
+		{"should map space-separated -r n to no", []string{"apply", "-r", "n"}, false, true},
+		{"should map bare --reply followed by another flag to yes", []string{"apply", "--reply", "--parallel=4"}, true, false},
+		{"should return false,false when no confirmation flag", []string{"apply"}, false, false},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			yes, no := commands.ResolveConfirmation(tt.arguments)
+			assert.Equal(t, tt.expectYes, yes, "yes")
+			assert.Equal(t, tt.expectNo, no, "no")
+		})
+	}
+}
+
+func TestBuildConfirmationInjection(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name      string
+		arguments []string
+		expected  []string
+	}{
+		{
+			"should inject --non-interactive and -auto-approve for --yes on apply",
+			[]string{"apply", "--yes"},
+			[]string{"--non-interactive", "-auto-approve"},
+		},
+		{
+			"should inject --non-interactive and -auto-approve for --yes on destroy",
+			[]string{"destroy", "--yes"},
+			[]string{"--non-interactive", "-auto-approve"},
+		},
+		{
+			"should inject only --non-interactive for --yes on plan",
+			[]string{"plan", "--yes"},
+			[]string{"--non-interactive"},
+		},
+		{
+			"should inject only --non-interactive for --no on apply",
+			[]string{"apply", "--no"},
+			[]string{"--non-interactive"},
+		},
+		{
+			"should inject --non-interactive and -auto-approve for --reply=y on apply",
+			[]string{"apply", "--reply=y"},
+			[]string{"--non-interactive", "-auto-approve"},
+		},
+		{
+			"should inject only --non-interactive for --reply=n on apply",
+			[]string{"apply", "--reply=n"},
+			[]string{"--non-interactive"},
+		},
+		{
+			"should return nil when no confirmation flag is present",
+			[]string{"apply"},
+			nil,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			assert.Equal(t, tt.expected, commands.BuildConfirmationInjection(tt.arguments))
+		})
+	}
+}

@@ -452,8 +452,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		assert.NotContains(t, lastCall.Arguments, "-auto-approve", "Should not inject -auto-approve for plan")
 	})
 
-	t.Run("should not inject --non-interactive when reply not present", func(t *testing.T) {
-		// GIVEN: A parallel state command without --reply flag
+	t.Run("should not inject --non-interactive when no confirmation flag present", func(t *testing.T) {
+		// GIVEN: A parallel state command without any confirmation flag
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
 		arguments := []string{"plan", "--parallel=2"}
@@ -470,7 +470,59 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, repository.CallHistory)
 		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
-		assert.NotContains(t, lastCall.Arguments, "--non-interactive", "Should not inject --non-interactive without --reply")
+		assert.NotContains(t, lastCall.Arguments, "--non-interactive", "Should not inject --non-interactive without a confirmation flag")
+	})
+
+	t.Run("should strip --yes and inject --non-interactive and -auto-approve for apply", func(t *testing.T) {
+		// GIVEN: A parallel state command with the new --yes flag on apply
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"apply", "--parallel=2", "--yes"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should strip --yes and inject both native flags
+		require.NoError(t, err)
+		require.NotEmpty(t, repository.CallHistory)
+		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
+		for _, arg := range lastCall.Arguments {
+			assert.NotEqual(t, "--yes", arg, "Should not pass --yes flag to terragrunt")
+			assert.NotEqual(t, "-y", arg, "Should not pass -y flag to terragrunt")
+		}
+		assert.Contains(t, lastCall.Arguments, "--non-interactive")
+		assert.Contains(t, lastCall.Arguments, "-auto-approve")
+	})
+
+	t.Run("should strip --no and inject only --non-interactive", func(t *testing.T) {
+		// GIVEN: A parallel state command with the new --no flag on apply
+		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
+		cmd := commands.NewParallelStateCommand(repository)
+		arguments := []string{"apply", "--parallel=2", "--no"}
+		dependencies := []entities.Dependency{}
+
+		tempDir := t.TempDir()
+		testHelper := newTestDirectoryHelper(t)
+		testHelper.createModuleDirectories(tempDir, []string{"mod1"})
+
+		// WHEN: Executing the command
+		err := cmd.Execute(tempDir, arguments, dependencies)
+
+		// THEN: Should strip --no and inject only --non-interactive (no -auto-approve)
+		require.NoError(t, err)
+		require.NotEmpty(t, repository.CallHistory)
+		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
+		for _, arg := range lastCall.Arguments {
+			assert.NotEqual(t, "--no", arg, "Should not pass --no flag to terragrunt")
+			assert.NotEqual(t, "-n", arg, "Should not pass -n flag to terragrunt")
+		}
+		assert.Contains(t, lastCall.Arguments, "--non-interactive")
+		assert.NotContains(t, lastCall.Arguments, "-auto-approve", "Should not inject -auto-approve for --no")
 	})
 }
 
