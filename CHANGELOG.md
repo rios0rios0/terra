@@ -23,6 +23,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ### Changed
 
 - changed the validation error for `--parallel` with `apply` / `destroy` from "`--reply` is required" to "`--yes` is required", matching the new flag names in error messages and copy-pasteable suggestions.
+- changed the Go module dependencies to their latest versions
 
 ### Deprecated
 
