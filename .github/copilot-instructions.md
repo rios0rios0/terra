@@ -170,9 +170,15 @@ terra apply --all --filter='!excluded_module' /path/to/infrastructure
 # Terragrunt-managed run-all: legacy filter syntax
 terra apply --all --queue-exclude-dir=excluded_module /path/to/infrastructure
 
-# Auto-reply to interactive prompts (defaults to "n")
+# Auto-approve interactive prompts (non-interactive + auto-approve)
+terra apply --yes /path/to/infrastructure/module
+terra apply -y /path/to/infrastructure/module
+
+# Non-interactive only (Terraform's apply prompt aborts instead of proceeding)
+terra apply --no /path/to/infrastructure/module
+
+# Legacy --reply/-r flags still work but are deprecated (emit migration warning)
 terra apply --reply=y /path/to/infrastructure/module
-terra apply -r=y /path/to/infrastructure/module
 ```
 
 ## Validation and Testing
@@ -260,8 +266,6 @@ When multiple test files test the same method, use descriptive suffixes to avoid
   - `/test/infrastructure/repositorydoubles/` - Stubs implementing repository interfaces (infrastructure layer)
   - `/test/infrastructure/repositorybuilders/` - Builders for infrastructure testing (HTTP servers, etc.)
   - `/test/infrastructure/repositoryhelpers/` - Helpers for testing repository/OS functionality
-  - `/test/infrastructure/controllerdoubles/` - Stubs implementing controller interfaces
-  - `/test/infrastructure/controllerhelpers/` - Helpers for controller testing
 - **Test helpers in production folders affect coverage unnecessarily** and violate project standards
 - **Use `t.Helper()` in all helper functions** for better test failure reporting
 - **Name helpers with `Helper` prefix** - avoid `Test` prefix to prevent Go test runner conflicts
@@ -274,7 +278,6 @@ When multiple test files test the same method, use descriptive suffixes to avoid
   - `entitydoubles`, `entitybuilders`
   - `commanddoubles`
   - `repositorydoubles`, `repositorybuilders`, `repositoryhelpers`
-  - `controllerdoubles`, `controllerhelpers`
 - **Clear naming convention** - Use descriptive names that indicate the utility type and purpose:
   - Builders: `dependency_builder.go`, `test_server_builder.go`
   - Stubs: `stub_shell_repository.go`, `stub_install_dependencies.go`, `stub_cli.go`
@@ -444,7 +447,7 @@ test/                    # Test helpers organized by domain/infrastructure layer
 - **Auto-initialization with upgrade**: `UpgradeAwareShellRepository` wraps command execution. When a terragrunt command fails with output matching upgrade-needed patterns (backend changed, provider conflicts, uninitialized modules), it automatically runs `init --upgrade` and retries the original command. This is used in the normal (non-interactive) execution path of `RunFromRootCommand`.
 - **Parallel execution**: Two independent strategies exist. **Terra-managed**: `--parallel=N` runs terragrunt across multiple modules using N goroutine workers; use `--only=mod1,mod2` to select modules or `--skip=mod3` to exclude. **Terragrunt-managed**: `--all`, `--parallelism=N`, and `--filter=query` (and the legacy `--queue-exclude-dir`/`--queue-include-dir`) are forwarded directly to terragrunt for its native run-all behavior. These two strategies cannot be combined (`--parallel` and `--all` together is an error). Terra's `--only`/`--skip` only work with `--parallel=N`; on the `--all` path you must use terragrunt's own filter flags (prefer `--filter='!mod'` which is strictly more expressive than `--queue-exclude-dir`).
 - **Educational validation errors**: When a user passes `--only`/`--skip` without `--parallel`, terra fatalfs with a multi-line error that echoes the command they typed and prints both valid escape hatches (`--parallel=5 --skip=mod` AND `--all --filter='!mod'`) as copy-pasteable examples. Same treatment for the `--parallel` + `--all` conflict. When a user passes terragrunt-only queue/filter flags (`--filter`, `--queue-exclude-dir`, `--queue-include-dir`) alongside `--parallel=N`, terra logs a non-fatal warning because the flags are silently ignored by the worker pool. These error builders live in `internal/domain/commands/run_from_root_error_builders.go` as `BuildSelectionFlagsError` and `BuildParallelAllConflictError`; update them (and the unit tests in `run_from_root_error_builders_test.go`) when changing validation messages.
-- **Reply mode**: Use `--reply=<value>` (or `-r=<value>`) to automatically answer interactive prompts from terragrunt. Uses `creack/pty` for PTY-based interaction.
+- **Confirmation flags**: `--yes` / `-y` injects Terragrunt's `--non-interactive` plus Terraform's `-auto-approve`; `--no` / `-n` injects only `--non-interactive` (Terraform's apply prompt aborts). Required for `--parallel` with `apply`/`destroy`. The legacy `--reply` / `-r` flags still work but are deprecated and emit a migration warning.
 - **Pre-execution steps**: `RunAdditionalBeforeCommand` runs before the main terragrunt command: switches cloud account (if `TERRA_CLOUD` is set), initializes terraform (if not already done), and selects the workspace (if `TERRA_WORKSPACE` is set).
 - **Clearing caches**: `terra clear` removes local `.terraform` and `.terragrunt-cache` directories. Use `terra clear --global` to also remove the centralized cache directories.
 
