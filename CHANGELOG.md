@@ -16,6 +16,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.15.1] - 2026-04-28
+
 ### Changed
 
 - refreshed `CLAUDE.md` and `.github/copilot-instructions.md` to document the `--yes`/`--no` confirmation flags and the `--reply` deprecation from v1.15.0, and removed references to non-existent test directories
