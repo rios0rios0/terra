@@ -16,6 +16,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Added
+
+- added `TERRA_DOWNLOAD_TIMEOUT` environment variable to override the per-download deadline `terra install` applies to the Terraform / Terragrunt fetch (default `10m`). Accepts any `time.ParseDuration` value (`30m`, `1h`, `20m30s`); malformed or non-positive values fall back to the default and log a warning. Resolves the silent `failed to write downloaded content to file: context deadline exceeded` failure on slow transports -- corporate proxies, low-bandwidth links, and especially QEMU-emulated multi-arch container builds where syscall overhead pushes the Terragrunt body read past the previously hardcoded 10-minute ceiling.
+
 ## [1.15.4] - 2026-05-01
 
 ### Changed
