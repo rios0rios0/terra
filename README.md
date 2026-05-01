@@ -287,13 +287,13 @@ TF_VAR_region=us-west-2
 # Optional: Disable automatic workspace selection from TERRA_WORKSPACE
 # TERRA_NO_WORKSPACE=true
 
-# Optional: Override the per-download deadline applied by `terra
-# install` to the Terraform / Terragrunt fetch (default 10 minutes).
+# Optional: Override the per-download deadline that `terra install`
+# applies to the Terraform / Terragrunt fetch (default 10 minutes).
 # Useful when slower transports (corporate proxies, low-bandwidth
 # links, QEMU-emulated multi-arch container builds) push the
 # Terragrunt download past the default. Accepts any value parseable
-# by `time.ParseDuration` -- e.g. `30m`, `1h`, `20m30s`. A malformed
-# value falls back to the default and logs a warning.
+# by `time.ParseDuration` -- e.g. `30m`, `1h`, `20m30s`. Malformed
+# or non-positive values fall back to the default and log a warning.
 # TERRA_DOWNLOAD_TIMEOUT=30m
 ```
 

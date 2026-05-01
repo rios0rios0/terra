@@ -38,9 +38,12 @@ type OS interface {
 
 // resolveDownloadTimeout returns the user-configured download
 // timeout from `TERRA_DOWNLOAD_TIMEOUT`, falling back to
-// `defaultDownloadTimeout` when the env var is unset, empty, or
-// fails to parse. A parse failure logs a warning and uses the
-// default so a malformed override never silently breaks installs.
+// `defaultDownloadTimeout` when the env var is unset, empty, fails
+// to parse, or resolves to a non-positive duration. A parse failure
+// or non-positive value logs a warning and uses the default so a
+// malformed override never silently breaks installs (a non-positive
+// `context.WithTimeout` deadline expires immediately, which would
+// abort every download before the first byte is read).
 func resolveDownloadTimeout() time.Duration {
 	raw := os.Getenv(downloadTimeoutEnvVar)
 	if raw == "" {
@@ -52,6 +55,14 @@ func resolveDownloadTimeout() time.Duration {
 		logger.Warnf(
 			"invalid %s=%q (%s); falling back to default %s",
 			downloadTimeoutEnvVar, raw, err, defaultDownloadTimeout,
+		)
+		return defaultDownloadTimeout
+	}
+
+	if parsed <= 0 {
+		logger.Warnf(
+			"non-positive %s=%q; falling back to default %s",
+			downloadTimeoutEnvVar, raw, defaultDownloadTimeout,
 		)
 		return defaultDownloadTimeout
 	}
