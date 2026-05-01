@@ -15,7 +15,8 @@ type CLI interface {
 // Selection precedence:
 //
 //  1. Explicit `TERRA_CLOUD` ("aws" | "azure") wins -- backwards-compatible
-//     for consumers that already set it. Empty / unrecognised falls through.
+//     for consumers that already set it. Settings validation (oneof=aws azure)
+//     guarantees the value is either one of these or empty.
 //  2. Auto-detection from the cloud-specific credential variable: a non-empty
 //     `TERRA_AZURE_SUBSCRIPTION_ID` selects the Azure adapter; a non-empty
 //     `TERRA_AWS_ROLE_ARN` selects the AWS adapter. This lets consumers wire
@@ -34,11 +35,8 @@ func NewCLI(settings *Settings) CLI {
 		"azure": NewCLIAzm(settings),
 	}
 
-	if settings.TerraCloud != "" {
-		if value, ok := mapping[settings.TerraCloud]; ok {
-			return value
-		}
-		logger.Debugf("Unrecognised TERRA_CLOUD value %q; falling back to credential-variable auto-detection", settings.TerraCloud)
+	if value, ok := mapping[settings.TerraCloud]; ok {
+		return value
 	}
 
 	azureSet := settings.TerraAzureSubscriptionID != ""
@@ -46,7 +44,11 @@ func NewCLI(settings *Settings) CLI {
 
 	switch {
 	case azureSet && awsSet:
-		logger.Warnf("Both TERRA_AZURE_SUBSCRIPTION_ID and TERRA_AWS_ROLE_ARN are set but TERRA_CLOUD is empty; set TERRA_CLOUD=azure or TERRA_CLOUD=aws to disambiguate -- account-switch commands will be skipped")
+		logger.Warn(
+			"Both TERRA_AZURE_SUBSCRIPTION_ID and TERRA_AWS_ROLE_ARN are set but TERRA_CLOUD is empty; " +
+				"set TERRA_CLOUD=azure or TERRA_CLOUD=aws to disambiguate -- " +
+				"account-switch commands will be skipped",
+		)
 		return nil
 	case azureSet:
 		logger.Debugf("Auto-detected Azure cloud from TERRA_AZURE_SUBSCRIPTION_ID")
