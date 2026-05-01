@@ -16,6 +16,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Changed
+
+- changed `NewCLI()` in `internal/domain/entities/cli.go` to auto-detect the cloud-CLI adapter from the cloud-specific credential variables when `TERRA_CLOUD` is not set. A non-empty `TERRA_AZURE_SUBSCRIPTION_ID` selects the Azure adapter; a non-empty `TERRA_AWS_ROLE_ARN` selects the AWS adapter. Previously `NewCLI()` returned `nil` whenever `TERRA_CLOUD` was empty, so consumers had to set BOTH `TERRA_CLOUD=azure` AND `TERRA_AZURE_SUBSCRIPTION_ID=<id>` for terra to run `az account set --subscription <id>` before each command -- redundant, and easy to miss (consumer pipelines kept hitting cross-stack subscription leaks because setting `TERRA_AZURE_SUBSCRIPTION_ID` alone did nothing). Selection precedence: explicit `TERRA_CLOUD` wins (backwards-compatible); credential-variable auto-detection on fallthrough; if BOTH credential variables are populated AND `TERRA_CLOUD` is empty, log a warning and return `nil` rather than guess (operator must disambiguate). Added BDD-style cases in a new `internal/domain/entities/cli_test.go` covering each selection branch + the precedence + ambiguity scenarios; subsumed the prior 3-case `TestNewCLI` block in `settings_test.go`.
+
 ## [1.15.3] - 2026-04-30
 
 ### Changed
