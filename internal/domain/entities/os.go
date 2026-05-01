@@ -7,10 +7,23 @@ import (
 	"net/http"
 	"os"
 	"time"
+
+	logger "github.com/sirupsen/logrus"
 )
 
 const (
-	downloadTimeout = 10 * time.Minute
+	// defaultDownloadTimeout caps a single download HTTP request +
+	// body read for `terra install`. Configurable via the
+	// `TERRA_DOWNLOAD_TIMEOUT` environment variable when slower
+	// transports (corporate proxies, QEMU-emulated multi-arch
+	// container builds, low-bandwidth links) need a longer ceiling.
+	// Accepts any `time.ParseDuration` value, e.g. `30m`, `1h`,
+	// `20m30s`.
+	defaultDownloadTimeout = 10 * time.Minute
+
+	// downloadTimeoutEnvVar is the environment-variable name that
+	// overrides `defaultDownloadTimeout`.
+	downloadTimeoutEnvVar = "TERRA_DOWNLOAD_TIMEOUT"
 )
 
 type OS interface {
@@ -23,10 +36,35 @@ type OS interface {
 	GetInstallationPath() string
 }
 
+// resolveDownloadTimeout returns the user-configured download
+// timeout from `TERRA_DOWNLOAD_TIMEOUT`, falling back to
+// `defaultDownloadTimeout` when the env var is unset, empty, or
+// fails to parse. A parse failure logs a warning and uses the
+// default so a malformed override never silently breaks installs.
+func resolveDownloadTimeout() time.Duration {
+	raw := os.Getenv(downloadTimeoutEnvVar)
+	if raw == "" {
+		return defaultDownloadTimeout
+	}
+
+	parsed, err := time.ParseDuration(raw)
+	if err != nil {
+		logger.Warnf(
+			"invalid %s=%q (%s); falling back to default %s",
+			downloadTimeoutEnvVar, raw, err, defaultDownloadTimeout,
+		)
+		return defaultDownloadTimeout
+	}
+
+	return parsed
+}
+
 // downloadFile provides a common implementation for downloading files via HTTP.
 func downloadFile(url, tempFilePath string) error {
-	// Create context with timeout for the download
-	ctx, cancel := context.WithTimeout(context.Background(), downloadTimeout)
+	// Create context with timeout for the download. Resolved at
+	// call time (not init) so tests / operators can override
+	// `TERRA_DOWNLOAD_TIMEOUT` without a process restart.
+	ctx, cancel := context.WithTimeout(context.Background(), resolveDownloadTimeout())
 	defer cancel()
 
 	// Create HTTP request with context
