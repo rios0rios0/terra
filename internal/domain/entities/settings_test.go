@@ -48,44 +48,8 @@ func TestNewSettings(t *testing.T) {
 	})
 }
 
-func TestNewCLI(t *testing.T) {
-	t.Run("should return nil when empty cloud provider provided", func(t *testing.T) {
-		// GIVEN: Settings with empty cloud provider
-		settings := entities.NewSettings()
-
-		// WHEN: Creating CLI interface
-		cli := entities.NewCLI(settings)
-
-		// THEN: Should return nil for empty cloud provider
-		assert.Nil(t, cli)
-	})
-
-	t.Run("should return aws CLI when aws cloud provider provided", func(t *testing.T) {
-		// GIVEN: Settings with AWS cloud provider
-		t.Setenv("TERRA_CLOUD", "aws")
-		settings := entities.NewSettings()
-
-		// WHEN: Creating CLI interface
-		cli := entities.NewCLI(settings)
-
-		// THEN: Should return AWS CLI implementation
-		require.NotNil(t, cli)
-		assert.Equal(t, "aws", cli.GetName())
-	})
-
-	t.Run("should return azure CLI when azure cloud provider provided", func(t *testing.T) {
-		// GIVEN: Settings with Azure cloud provider
-		t.Setenv("TERRA_CLOUD", "azure")
-		settings := entities.NewSettings()
-
-		// WHEN: Creating CLI interface
-		cli := entities.NewCLI(settings)
-
-		// THEN: Should return Azure CLI implementation
-		require.NotNil(t, cli)
-		assert.Equal(t, "az", cli.GetName())
-	})
-}
+// TestNewCLI lives in cli_test.go -- the cases there subsume the prior
+// minimal coverage and add auto-detection / precedence / ambiguity scenarios.
 
 func TestNewCLIAws(t *testing.T) {
 	t.Parallel()
