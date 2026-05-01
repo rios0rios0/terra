@@ -88,9 +88,10 @@ func TestOSUnix_Download(t *testing.T) {
 func TestOSUnix_DownloadTimeout(t *testing.T) {
 	t.Run("should honor TERRA_DOWNLOAD_TIMEOUT when the response is slow", func(t *testing.T) {
 		// given
-		// Server sleeps longer than the configured override, so a
-		// correctly applied deadline will abort the body read with
-		// `context deadline exceeded` before the server replies.
+		// Server sleeps before writing headers, so a correctly
+		// applied deadline aborts the request while awaiting
+		// response headers with `context deadline exceeded` before
+		// the server replies.
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			time.Sleep(500 * time.Millisecond)
 			w.WriteHeader(http.StatusOK)
@@ -110,6 +111,36 @@ func TestOSUnix_DownloadTimeout(t *testing.T) {
 		// then
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "deadline exceeded")
+	})
+
+	t.Run("should fall back to default when TERRA_DOWNLOAD_TIMEOUT is non-positive", func(t *testing.T) {
+		// given
+		// A non-positive value (zero or negative) parses fine but
+		// would make `context.WithTimeout` expire immediately and
+		// abort every download. The resolver must treat it as
+		// invalid and fall back to the default 10-minute ceiling so
+		// the fast test server completes successfully.
+		expectedContent := "non-positive-fallback-still-works"
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte(expectedContent))
+		}))
+		defer server.Close()
+
+		t.Setenv(downloadTimeoutEnvVar, "0s")
+
+		tempDir := t.TempDir()
+		destPath := filepath.Join(tempDir, "downloaded_file")
+		osImpl := &entities.OSUnix{}
+
+		// when
+		err := osImpl.Download(server.URL, destPath)
+
+		// then
+		require.NoError(t, err)
+		content, readErr := os.ReadFile(destPath)
+		require.NoError(t, readErr)
+		assert.Equal(t, expectedContent, string(content))
 	})
 
 	t.Run("should fall back to default when TERRA_DOWNLOAD_TIMEOUT is malformed", func(t *testing.T) {
