@@ -8,6 +8,14 @@ import (
 
 // StateCommandConstants defines constants for state manipulation commands and flags.
 const (
+	// TerraCommandName is the name of the terra binary, used when echoing commands
+	// back to the user inside educational error messages.
+	TerraCommandName = "terra"
+	// StateCommand is the terragrunt/terraform top-level "state" subcommand
+	// (e.g. "state rm", "state mv"). Both IsStateManipulationCommand and the
+	// error builders inspect arguments for this verb.
+	StateCommand = "state"
+
 	// AllFlag represents the --all flag (forwarded to terragrunt for non-state commands).
 	AllFlag = "--all"
 	// ParallelFlagPrefix represents the prefix for the parallel flag.
@@ -52,7 +60,7 @@ func IsStateManipulationCommand(arguments []string) bool {
 
 	// State manipulation commands
 	stateCommands := []string{
-		"import", "state",
+		"import", StateCommand,
 	}
 
 	firstArg := arguments[0]
@@ -61,7 +69,7 @@ func IsStateManipulationCommand(arguments []string) bool {
 	}
 
 	// Check for state subcommands (e.g., "state rm", "state mv").
-	if len(arguments) >= 2 && firstArg == "state" {
+	if len(arguments) >= 2 && firstArg == StateCommand {
 		stateSubcommands := []string{
 			"rm", "mv", "pull", "push", "show",
 		}
