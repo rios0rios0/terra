@@ -246,12 +246,6 @@ func extractQueueScopingFlags(arguments []string) []string {
 	return forwarded
 }
 
-// ExtractQueueScopingFlagsPublic is a public wrapper for testing the private
-// extractQueueScopingFlags function.
-func ExtractQueueScopingFlagsPublic(arguments []string) []string {
-	return extractQueueScopingFlags(arguments)
-}
-
 // needsUpgrade checks if the command output contains patterns indicating
 // that terraform/terragrunt needs initialization with --upgrade.
 // Returns the matched pattern (empty string if no match).
