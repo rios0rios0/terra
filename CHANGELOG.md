@@ -16,6 +16,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.16.1] - 2026-05-04
+
 ### Fixed
 
 - fixed the auto `init --upgrade` retry inside `UpgradeAwareShellRepository` so it propagates `--all`, `--filter`, `--queue-include-dir`, `--queue-exclude-dir`, `--queue-include-units-reading`, `--queue-strict-include`, `--queue-include-external`, and `--queue-exclude-external` from the original command (both space and `=` forms). Previously a queued run such as `terragrunt apply --all --queue-exclude-dir excluded-mod` that failed with a "Module not installed" diagnostic would trigger the reactive retry as `terragrunt init --upgrade` in the parent directory, and Terragrunt aborted with `You attempted to run terragrunt in a folder that does not contain a terragrunt.hcl file` because `--all` was missing. The retry now runs as `terragrunt init --upgrade --all --queue-exclude-dir excluded-mod` (and equivalents) so init walks the same queue and the original command is retried successfully. Added BDD-style cases in `internal/infrastructure/repositories/upgrade_shell_repository_test.go` covering the helper extraction (bare `--all`, space-form valued flags, `--flag=value` form, end-of-list valued flags, order preservation) and an end-to-end retry that asserts the propagated flags reach the wrapped script.
