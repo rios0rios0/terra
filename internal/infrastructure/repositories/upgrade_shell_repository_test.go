@@ -414,4 +414,149 @@ exit 1
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to perform command execution")
 	})
+
+	t.Run("should propagate --all and --queue-exclude-dir to init --upgrade retry", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A wrapper script that fails the first apply with an upgrade pattern
+		// and records every invocation. The init retry must also include --all and
+		// --queue-exclude-dir <dir>; otherwise terragrunt would refuse to run init in
+		// a parent directory with no terragrunt.hcl (the real-world bug).
+		repo := repositories.NewUpgradeAwareShellRepository()
+		dir := t.TempDir()
+
+		scriptContent := `#!/bin/bash
+echo "$@" >> "$PWD/.calls"
+if [ "$1" = "init" ] && [ "$2" = "--upgrade" ]; then
+    if ! echo "$@" | grep -q -- "--all" || ! echo "$@" | grep -q -- "--queue-exclude-dir 1051-lab3"; then
+        echo "init retry missing required scoping flags: $@" >&2
+        exit 2
+    fi
+    touch "$PWD/.init_done"
+    exit 0
+fi
+if [ -f "$PWD/.init_done" ]; then
+    exit 0
+fi
+echo "Error: Module not installed" >&2
+exit 1
+`
+		scriptPath := dir + "/fake_terragrunt.sh"
+		writeExecutableScript(t, scriptPath, scriptContent)
+
+		// WHEN: An --all run fails with an upgrade-needed pattern
+		err := repo.ExecuteCommandWithUpgrade(
+			scriptPath,
+			[]string{"apply", "--all", "--queue-exclude-dir", "1051-lab3", "--non-interactive", "-auto-approve"},
+			dir,
+		)
+
+		// THEN: The retry succeeds because --all and the queue flag were forwarded
+		assert.NoError(t, err)
+		_, statErr := os.Stat(dir + "/.init_done")
+		assert.NoError(t, statErr, "init --upgrade --all <queue flags> must have run")
+	})
+}
+
+func TestExtractQueueScopingFlags(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should return nothing when no scoping flags are present", func(t *testing.T) {
+		t.Parallel()
+		// given
+		arguments := []string{"plan", "-input=false"}
+
+		// when
+		got := repositories.ExtractQueueScopingFlagsPublic(arguments)
+
+		// then
+		assert.Empty(t, got)
+	})
+
+	t.Run("should propagate the bare --all flag", func(t *testing.T) {
+		t.Parallel()
+		// given
+		arguments := []string{"apply", "--all", "--non-interactive"}
+
+		// when
+		got := repositories.ExtractQueueScopingFlagsPublic(arguments)
+
+		// then
+		assert.Equal(t, []string{"--all"}, got)
+	})
+
+	t.Run("should propagate --queue-exclude-dir with its space-form value", func(t *testing.T) {
+		t.Parallel()
+		// given
+		arguments := []string{"apply", "--all", "--queue-exclude-dir", "1051-lab3", "-auto-approve"}
+
+		// when
+		got := repositories.ExtractQueueScopingFlagsPublic(arguments)
+
+		// then
+		assert.Equal(t, []string{"--all", "--queue-exclude-dir", "1051-lab3"}, got)
+	})
+
+	t.Run("should propagate --queue-exclude-dir in --flag=value form", func(t *testing.T) {
+		t.Parallel()
+		// given
+		arguments := []string{"apply", "--all", "--queue-exclude-dir=1051-lab3"}
+
+		// when
+		got := repositories.ExtractQueueScopingFlagsPublic(arguments)
+
+		// then
+		assert.Equal(t, []string{"--all", "--queue-exclude-dir=1051-lab3"}, got)
+	})
+
+	t.Run("should propagate --filter in both space and equals forms", func(t *testing.T) {
+		t.Parallel()
+		// given
+		spaceForm := []string{"plan", "--all", "--filter", "!1051-lab3"}
+		equalsForm := []string{"plan", "--all", "--filter=!1051-lab3"}
+
+		// when
+		gotSpace := repositories.ExtractQueueScopingFlagsPublic(spaceForm)
+		gotEquals := repositories.ExtractQueueScopingFlagsPublic(equalsForm)
+
+		// then
+		assert.Equal(t, []string{"--all", "--filter", "!1051-lab3"}, gotSpace)
+		assert.Equal(t, []string{"--all", "--filter=!1051-lab3"}, gotEquals)
+	})
+
+	t.Run("should ignore unrelated flags and preserve order", func(t *testing.T) {
+		t.Parallel()
+		// given
+		arguments := []string{
+			"apply",
+			"-auto-approve",
+			"--queue-include-dir", "modA",
+			"--non-interactive",
+			"--all",
+			"--queue-strict-include",
+			"--queue-exclude-dir=modB",
+		}
+
+		// when
+		got := repositories.ExtractQueueScopingFlagsPublic(arguments)
+
+		// then
+		assert.Equal(t, []string{
+			"--queue-include-dir", "modA",
+			"--all",
+			"--queue-strict-include",
+			"--queue-exclude-dir=modB",
+		}, got)
+	})
+
+	t.Run("should not consume next argument when valued flag is at the end", func(t *testing.T) {
+		t.Parallel()
+		// given
+		arguments := []string{"apply", "--all", "--filter"}
+
+		// when
+		got := repositories.ExtractQueueScopingFlagsPublic(arguments)
+
+		// then
+		assert.Equal(t, []string{"--all", "--filter"}, got)
+	})
 }
