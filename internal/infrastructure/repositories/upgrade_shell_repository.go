@@ -96,7 +96,7 @@ func (it *UpgradeAwareShellRepository) ExecuteCommandWithUpgrade(
 		command, matchedPattern,
 	)
 
-	initErr := it.runInitUpgrade(command, directory)
+	initErr := it.runInitUpgrade(command, arguments, directory)
 	if initErr != nil {
 		logger.Errorf("Init --upgrade failed: %s", initErr)
 		return fmt.Errorf("auto init --upgrade failed: %w (original error: %w)", initErr, err)
@@ -158,12 +158,18 @@ func (it *UpgradeAwareShellRepository) executePassthrough(
 	return err
 }
 
-// runInitUpgrade runs "command init --upgrade" in the given directory.
+// runInitUpgrade runs "command init --upgrade" in the given directory, propagating
+// any queue-scoping flags (--all, --filter, --queue-*) from the original command so
+// the init walks the same set of units. Without this, an "--all" command that fails
+// in a parent directory would retry init in that parent directory — which has no
+// terragrunt.hcl — and fail with "You attempted to run terragrunt in a folder that
+// does not contain a terragrunt.hcl file".
 func (it *UpgradeAwareShellRepository) runInitUpgrade(
 	command string,
+	originalArguments []string,
 	directory string,
 ) error {
-	initArgs := []string{"init", "--upgrade"}
+	initArgs := append([]string{"init", "--upgrade"}, extractQueueScopingFlags(originalArguments)...)
 	logger.Infof("Running [%s %s] in %s", command, strings.Join(initArgs, " "), directory)
 
 	start := time.Now()
@@ -180,6 +186,64 @@ func (it *UpgradeAwareShellRepository) runInitUpgrade(
 	}
 
 	return nil
+}
+
+// queueScopingFlagSpec describes a flag that scopes a terragrunt run to a queue
+// of units. When the original command included one of these, the auto-init
+// --upgrade retry must include it too.
+type queueScopingFlagSpec struct {
+	name       string
+	takesValue bool
+}
+
+// queueScopingFlags lists every terragrunt flag that controls which units a
+// queued run touches. Boolean flags are propagated as-is; valued flags are
+// propagated together with the next argument when the space form is used.
+func queueScopingFlags() []queueScopingFlagSpec {
+	return []queueScopingFlagSpec{
+		{"--all", false},
+		{"--queue-strict-include", false},
+		{"--queue-include-external", false},
+		{"--queue-exclude-external", false},
+		{"--filter", true},
+		{"--queue-include-dir", true},
+		{"--queue-exclude-dir", true},
+		{"--queue-include-units-reading", true},
+	}
+}
+
+// extractQueueScopingFlags returns the subset of arguments that scope a terragrunt
+// run to a queue of units. Both "--flag value" and "--flag=value" forms are
+// recognised. The returned slice preserves the original relative order.
+func extractQueueScopingFlags(arguments []string) []string {
+	specs := queueScopingFlags()
+	bySpec := make(map[string]queueScopingFlagSpec, len(specs))
+	for _, spec := range specs {
+		bySpec[spec.name] = spec
+	}
+
+	var forwarded []string
+	for index := 0; index < len(arguments); index++ {
+		arg := arguments[index]
+
+		if eq := strings.IndexByte(arg, '='); eq > 0 {
+			if _, ok := bySpec[arg[:eq]]; ok {
+				forwarded = append(forwarded, arg)
+			}
+			continue
+		}
+
+		spec, ok := bySpec[arg]
+		if !ok {
+			continue
+		}
+		forwarded = append(forwarded, arg)
+		if spec.takesValue && index+1 < len(arguments) {
+			forwarded = append(forwarded, arguments[index+1])
+			index++
+		}
+	}
+	return forwarded
 }
 
 // needsUpgrade checks if the command output contains patterns indicating

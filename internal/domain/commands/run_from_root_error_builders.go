@@ -32,7 +32,7 @@ func extractSubcommand(arguments []string) string {
 			continue
 		}
 
-		if arg != "state" {
+		if arg != StateCommand {
 			return arg
 		}
 
@@ -100,7 +100,7 @@ func isSensitiveFlagWithoutValue(arg string) bool {
 // redacted so credentials cannot leak into error output. Format:
 // "terra <sanitized arguments joined> <targetPath>".
 func buildEchoedCommand(arguments []string, targetPath string) string {
-	parts := []string{"terra"}
+	parts := []string{TerraCommandName}
 	parts = append(parts, sanitizeArgvForEcho(arguments)...)
 	if targetPath != "" {
 		parts = append(parts, targetPath)
@@ -118,7 +118,7 @@ func buildParallelSuggestion(
 	needsConfirmation bool,
 	targetPath string,
 ) string {
-	parts := []string{"terra"}
+	parts := []string{TerraCommandName}
 	if subcommand != "" {
 		parts = append(parts, subcommand)
 	}
@@ -146,7 +146,7 @@ func buildAllWithFilterSuggestion(
 	onlyValues, skipValues []string,
 	targetPath string,
 ) string {
-	parts := []string{"terra"}
+	parts := []string{TerraCommandName}
 	if subcommand != "" {
 		parts = append(parts, subcommand)
 	}
