@@ -79,6 +79,22 @@ func TestNeedsUpgrade(t *testing.T) {
 			"Error: Required plugins are not installed",
 		},
 		{
+			// The "Run \"terraform init\"" hint is split across two stderr lines
+			// by Terragrunt's per-line prefix, so the diagnostic title must catch it.
+			"should detect module source change via diagnostic title",
+			`HH:MM:SS.000 STDERR terraform: │ Error: Module source has changed
+HH:MM:SS.000 STDERR terraform: │
+HH:MM:SS.000 STDERR terraform: │   on example.tf line 1, in module "example":
+HH:MM:SS.000 STDERR terraform: │    1:   source = "git::https://example.invalid/modules/example.git?ref=v0.0.0"
+HH:MM:SS.000 STDERR terraform: │
+HH:MM:SS.000 STDERR terraform: │ The source address was changed since this module was installed. Run
+HH:MM:SS.000 STDERR terraform: │ "terraform init" to install all modules required by this configuration.`,
+		},
+		{
+			"should detect module source change via description sentence",
+			"The source address was changed since this module was installed.",
+		},
+		{
 			"should detect backend configuration changed",
 			"Error: Backend configuration changed. Please run terraform init",
 		},
