@@ -56,6 +56,13 @@ func getUpgradePatterns() []string {
 		// Module and plugin initialization.
 		"Module not installed",
 		"Required plugins are not installed",
+		// Module source change detection. The single-line diagnostic title
+		// "Module source has changed" (and the surrounding sentence) does not
+		// rely on the multi-line "Run \"terraform init\"" hint, which Terragrunt
+		// splits across stderr lines with its per-line "<ts> STDERR <cmd>: │ "
+		// prefix and therefore breaks the substring match used by needsUpgrade.
+		"Module source has changed",
+		"source address was changed since this module was installed",
 
 		// Provider version/lock file conflicts requiring init --upgrade.
 		"Inconsistent dependency lock file",
