@@ -426,7 +426,7 @@ exit 1
 
 		scriptContent := `#!/bin/bash
 if [ "$1" = "init" ] && [ "$2" = "--upgrade" ]; then
-    if ! echo "$@" | grep -q -- "--all" || ! echo "$@" | grep -q -- "--queue-exclude-dir 1051-lab3"; then
+    if ! echo "$@" | grep -q -- "--all" || ! echo "$@" | grep -q -- "--queue-exclude-dir excluded-mod"; then
         echo "init retry missing required scoping flags: $@" >&2
         exit 2
     fi
@@ -445,7 +445,7 @@ exit 1
 		// WHEN: An --all run fails with an upgrade-needed pattern
 		err := repo.ExecuteCommandWithUpgrade(
 			scriptPath,
-			[]string{"apply", "--all", "--queue-exclude-dir", "1051-lab3", "--non-interactive", "-auto-approve"},
+			[]string{"apply", "--all", "--queue-exclude-dir", "excluded-mod", "--non-interactive", "-auto-approve"},
 			dir,
 		)
 
@@ -463,7 +463,7 @@ exit 1
 
 		scriptContent := `#!/bin/bash
 if [ "$1" = "init" ] && [ "$2" = "--upgrade" ]; then
-    if ! echo "$@" | grep -q -- "--all" || ! echo "$@" | grep -q -- "--queue-exclude-dir=1051-lab3"; then
+    if ! echo "$@" | grep -q -- "--all" || ! echo "$@" | grep -q -- "--queue-exclude-dir=excluded-mod"; then
         echo "init retry missing equals-form scoping flag: $@" >&2
         exit 2
     fi
@@ -482,7 +482,7 @@ exit 1
 		// WHEN: An --all run with --queue-exclude-dir=value fails with the upgrade pattern
 		err := repo.ExecuteCommandWithUpgrade(
 			scriptPath,
-			[]string{"apply", "--all", "--queue-exclude-dir=1051-lab3"},
+			[]string{"apply", "--all", "--queue-exclude-dir=excluded-mod"},
 			dir,
 		)
 
@@ -500,7 +500,7 @@ exit 1
 
 		scriptContent := `#!/bin/bash
 if [ "$1" = "init" ] && [ "$2" = "--upgrade" ]; then
-    if ! echo "$@" | grep -q -- "--all" || ! echo "$@" | grep -q -- "--filter !1051-lab3"; then
+    if ! echo "$@" | grep -q -- "--all" || ! echo "$@" | grep -q -- "--filter !excluded-mod"; then
         echo "init retry missing --filter: $@" >&2
         exit 2
     fi
@@ -519,7 +519,7 @@ exit 1
 		// WHEN: An --all run with --filter <query> fails with the upgrade pattern
 		err := repo.ExecuteCommandWithUpgrade(
 			scriptPath,
-			[]string{"plan", "--all", "--filter", "!1051-lab3"},
+			[]string{"plan", "--all", "--filter", "!excluded-mod"},
 			dir,
 		)
 
