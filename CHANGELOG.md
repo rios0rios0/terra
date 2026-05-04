@@ -16,6 +16,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.16.2] - 2026-05-04
+
 ### Fixed
 
 - fixed the auto `init --upgrade` detection inside `UpgradeAwareShellRepository` so it catches Terraform's `Module source has changed` diagnostic. Previously, when a module's `source` address changed (for example bumping its `?ref=` Git tag), `terra apply` failed with `Error: Module source has changed` and the reactive retry never fired -- Terraform's hint `Run "terraform init" to install all modules required by this configuration.` is split across two stderr lines by Terragrunt's per-line `<timestamp> STDERR <cmd>: │ ` prefix, so the existing `run "terraform init"` substring pattern in `getUpgradePatterns` could not match. Added two single-line patterns (`Module source has changed` and `source address was changed since this module was installed`) that survive the prefix wrap, plus BDD-style cases in `internal/infrastructure/repositories/upgrade_shell_repository_test.go` covering both a synthesized multi-line Terragrunt-prefixed sample and the standalone description sentence.
