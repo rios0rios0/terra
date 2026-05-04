@@ -414,4 +414,157 @@ exit 1
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to perform command execution")
 	})
+
+	t.Run("should propagate --all and --queue-exclude-dir (space form) to init --upgrade retry", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A wrapper script that fails the first apply with an upgrade pattern.
+		// The init retry must also include --all and --queue-exclude-dir <dir>;
+		// otherwise terragrunt would refuse to run init in a parent directory with no
+		// terragrunt.hcl (the real-world bug).
+		repo := repositories.NewUpgradeAwareShellRepository()
+		dir := t.TempDir()
+
+		scriptContent := `#!/bin/bash
+if [ "$1" = "init" ] && [ "$2" = "--upgrade" ]; then
+    if ! echo "$@" | grep -q -- "--all" || ! echo "$@" | grep -q -- "--queue-exclude-dir 1051-lab3"; then
+        echo "init retry missing required scoping flags: $@" >&2
+        exit 2
+    fi
+    touch "$PWD/.init_done"
+    exit 0
+fi
+if [ -f "$PWD/.init_done" ]; then
+    exit 0
+fi
+echo "Error: Module not installed" >&2
+exit 1
+`
+		scriptPath := dir + "/fake_terragrunt.sh"
+		writeExecutableScript(t, scriptPath, scriptContent)
+
+		// WHEN: An --all run fails with an upgrade-needed pattern
+		err := repo.ExecuteCommandWithUpgrade(
+			scriptPath,
+			[]string{"apply", "--all", "--queue-exclude-dir", "1051-lab3", "--non-interactive", "-auto-approve"},
+			dir,
+		)
+
+		// THEN: The retry succeeds because --all and the queue flag were forwarded
+		assert.NoError(t, err)
+		_, statErr := os.Stat(dir + "/.init_done")
+		assert.NoError(t, statErr, "init --upgrade --all <queue flags> must have run")
+	})
+
+	t.Run("should propagate --queue-exclude-dir in --flag=value form to init --upgrade retry", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A wrapper that requires the init retry to carry the equals-form flag verbatim
+		repo := repositories.NewUpgradeAwareShellRepository()
+		dir := t.TempDir()
+
+		scriptContent := `#!/bin/bash
+if [ "$1" = "init" ] && [ "$2" = "--upgrade" ]; then
+    if ! echo "$@" | grep -q -- "--all" || ! echo "$@" | grep -q -- "--queue-exclude-dir=1051-lab3"; then
+        echo "init retry missing equals-form scoping flag: $@" >&2
+        exit 2
+    fi
+    touch "$PWD/.init_done"
+    exit 0
+fi
+if [ -f "$PWD/.init_done" ]; then
+    exit 0
+fi
+echo "Error: Module not installed" >&2
+exit 1
+`
+		scriptPath := dir + "/fake_terragrunt.sh"
+		writeExecutableScript(t, scriptPath, scriptContent)
+
+		// WHEN: An --all run with --queue-exclude-dir=value fails with the upgrade pattern
+		err := repo.ExecuteCommandWithUpgrade(
+			scriptPath,
+			[]string{"apply", "--all", "--queue-exclude-dir=1051-lab3"},
+			dir,
+		)
+
+		// THEN: The retry succeeds because the equals-form flag was forwarded as-is
+		assert.NoError(t, err)
+		_, statErr := os.Stat(dir + "/.init_done")
+		assert.NoError(t, statErr, "init --upgrade --all --queue-exclude-dir=<dir> must have run")
+	})
+
+	t.Run("should propagate --filter to init --upgrade retry", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A wrapper that requires the init retry to carry --filter and its value
+		repo := repositories.NewUpgradeAwareShellRepository()
+		dir := t.TempDir()
+
+		scriptContent := `#!/bin/bash
+if [ "$1" = "init" ] && [ "$2" = "--upgrade" ]; then
+    if ! echo "$@" | grep -q -- "--all" || ! echo "$@" | grep -q -- "--filter !1051-lab3"; then
+        echo "init retry missing --filter: $@" >&2
+        exit 2
+    fi
+    touch "$PWD/.init_done"
+    exit 0
+fi
+if [ -f "$PWD/.init_done" ]; then
+    exit 0
+fi
+echo "Error: Module not installed" >&2
+exit 1
+`
+		scriptPath := dir + "/fake_terragrunt.sh"
+		writeExecutableScript(t, scriptPath, scriptContent)
+
+		// WHEN: An --all run with --filter <query> fails with the upgrade pattern
+		err := repo.ExecuteCommandWithUpgrade(
+			scriptPath,
+			[]string{"plan", "--all", "--filter", "!1051-lab3"},
+			dir,
+		)
+
+		// THEN: The retry succeeds because --filter and its value were forwarded together
+		assert.NoError(t, err)
+		_, statErr := os.Stat(dir + "/.init_done")
+		assert.NoError(t, statErr, "init --upgrade --all --filter <query> must have run")
+	})
+
+	t.Run("should not forward unrelated flags to init --upgrade retry", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A wrapper that asserts the init retry receives ONLY init --upgrade
+		// (no --auto-approve, --non-interactive, or other unrelated flags) when the
+		// original command had no queue-scoping flags.
+		repo := repositories.NewUpgradeAwareShellRepository()
+		dir := t.TempDir()
+
+		scriptContent := `#!/bin/bash
+if [ "$1" = "init" ] && [ "$2" = "--upgrade" ]; then
+    if [ "$#" -ne 2 ]; then
+        echo "init retry has unexpected extra args: $@" >&2
+        exit 2
+    fi
+    touch "$PWD/.init_done"
+    exit 0
+fi
+if [ -f "$PWD/.init_done" ]; then
+    exit 0
+fi
+echo "Error: Module not installed" >&2
+exit 1
+`
+		scriptPath := dir + "/fake_terragrunt.sh"
+		writeExecutableScript(t, scriptPath, scriptContent)
+
+		// WHEN: A non-queued command (no --all) fails with an upgrade pattern
+		err := repo.ExecuteCommandWithUpgrade(
+			scriptPath,
+			[]string{"apply", "-auto-approve", "--non-interactive"},
+			dir,
+		)
+
+		// THEN: The retry runs as bare init --upgrade, with no extraneous args
+		assert.NoError(t, err)
+		_, statErr := os.Stat(dir + "/.init_done")
+		assert.NoError(t, statErr, "init --upgrade must have run without extra args")
+	})
 }
