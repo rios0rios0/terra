@@ -1,6 +1,6 @@
 module github.com/rios0rios0/terra
 
-go 1.26.2
+go 1.26.3
 
 require (
 	github.com/creack/pty v1.1.24
