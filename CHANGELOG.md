@@ -19,6 +19,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ### Changed
 
 - changed the Go module dependencies to their latest versions
+- refreshed `.github/copilot-instructions.md` to fix stale SAST tool names, document `TERRA_CLOUD` auto-detection from credential variables, and add queue-scoping flag forwarding to the auto-upgrade section
 
 ## [1.16.3] - 2026-05-08
 
