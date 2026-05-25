@@ -19,6 +19,7 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 ### Changed
 
 - changed the Go module dependencies to their latest versions
+- refreshed `.github/copilot-instructions.md` to remove stale `.golangci.yml` reference and add missing `TERRA_NO_WORKSPACE` and `TERRA_DOWNLOAD_TIMEOUT` environment variables to the reference section
 
 ## [1.16.6] - 2026-05-22
 

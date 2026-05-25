@@ -416,7 +416,6 @@ test/                    # Test helpers organized by domain/infrastructure layer
 ### Important Files
 - `Makefile` - Build and install targets
 - `CONTRIBUTING.md` - Comprehensive contributing guidelines including mandatory testing requirements
-- `.golangci.yml` - Linting configuration
 - `go.mod` - Go module dependencies (includes testify, cobra, and testkit for testing)
 - `internal/domain/entities/settings.go` - Environment variable configuration
 - `internal/domain/entities/app_context.go` - AppContext interface for DIG container
@@ -493,6 +492,13 @@ TERRA_NO_PROVIDER_CACHE=true
 
 # Disable Partial Parse Config Cache (optional, default: false = Partial Parse Cache enabled)
 TERRA_NO_PARTIAL_PARSE_CACHE=true
+
+# Disable automatic workspace selection from TERRA_WORKSPACE (optional, default: false = workspace selection enabled)
+TERRA_NO_WORKSPACE=true
+
+# Override per-download deadline for terra install (optional, default: 10m)
+# Accepts time.ParseDuration values (30m, 1h, 20m30s); useful for slow transports
+TERRA_DOWNLOAD_TIMEOUT=30m
 
 # Terraform variables (optional, any TF_VAR_* variables)
 TF_VAR_*=value
