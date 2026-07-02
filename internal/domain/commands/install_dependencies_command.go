@@ -17,6 +17,7 @@ import (
 	"github.com/rios0rios0/cliforge/pkg/selfupdate"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
+	"golang.org/x/term"
 )
 
 const contextTimeout = 10 * time.Second
@@ -153,43 +154,16 @@ func isTruthy(value string) bool {
 	return strings.HasPrefix(normalized, "y")
 }
 
-// stdinIsInteractive reports whether stdin is a terminal. A pipe, a file, or a
-// closed stdin (as in CI) is not interactive, so the caller must never block
-// on it.
-func stdinIsInteractive() bool {
-	info, err := os.Stdin.Stat()
-	if err != nil {
-		return false
-	}
-
-	return info.Mode()&os.ModeCharDevice != 0
+// IsTruthyPublic exposes isTruthy for external (black-box) tests.
+func IsTruthyPublic(value string) bool {
+	return isTruthy(value)
 }
 
-// updateDecision is how promptForUpdate resolves an available dependency update.
-type updateDecision int
-
-const (
-	// decisionPrompt asks the user interactively.
-	decisionPrompt updateDecision = iota
-	// decisionUpdate updates without prompting (TERRA_ASSUME_YES is set).
-	decisionUpdate
-	// decisionSkip skips the update without prompting (non-interactive session).
-	decisionSkip
-)
-
-// decideUpdate resolves the update answer without prompting when possible. A
-// truthy TERRA_ASSUME_YES opts into automatic updates; any other
-// non-interactive session skips the update rather than blocking on stdin;
-// otherwise the caller prompts interactively.
-func decideUpdate(assumeYes string, interactive bool) updateDecision {
-	if isTruthy(assumeYes) {
-		return decisionUpdate
-	}
-	if !interactive {
-		return decisionSkip
-	}
-
-	return decisionPrompt
+// stdinIsInteractive reports whether stdin is a real terminal. A pipe, a file,
+// or a closed stdin (as in CI) is not a terminal, so the caller must never
+// block on it.
+func stdinIsInteractive() bool {
+	return term.IsTerminal(int(os.Stdin.Fd()))
 }
 
 // promptForUpdate asks whether to update a dependency. In a non-interactive
@@ -199,13 +173,12 @@ func promptForUpdate(dependencyName, currentVersion, latestVersion string) bool 
 	logger.Infof("%s is installed (version %s) but a newer version is available (%s).",
 		dependencyName, currentVersion, latestVersion)
 
-	decision := decideUpdate(os.Getenv(assumeYesEnvVar), stdinIsInteractive())
-	if decision == decisionUpdate {
+	if isTruthy(os.Getenv(assumeYesEnvVar)) {
 		logger.Infof("%s is set - updating %s automatically.", assumeYesEnvVar, dependencyName)
 
 		return true
 	}
-	if decision == decisionSkip {
+	if !stdinIsInteractive() {
 		logger.Warnf(
 			"Non-interactive session - skipping update of %s. Set %s=true to update automatically (e.g. in CI).",
 			dependencyName, assumeYesEnvVar,
