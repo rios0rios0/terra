@@ -17,9 +17,15 @@ import (
 	"github.com/rios0rios0/cliforge/pkg/selfupdate"
 	"github.com/rios0rios0/terra/internal/domain/entities"
 	logger "github.com/sirupsen/logrus"
+	"golang.org/x/term"
 )
 
 const contextTimeout = 10 * time.Second
+
+// assumeYesEnvVar, when set to a truthy value, makes dependency-update prompts
+// auto-confirm. This keeps `terra install` non-interactive in CI, where
+// blocking on stdin would hang the job forever.
+const assumeYesEnvVar = "TERRA_ASSUME_YES"
 
 type InstallDependenciesCommand struct{}
 
@@ -138,10 +144,49 @@ func getCurrentVersion(name string) string {
 	return ""
 }
 
-// prompt user for update confirmation.
+// isTruthy reports whether an environment-variable value means affirmative.
+func isTruthy(value string) bool {
+	normalized := strings.ToLower(strings.TrimSpace(value))
+	if normalized == "1" || normalized == "true" || normalized == "on" {
+		return true
+	}
+
+	return strings.HasPrefix(normalized, "y")
+}
+
+// IsTruthyPublic exposes isTruthy for external (black-box) tests.
+func IsTruthyPublic(value string) bool {
+	return isTruthy(value)
+}
+
+// stdinIsInteractive reports whether stdin is a real terminal. A pipe, a file,
+// or a closed stdin (as in CI) is not a terminal, so the caller must never
+// block on it.
+func stdinIsInteractive() bool {
+	return term.IsTerminal(int(os.Stdin.Fd()))
+}
+
+// promptForUpdate asks whether to update a dependency. In a non-interactive
+// session (CI) it never blocks on stdin: TERRA_ASSUME_YES=true auto-confirms,
+// otherwise the update is skipped with a warning.
 func promptForUpdate(dependencyName, currentVersion, latestVersion string) bool {
 	logger.Infof("%s is installed (version %s) but a newer version is available (%s).",
 		dependencyName, currentVersion, latestVersion)
+
+	if isTruthy(os.Getenv(assumeYesEnvVar)) {
+		logger.Infof("%s is set - updating %s automatically.", assumeYesEnvVar, dependencyName)
+
+		return true
+	}
+	if !stdinIsInteractive() {
+		logger.Warnf(
+			"Non-interactive session - skipping update of %s. Set %s=true to update automatically (e.g. in CI).",
+			dependencyName, assumeYesEnvVar,
+		)
+
+		return false
+	}
+
 	logger.Info("Do you want to update? [y/N]: ")
 
 	scanner := bufio.NewScanner(os.Stdin)
@@ -149,6 +194,7 @@ func promptForUpdate(dependencyName, currentVersion, latestVersion string) bool 
 		if err := scanner.Err(); err != nil {
 			logger.Errorf("Error reading input: %v", err)
 		}
+
 		return false
 	}
 	response := strings.TrimSpace(strings.ToLower(scanner.Text()))

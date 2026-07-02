@@ -16,6 +16,14 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+### Fixed
+
+- fixed `terra install` hanging on the dependency-update prompt (`Do you want to update? [y/N]`) in non-interactive sessions such as CI, where stdin is not a terminal and the prompt would block the job forever. `promptForUpdate` now detects a non-interactive stdin and never blocks: set `TERRA_ASSUME_YES=true` to auto-confirm updates (e.g. in a pipeline), otherwise the update is skipped with a warning; interactive sessions keep prompting as before
+
+### Security
+
+- scoped the `Claude Code` and `Claude Code Review` reusable-workflow calls in `.github/workflows/` to pass only the required `CLAUDE_CODE_OAUTH_TOKEN` secret instead of `secrets: inherit`, following the principle of least privilege
+
 ## [1.16.9] - 2026-06-09
 
 ### Changed
