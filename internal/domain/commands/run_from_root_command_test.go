@@ -657,8 +657,9 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		assert.Contains(t, tgProviderDir, ".cache/terra/providers")
 	})
 
-	t.Run("should enable CAS experiment by default when TerraNoCAS is false", func(t *testing.T) {
+	t.Run("should leave CAS at its default (TG_NO_CAS unset) when TerraNoCAS is false", func(t *testing.T) {
 		// given
+		t.Setenv("TG_NO_CAS", "true") // stray parent value that terra must clear
 		t.Setenv("TG_EXPERIMENT", "")
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
@@ -681,12 +682,15 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		cmd.ConfigureCacheEnvironmentPublic()
 
 		// then
-		assert.Equal(t, "cas", os.Getenv("TG_EXPERIMENT"))
+		_, ok := os.LookupEnv("TG_NO_CAS")
+		assert.False(t, ok, "TG_NO_CAS should be unset so Terragrunt's default-on CAS stays enabled")
+		assert.NotEqual(t, "cas", os.Getenv("TG_EXPERIMENT"),
+			"terra must not set the completed cas experiment, which emits a deprecation warning")
 	})
 
-	t.Run("should not enable CAS experiment when TerraNoCAS is true", func(t *testing.T) {
+	t.Run("should disable CAS via TG_NO_CAS when TerraNoCAS is true", func(t *testing.T) {
 		// given
-		t.Setenv("TG_EXPERIMENT", "cas")
+		t.Setenv("TG_NO_CAS", "")
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		settings := entitybuilders.NewSettingsBuilder().
 			WithTerraModuleCacheDir(t.TempDir()).
@@ -708,7 +712,8 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		cmd.ConfigureCacheEnvironmentPublic()
 
 		// then
-		assert.Empty(t, os.Getenv("TG_EXPERIMENT"), "TG_EXPERIMENT should not be set when CAS is disabled")
+		assert.Equal(t, "true", os.Getenv("TG_NO_CAS"),
+			"TG_NO_CAS should be set to disable Terragrunt's default-on CAS")
 	})
 
 	t.Run("should enable Provider Cache Server by default when TerraNoProviderCache is false", func(t *testing.T) {
@@ -770,7 +775,7 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 
 	t.Run("should disable auto-provider-cache-dir when Provider Cache Server is enabled", func(t *testing.T) {
 		// GIVEN: Provider Cache Server enabled (default) so terra wants terragrunt to
-		// honor TG_PROVIDER_CACHE_DIR instead of letting the CAS experiment override it
+		// honor TG_PROVIDER_CACHE_DIR instead of letting auto-provider-cache-dir override it
 		t.Setenv("TG_PROVIDER_CACHE", "")
 		t.Setenv("TG_NO_AUTO_PROVIDER_CACHE_DIR", "")
 		t.Setenv("TG_EXPERIMENT", "")
@@ -895,7 +900,7 @@ func TestRunFromRootCommand_configureCacheEnvironment_allEnabled(t *testing.T) {
 		t.Setenv("TG_PROVIDER_CACHE", "")
 		t.Setenv("TG_NO_AUTO_PROVIDER_CACHE_DIR", "")
 		t.Setenv("TF_PLUGIN_CACHE_DIR", "")
-		t.Setenv("TG_EXPERIMENT", "")
+		t.Setenv("TG_NO_CAS", "true") // stray parent value that terra must clear
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
 		tempDir := t.TempDir()
 		moduleDir := tempDir + "/modules"
@@ -929,7 +934,8 @@ func TestRunFromRootCommand_configureCacheEnvironment_allEnabled(t *testing.T) {
 			"TG_NO_AUTO_PROVIDER_CACHE_DIR must be set alongside TG_PROVIDER_CACHE so CAS does not override the cache path")
 		_, ok := os.LookupEnv("TF_PLUGIN_CACHE_DIR")
 		assert.False(t, ok, "TF_PLUGIN_CACHE_DIR should be unset")
-		assert.Equal(t, "cas", os.Getenv("TG_EXPERIMENT"))
+		_, ok = os.LookupEnv("TG_NO_CAS")
+		assert.False(t, ok, "TG_NO_CAS should be unset so Terragrunt's default-on CAS stays enabled")
 		assert.Equal(t, "true", os.Getenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE"))
 
 		// Directories should exist on disk
@@ -941,7 +947,7 @@ func TestRunFromRootCommand_configureCacheEnvironment_allEnabled(t *testing.T) {
 
 	t.Run("should unset all feature env vars when CAS, Provider Cache, and Partial Parse Cache all disabled", func(t *testing.T) {
 		// GIVEN: Settings with all features disabled, and pre-existing env vars
-		t.Setenv("TG_EXPERIMENT", "cas")
+		t.Setenv("TG_NO_CAS", "")
 		t.Setenv("TG_PROVIDER_CACHE", "1")
 		t.Setenv("TG_NO_AUTO_PROVIDER_CACHE_DIR", "true")
 		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "true")
@@ -970,11 +976,11 @@ func TestRunFromRootCommand_configureCacheEnvironment_allEnabled(t *testing.T) {
 		// WHEN
 		cmd.ConfigureCacheEnvironmentPublic()
 
-		// THEN: Feature env vars should be unset
-		_, ok := os.LookupEnv("TG_EXPERIMENT")
-		assert.False(t, ok, "TG_EXPERIMENT should be unset when CAS disabled")
+		// THEN: disabled features are reflected — CAS opt-out set, the rest unset
+		assert.Equal(t, "true", os.Getenv("TG_NO_CAS"),
+			"TG_NO_CAS should be set to disable Terragrunt's default-on CAS")
 
-		_, ok = os.LookupEnv("TG_PROVIDER_CACHE")
+		_, ok := os.LookupEnv("TG_PROVIDER_CACHE")
 		assert.False(t, ok, "TG_PROVIDER_CACHE should be unset when Provider Cache disabled")
 
 		_, ok = os.LookupEnv("TG_NO_AUTO_PROVIDER_CACHE_DIR")

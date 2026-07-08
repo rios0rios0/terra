@@ -314,7 +314,8 @@ func (it *RunFromRootCommand) isParallelCommand(arguments []string) bool {
 // and provider caching. This ensures all stacks share a single download directory and
 // provider cache, avoiding redundant downloads. It enables the Terragrunt Provider Cache
 // Server (TG_PROVIDER_CACHE) by default for concurrent-safe provider deduplication, and
-// the CAS (Content Addressable Store) experiment for Git clone deduplication.
+// relies on Terragrunt's default-on CAS (Content Addressable Store) for Git clone
+// deduplication.
 func (it *RunFromRootCommand) configureCacheEnvironment() {
 	const dirPermissions = 0o755
 
@@ -355,8 +356,8 @@ func (it *RunFromRootCommand) configureCacheEnvironment() {
 	setOrUnsetEnv("TG_PROVIDER_CACHE", "1", it.settings.TerraNoProviderCache)
 
 	// Force Terragrunt to honor TG_PROVIDER_CACHE_DIR when the Provider Cache Server
-	// is enabled. Terragrunt 0.99+ ships an experimental "auto-provider-cache-dir"
-	// feature (auto-enabled together with TG_EXPERIMENT=cas) that ignores
+	// is enabled. Terragrunt 0.99+ ships an "auto-provider-cache-dir"
+	// feature (auto-enabled together with CAS) that ignores
 	// TG_PROVIDER_CACHE_DIR and writes providers into a per-module directory inside
 	// TG_DOWNLOAD_DIR. That defeats the whole point of the centralized provider cache:
 	// the path terra advertises stays empty and each new go-getter source hash pays
@@ -366,9 +367,15 @@ func (it *RunFromRootCommand) configureCacheEnvironment() {
 	// stack, repo, and terminal until the provider version changes.
 	setOrUnsetEnv("TG_NO_AUTO_PROVIDER_CACHE_DIR", "true", it.settings.TerraNoProviderCache)
 
-	// Enable Terragrunt CAS (Content Addressable Store) experiment by default.
-	// CAS deduplicates Git clones via hard links, reducing disk usage and clone times.
-	setOrUnsetEnv("TG_EXPERIMENT", "cas", it.settings.TerraNoCAS)
+	// CAS (Content Addressable Store) deduplicates Git clones via hard links, reducing
+	// disk usage and clone times. Terragrunt graduated CAS from an experiment to a
+	// stable, default-on feature in 1.1, so the former TG_EXPERIMENT=cas opt-in is
+	// unnecessary and now emits an "experiment(s) already completed: cas" warning on
+	// every run. CAS is therefore left at its default (enabled); TERRA_NO_CAS is honored
+	// through the stable TG_NO_CAS opt-out flag, whose inverse polarity (setting it
+	// DISABLES CAS) is why the disabled argument is negated here. Any stray TG_NO_CAS
+	// inherited from the parent environment is cleared when CAS is left enabled.
+	setOrUnsetEnv("TG_NO_CAS", "true", !it.settings.TerraNoCAS)
 
 	// Enable Terragrunt Partial Parse Config Cache by default.
 	// Caches parsed HCL configs across modules sharing the same root include,
