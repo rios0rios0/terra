@@ -18,10 +18,10 @@ import (
 const defaultMaxJobs = 5
 
 type ParallelStateCommand struct {
-	repository repositories.ShellRepository
+	repository repositories.ParallelShellRepository
 }
 
-func NewParallelStateCommand(repository repositories.ShellRepository) *ParallelStateCommand {
+func NewParallelStateCommand(repository repositories.ParallelShellRepository) *ParallelStateCommand {
 	return &ParallelStateCommand{
 		repository: repository,
 	}
@@ -235,7 +235,12 @@ func (it *ParallelStateCommand) runWorkers(
 			for modulePath := range jobs {
 				logger.Infof("==> Processing %s", modulePath)
 
-				executeErr := it.repository.ExecuteCommand("terragrunt", filteredArguments, modulePath)
+				// Prefix each worker's output with the module's directory name so the
+				// interleaved logs from concurrent modules stay attributable.
+				prefix := filepath.Base(modulePath)
+				executeErr := it.repository.ExecuteCommandWithPrefix(
+					"terragrunt", filteredArguments, modulePath, prefix,
+				)
 				if executeErr != nil {
 					logger.Errorf("✗ %s: %s", modulePath, executeErr)
 					results <- fmt.Errorf("module %s failed: %w", modulePath, executeErr)

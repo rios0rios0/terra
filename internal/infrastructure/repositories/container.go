@@ -22,6 +22,12 @@ func RegisterProviders(container *dig.Container) error {
 	}); err != nil {
 		return err
 	}
+	// Bind ParallelShellRepository interface to implementation (prefixed output for --parallel)
+	if err := container.Provide(func(impl *StdShellRepository) repositories.ParallelShellRepository {
+		return impl
+	}); err != nil {
+		return err
+	}
 	// Bind UpgradeShellRepository interface to implementation
 	if err := container.Provide(func(impl *UpgradeAwareShellRepository) repositories.UpgradeShellRepository {
 		return impl
