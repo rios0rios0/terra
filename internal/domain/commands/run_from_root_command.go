@@ -377,6 +377,12 @@ func (it *RunFromRootCommand) configureCacheEnvironment() {
 	// inherited from the parent environment is cleared when CAS is left enabled.
 	setOrUnsetEnv("TG_NO_CAS", "true", !it.settings.TerraNoCAS)
 
+	// A user may still export TG_EXPERIMENT=cas from an older workflow. Because cas is a
+	// completed experiment, Terragrunt keeps warning about it no matter what terra sets,
+	// so strip just the cas entry from any inherited TG_EXPERIMENT to silence the warning
+	// while leaving other experiments the user configured intact.
+	pruneCompletedExperiment("cas")
+
 	// Enable Terragrunt Partial Parse Config Cache by default.
 	// Caches parsed HCL configs across modules sharing the same root include,
 	// speeding up config parsing in large codebases.
@@ -401,6 +407,42 @@ func setOrUnsetEnv(key, value string, disabled bool) {
 		logger.Warnf("Could not set %s: %s", key, err)
 	} else {
 		logger.Debugf("%s set to %s", key, value)
+	}
+}
+
+// pruneCompletedExperiment removes a single completed experiment from an inherited
+// TG_EXPERIMENT value so Terragrunt stops warning that it is "already completed", while
+// preserving any other experiments the user configured. It is a no-op when TG_EXPERIMENT
+// is unset or does not contain the experiment.
+func pruneCompletedExperiment(name string) {
+	raw, ok := os.LookupEnv("TG_EXPERIMENT")
+	if !ok {
+		return
+	}
+
+	parts := strings.Split(raw, ",")
+	kept := make([]string, 0, len(parts))
+	for _, experiment := range parts {
+		trimmed := strings.TrimSpace(experiment)
+		if trimmed != "" && trimmed != name {
+			kept = append(kept, trimmed)
+		}
+	}
+
+	joined := strings.Join(kept, ",")
+	if joined == raw {
+		return
+	}
+
+	if joined == "" {
+		if err := os.Unsetenv("TG_EXPERIMENT"); err != nil {
+			logger.Warnf("Could not unset TG_EXPERIMENT: %s", err)
+		}
+		return
+	}
+
+	if err := os.Setenv("TG_EXPERIMENT", joined); err != nil {
+		logger.Warnf("Could not set TG_EXPERIMENT: %s", err)
 	}
 }
 

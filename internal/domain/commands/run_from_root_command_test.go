@@ -716,6 +716,87 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 			"TG_NO_CAS should be set to disable Terragrunt's default-on CAS")
 	})
 
+	t.Run("should strip an inherited TG_EXPERIMENT=cas so the completed-experiment warning stops", func(t *testing.T) {
+		// given
+		t.Setenv("TG_EXPERIMENT", "cas")
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraModuleCacheDir(t.TempDir()).
+			WithTerraProviderCacheDir(t.TempDir()).
+			WithTerraNoCAS(false).
+			BuildSettings()
+		cmd := commands.NewRunFromRootCommand(
+			settings,
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+
+		// when
+		cmd.ConfigureCacheEnvironmentPublic()
+
+		// then
+		_, ok := os.LookupEnv("TG_EXPERIMENT")
+		assert.False(t, ok, "an inherited TG_EXPERIMENT=cas should be unset so Terragrunt stops warning")
+	})
+
+	t.Run("should keep other experiments when stripping cas from an inherited TG_EXPERIMENT", func(t *testing.T) {
+		// given
+		t.Setenv("TG_EXPERIMENT", "cas,stacks")
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraModuleCacheDir(t.TempDir()).
+			WithTerraProviderCacheDir(t.TempDir()).
+			WithTerraNoCAS(false).
+			BuildSettings()
+		cmd := commands.NewRunFromRootCommand(
+			settings,
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+
+		// when
+		cmd.ConfigureCacheEnvironmentPublic()
+
+		// then
+		assert.Equal(t, "stacks", os.Getenv("TG_EXPERIMENT"),
+			"only the cas entry should be removed, leaving other experiments intact")
+	})
+
+	t.Run("should leave TG_EXPERIMENT untouched when it does not contain cas", func(t *testing.T) {
+		// given
+		t.Setenv("TG_EXPERIMENT", "stacks")
+		settings := entitybuilders.NewSettingsBuilder().
+			WithTerraModuleCacheDir(t.TempDir()).
+			WithTerraProviderCacheDir(t.TempDir()).
+			WithTerraNoCAS(false).
+			BuildSettings()
+		cmd := commands.NewRunFromRootCommand(
+			settings,
+			&commanddoubles.StubInstallDependencies{},
+			&commanddoubles.StubFormatFiles{},
+			&commanddoubles.StubRunAdditionalBefore{},
+			&commanddoubles.StubParallelState{},
+			&repositorydoubles.StubShellRepositoryForRoot{},
+			&repositorydoubles.StubUpgradeShellRepository{},
+			&repositorydoubles.StubInteractiveShellRepository{},
+		)
+
+		// when
+		cmd.ConfigureCacheEnvironmentPublic()
+
+		// then
+		assert.Equal(t, "stacks", os.Getenv("TG_EXPERIMENT"),
+			"an unrelated TG_EXPERIMENT should be preserved")
+	})
+
 	t.Run("should enable Provider Cache Server by default when TerraNoProviderCache is false", func(t *testing.T) {
 		// given
 		t.Setenv("TG_PROVIDER_CACHE", "")

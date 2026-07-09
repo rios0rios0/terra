@@ -33,7 +33,7 @@ Terra mitigates related parallel issues through several mechanisms:
 | Mechanism | What It Solves |
 |-----------|---------------|
 | **Provider Cache Server** (`TG_PROVIDER_CACHE=1`) | Prevents "text file busy" errors from concurrent provider downloads via a localhost proxy with file locking |
-| **CAS** (default-on since Terragrunt `1.1`; opt out with `TG_NO_CAS`) | Deduplicates Git clones via hard links with `.lock` files, reducing contention on module downloads |
+| **CAS** (default-on since Terragrunt `1.1`; opt out with `TG_NO_CAS=true`) | Deduplicates Git clones via hard links with `.lock` files, reducing contention on module downloads |
 | **Centralized module cache** (`TG_DOWNLOAD_DIR`) | Shares downloaded modules across stacks to avoid redundant downloads |
 | **Unset `TF_PLUGIN_CACHE_DIR`** | Prevents Terraform's native plugin cache from causing symlink races |
 
