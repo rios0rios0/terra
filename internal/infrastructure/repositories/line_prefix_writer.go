@@ -11,13 +11,15 @@ import (
 )
 
 // LinePrefixWriter is a thread-safe [io.Writer] that prepends a fixed prefix to every line
-// it forwards to dest. It buffers partial lines until their terminating newline arrives,
-// and serializes writes to dest through the shared mu so output from concurrently
-// executing modules never interleaves mid-line.
+// it forwards to dest. It buffers partial lines until their terminating newline arrives.
+// The per-writer bufMu guards that buffer so concurrent Write/Flush calls on the same
+// writer are safe, while the shared mu serializes writes to dest so output from
+// concurrently executing modules never interleaves mid-line.
 type LinePrefixWriter struct {
 	dest   io.Writer
 	prefix []byte
-	mu     *sync.Mutex
+	mu     *sync.Mutex // shared across writers: serializes writes to dest
+	bufMu  sync.Mutex  // per-writer: guards buf for concurrent Write/Flush
 	buf    []byte
 }
 
@@ -42,6 +44,9 @@ func NewLinePrefixWriter(dest io.Writer, label string, mu *sync.Mutex) *LinePref
 // Write buffers p and emits every complete (newline-terminated) line with the prefix,
 // keeping any trailing partial line buffered for the next call.
 func (w *LinePrefixWriter) Write(p []byte) (int, error) {
+	w.bufMu.Lock()
+	defer w.bufMu.Unlock()
+
 	w.buf = append(w.buf, p...)
 
 	for {
@@ -64,6 +69,9 @@ func (w *LinePrefixWriter) Write(p []byte) (int, error) {
 // Flush emits any buffered bytes that were not terminated by a newline, appending one so
 // the trailing line is still prefixed and readable. Call it once the process exits.
 func (w *LinePrefixWriter) Flush() {
+	w.bufMu.Lock()
+	defer w.bufMu.Unlock()
+
 	if len(w.buf) == 0 {
 		return
 	}

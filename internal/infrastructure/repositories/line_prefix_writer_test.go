@@ -154,4 +154,37 @@ func TestLinePrefixWriter_Concurrency(t *testing.T) {
 				"line prefix and content disagree, indicating interleaving: %q", line)
 		}
 	})
+
+	t.Run("should be safe under concurrent Write and Flush on the same writer", func(t *testing.T) {
+		t.Parallel()
+		// given: a single writer targeted by many goroutines at once (guarded by -race)
+		const goroutines = 8
+		const linesPerGoroutine = 100
+		var dest bytes.Buffer
+		writer := repositories.NewLinePrefixWriter(&dest, "mod", &sync.Mutex{})
+
+		// when: goroutines Write complete lines concurrently and each Flushes after
+		var wg sync.WaitGroup
+		for g := range goroutines {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for line := range linesPerGoroutine {
+					_, _ = writer.Write([]byte(fmt.Sprintf("g%d-line-%d\n", g, line)))
+					writer.Flush()
+				}
+			}()
+		}
+		wg.Wait()
+		writer.Flush()
+
+		// then: the per-writer mutex keeps the buffer consistent — every emitted line is
+		// fully prefixed and none are lost or corrupted
+		lines := strings.Split(strings.TrimRight(dest.String(), "\n"), "\n")
+		require.Len(t, lines, goroutines*linesPerGoroutine)
+		for _, line := range lines {
+			assert.True(t, strings.HasPrefix(line, "[mod] "),
+				"every line must carry the prefix even under concurrent access: %q", line)
+		}
+	})
 }
