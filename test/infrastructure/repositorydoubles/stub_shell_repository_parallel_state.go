@@ -9,6 +9,7 @@ type ParallelStateCallRecord struct {
 	Command   string
 	Arguments []string
 	Directory string
+	Prefix    string
 }
 
 // StubShellRepositoryForParallelState is a test double for shell repository focused on parallel state testing
@@ -20,27 +21,29 @@ type StubShellRepositoryForParallelState struct {
 }
 
 // Verify it implements the interface
-var _ repositories.ShellRepository = (*StubShellRepositoryForParallelState)(nil)
+var _ repositories.ParallelShellRepository = (*StubShellRepositoryForParallelState)(nil)
 
-func (stub *StubShellRepositoryForParallelState) ExecuteCommand(
+func (stub *StubShellRepositoryForParallelState) ExecuteCommandWithPrefix(
 	command string,
 	arguments []string,
 	directory string,
+	prefix string,
 ) error {
 	stub.ExecuteCallCount++
 	stub.CallHistory = append(stub.CallHistory, ParallelStateCallRecord{
 		Command:   command,
 		Arguments: make([]string, len(arguments)),
 		Directory: directory,
+		Prefix:    prefix,
 	})
-	
+
 	// Copy arguments to avoid modification issues
 	copy(stub.CallHistory[len(stub.CallHistory)-1].Arguments, arguments)
-	
+
 	if stub.ShouldFail {
 		return &stubParallelStateError{message: stub.FailureMessage}
 	}
-	
+
 	return nil
 }
 

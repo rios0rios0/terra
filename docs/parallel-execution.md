@@ -201,6 +201,23 @@ terra plan --parallel=4 /path/to/infrastructure
 6. **Progress Tracking**: Provides real-time logging of module processing status
 7. **Flag Filtering**: Removes Terra-specific flags (`--parallel=N`, `--only=`, `--skip=`) before passing to Terragrunt
 
+## Output Prefixing
+
+Because `--parallel=N` runs several Terragrunt processes at once, terra captures each worker's stdout and stderr and prefixes every line with the module's directory name, so the interleaved output stays attributable:
+
+```text
+[module-a] Initializing provider plugins...
+[module-b] Initializing the backend...
+[module-a] Apply complete! Resources: 1 added, 0 changed, 0 destroyed.
+[module-b] Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+```
+
+- The label is the base name of the module directory terra is processing (the leaf of the path).
+- When terra's stdout is an interactive terminal, each module's label is colorized with a stable per-module color so the streams are easy to tell apart. Colors are disabled automatically when the output is redirected to a file or a pipe, or when the [`NO_COLOR`](https://no-color.org) environment variable is set.
+- Lines from different modules are serialized through a shared lock, so a line from one module never splits a line from another.
+
+This mirrors the attributable, prefixed output that Terragrunt's native `--all` produces, but for terra's own worker pool. The Terragrunt-managed `--all` path keeps its own native prefixing and is unaffected.
+
 ## Command Scenarios
 
 | Command | Behavior |

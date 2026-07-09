@@ -108,3 +108,33 @@ func TestStdShellRepository_ExecuteCommand(t *testing.T) {
 		assert.NoError(t, err, "Expected no error for command with multiple arguments")
 	})
 }
+
+func TestStdShellRepository_ExecuteCommandWithPrefix(t *testing.T) {
+	t.Parallel()
+
+	t.Run("should execute successfully when valid command provided", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A repository instance and a valid command
+		repo := repositories.NewStdShellRepository()
+
+		// WHEN: Executing a valid command with a module prefix
+		err := repo.ExecuteCommandWithPrefix("echo", []string{"hello", "world"}, ".", "module1")
+
+		// THEN: Should execute without error (output is streamed through the prefix writer)
+		assert.NoError(t, err, "Expected no error for valid prefixed command execution")
+	})
+
+	t.Run("should return error when invalid command provided", func(t *testing.T) {
+		t.Parallel()
+		// GIVEN: A repository instance and an invalid command
+		repo := repositories.NewStdShellRepository()
+
+		// WHEN: Executing an invalid command with a module prefix
+		err := repo.ExecuteCommandWithPrefix("nonexistentcommand12345", []string{}, ".", "module1")
+
+		// THEN: Should return an error with the expected message
+		require.Error(t, err, "Expected error for invalid prefixed command")
+		assert.Contains(t, err.Error(), "failed to perform command execution",
+			"Error message should contain expected text")
+	})
+}
