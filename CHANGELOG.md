@@ -21,6 +21,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 - changed the Go module dependencies to their latest versions
 - changed the Go version to `1.26.5` and updated all module dependencies
 
+### Fixed
+
+- fixed terra emitting a `The following experiment(s) are already completed: cas` warning on every Terragrunt invocation (once per module under `--parallel`). Terragrunt graduated the Content Addressable Store (CAS) from an experiment to a stable, default-on feature in `1.1`, so `configureCacheEnvironment` no longer sets the completed `TG_EXPERIMENT=cas` opt-in. CAS is left at its default (enabled), and `TERRA_NO_CAS=true` now opts out through Terragrunt's stable `TG_NO_CAS=true` flag instead of unsetting `TG_EXPERIMENT`; any stray inherited `TG_NO_CAS` is cleared when CAS stays enabled. Additionally, a `cas` entry inherited from an exported `TG_EXPERIMENT` is stripped (preserving any other experiments) so the warning is fully silenced even for users who set it in older workflows
+
 ## [1.16.11] - 2026-07-03
 
 ### Changed
