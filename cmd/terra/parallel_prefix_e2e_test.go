@@ -4,6 +4,9 @@ package main_test
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -34,20 +37,32 @@ esac
 	require.NoError(t, os.WriteFile(path, []byte(script), 0o755))
 }
 
-// snapshotRealBinaries records the size and mtime of the real terragrunt/terraform on the
-// test process's PATH so the test can prove afterward that it never modified the
-// developer's installed binaries.
-func snapshotRealBinaries(t *testing.T) map[string]os.FileInfo {
+// hashFile returns the hex-encoded SHA-256 of the file at path.
+func hashFile(t *testing.T, path string) string {
 	t.Helper()
-	snapshot := make(map[string]os.FileInfo)
+	file, err := os.Open(path)
+	require.NoError(t, err)
+	defer func() { _ = file.Close() }()
+
+	hasher := sha256.New()
+	_, err = io.Copy(hasher, file)
+	require.NoError(t, err)
+
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+
+// snapshotRealBinaries records the SHA-256 of the real terragrunt/terraform on the test
+// process's PATH so the test can prove afterward that their contents are byte-for-byte
+// unchanged by the run.
+func snapshotRealBinaries(t *testing.T) map[string]string {
+	t.Helper()
+	snapshot := make(map[string]string)
 	for _, name := range []string{"terragrunt", "terraform"} {
 		resolved, err := exec.LookPath(name)
 		if err != nil {
 			continue
 		}
-		if info, statErr := os.Stat(resolved); statErr == nil {
-			snapshot[resolved] = info
-		}
+		snapshot[resolved] = hashFile(t, resolved)
 	}
 	return snapshot
 }
@@ -127,13 +142,10 @@ func TestParallelOutputPrefix_E2E(t *testing.T) {
 	// Output is a pipe (not a TTY), so the prefix carries no ANSI color codes.
 	assert.NotContains(t, out, "\x1b[", "prefix must be plain when stdout is not a terminal")
 
-	// Safety guard: the developer's real terragrunt/terraform binaries must be untouched.
+	// Safety guard: the developer's real terragrunt/terraform binaries must be byte-for-byte
+	// unchanged, i.e. their SHA-256 must match the pre-run snapshot.
 	for binaryPath, before := range realBefore {
-		after, statErr := os.Stat(binaryPath)
-		require.NoErrorf(t, statErr, "real binary %s disappeared during the test", binaryPath)
-		assert.Equalf(t, before.Size(), after.Size(),
-			"e2e test must not modify the real binary at %s", binaryPath)
-		assert.Equalf(t, before.ModTime(), after.ModTime(),
-			"e2e test must not modify the real binary at %s", binaryPath)
+		assert.Equalf(t, before, hashFile(t, binaryPath),
+			"e2e test must not modify the real binary at %s (SHA-256 changed)", binaryPath)
 	}
 }
