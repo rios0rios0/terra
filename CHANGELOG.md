@@ -16,6 +16,8 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.17.0] - 2026-07-10
+
 ### Added
 
 - added per-module log prefixing for terra-managed parallel execution (`--parallel=N`): each worker's Terragrunt/Terraform stdout and stderr is now streamed through terra and prefixed with the module's directory name (e.g. `[module-a]`), so interleaved output from concurrent modules stays attributable. The label is colorized per module when terra's stdout is an interactive terminal (honoring the [`NO_COLOR`](https://no-color.org) convention) and printed plain when redirected to a file or pipe. Lines from different modules are serialized through a shared lock so they never interleave mid-line. Implemented with a new thread-safe `LinePrefixWriter` and a focused `ParallelShellRepository` port implemented by `StdShellRepository`; the previous behavior forwarded every worker's output to the shared console unlabeled. The feature is covered end-to-end by an integration test that runs the built terra binary against fake `terragrunt`/`terraform` stubs in a fully sandboxed `HOME`/`PATH`, asserting the `[module]` prefixes and that the developer's real installed binaries are left byte-for-byte unchanged (verified by SHA-256)
@@ -24,7 +26,6 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 - changed the Go module dependencies to their latest versions
 - changed the Go version to `1.26.5` and updated all module dependencies
-- changed the Go module dependencies to their latest versions
 
 ### Fixed
 
