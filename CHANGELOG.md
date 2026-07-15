@@ -20,6 +20,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 - changed the Go module dependencies to their latest versions
 
+### Security
+
+- hardened test-fixture directory permissions from `0o755` to owner-only `0o700` (and the executable fake-CLI `Chmod` likewise), resolving the Semgrep `incorrect-default-permission` CI failures (a directory needs the owner execute bit, so the rule's `0o600` file threshold is documented as inapplicable and suppressed per line)
+
 ## [1.17.2] - 2026-07-14
 
 ### Changed

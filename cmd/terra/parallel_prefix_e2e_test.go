@@ -90,7 +90,8 @@ func TestParallelOutputPrefix_E2E(t *testing.T) {
 
 	// 2. Fake terragrunt + terraform on an isolated PATH bin directory.
 	fakeBin := filepath.Join(tmp, "bin")
-	require.NoError(t, os.MkdirAll(fakeBin, 0o755))
+	// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+	require.NoError(t, os.MkdirAll(fakeBin, 0o700))
 	writeFakeCLI(t, filepath.Join(fakeBin, "terragrunt"))
 	writeFakeCLI(t, filepath.Join(fakeBin, "terraform"))
 
@@ -98,7 +99,8 @@ func TestParallelOutputPrefix_E2E(t *testing.T) {
 	modulesDir := filepath.Join(tmp, "modules")
 	for _, module := range []string{"module-a", "module-b"} {
 		dir := filepath.Join(modulesDir, module)
-		require.NoError(t, os.MkdirAll(dir, 0o755))
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+		require.NoError(t, os.MkdirAll(dir, 0o700))
 		require.NoError(t, os.WriteFile(
 			filepath.Join(dir, "terragrunt.hcl"), []byte("# fake\n"), 0o644))
 	}
@@ -106,7 +108,8 @@ func TestParallelOutputPrefix_E2E(t *testing.T) {
 	// 4. Fully isolated environment for the terra subprocess. A sandbox HOME means even the
 	//    ~/.local/bin and ~/.cache fallbacks resolve inside t.TempDir().
 	sandboxHome := filepath.Join(tmp, "home")
-	require.NoError(t, os.MkdirAll(sandboxHome, 0o755))
+	// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+	require.NoError(t, os.MkdirAll(sandboxHome, 0o700))
 	env := append(os.Environ(),
 		"HOME="+sandboxHome,
 		"PATH="+fakeBin+string(os.PathListSeparator)+os.Getenv("PATH"),
