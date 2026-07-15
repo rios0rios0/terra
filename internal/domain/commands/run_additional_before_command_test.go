@@ -257,7 +257,8 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := t.TempDir()
-		require.NoError(t, os.MkdirAll(filepath.Join(targetPath, ".terraform"), 0o755))
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+		require.NoError(t, os.MkdirAll(filepath.Join(targetPath, ".terraform"), 0o700))
 		arguments := []string{"plan"}
 
 		// WHEN: Executing the command
@@ -281,7 +282,8 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := t.TempDir()
-		require.NoError(t, os.MkdirAll(filepath.Join(targetPath, ".terragrunt-cache"), 0o755))
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+		require.NoError(t, os.MkdirAll(filepath.Join(targetPath, ".terragrunt-cache"), 0o700))
 		arguments := []string{"apply"}
 
 		// WHEN: Executing the command
@@ -305,7 +307,8 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 		repository := &repositorydoubles.StubShellRepositoryForAdditional{}
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := t.TempDir()
-		require.NoError(t, os.MkdirAll(filepath.Join(targetPath, "terragrunt-cache"), 0o755))
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+		require.NoError(t, os.MkdirAll(filepath.Join(targetPath, "terragrunt-cache"), 0o700))
 		arguments := []string{"apply"}
 
 		// WHEN: Executing the command
@@ -389,7 +392,8 @@ func TestRunAdditionalBeforeCommand_Execute_CentralizedCache(t *testing.T) {
 		cmd := commands.NewRunAdditionalBeforeCommand(settings, nil, repository)
 		targetPath := t.TempDir()
 		cacheDir := t.TempDir()
-		require.NoError(t, os.MkdirAll(filepath.Join(cacheDir, "someHashDir"), 0o755))
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+		require.NoError(t, os.MkdirAll(filepath.Join(cacheDir, "someHashDir"), 0o700))
 		t.Setenv("TG_DOWNLOAD_DIR", cacheDir)
 		arguments := []string{"apply"}
 

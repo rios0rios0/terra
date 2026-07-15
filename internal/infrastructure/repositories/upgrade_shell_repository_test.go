@@ -23,7 +23,10 @@ func writeExecutableScript(t *testing.T, path, content string) {
 	cmd := exec.Command("sh", "-c", `cat > "$1"`, "sh", path)
 	cmd.Stdin = strings.NewReader(content)
 	require.NoError(t, cmd.Run())
-	require.NoError(t, os.Chmod(path, 0o755)) //nolint:gosec // Test script with intentional permissions
+	// The script is executed by the test, so it needs the owner execute bit; 0o700 is the
+	// least-privilege mode for an owner-run executable.
+	// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+	require.NoError(t, os.Chmod(path, 0o700))
 }
 
 func TestNewUpgradeAwareShellRepository(t *testing.T) {
