@@ -1,6 +1,6 @@
 module github.com/rios0rios0/terra
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/creack/pty v1.1.24
@@ -9,7 +9,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rios0rios0/cliforge v0.3.14
 	github.com/rios0rios0/testkit v0.2.6
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	go.uber.org/dig v1.19.0
