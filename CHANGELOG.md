@@ -16,9 +16,10 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.17.10] - 2026-08-24
+
 ### Changed
 
-- changed the Go module dependencies to their latest versions
 - changed the Go module dependencies to their latest versions
 - changed the Go version to `1.27.0` and updated all module dependencies
 - refreshed `CLAUDE.md` and `.github/copilot-instructions.md` to require Go 1.27+
