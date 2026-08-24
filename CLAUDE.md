@@ -8,7 +8,7 @@ Terra is a Go CLI tool that wraps Terraform and Terragrunt, providing simplified
 
 ## Build & Development Commands
 
-Requires Go 1.26+ (see `go.mod`). Make targets include `$(SCRIPTS_DIR)/makefiles/{common,golang}.mk` from the [pipelines](https://github.com/rios0rios0/pipelines) project — defaults to `$HOME/Development/github.com/rios0rios0/pipelines`, override with `SCRIPTS_DIR=...`.
+Requires Go 1.27+ (see `go.mod`). Make targets include `$(SCRIPTS_DIR)/makefiles/{common,golang}.mk` from the [pipelines](https://github.com/rios0rios0/pipelines) project — defaults to `$HOME/Development/github.com/rios0rios0/pipelines`, override with `SCRIPTS_DIR=...`.
 
 ```bash
 make build              # Build binary to bin/terra (stripped, ~15-20s)
