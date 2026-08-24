@@ -7,7 +7,7 @@ Always reference these instructions first and fallback to search or bash command
 ## Working Effectively
 
 ### Prerequisites and Environment Setup
-- Ensure Go 1.26+ is installed and `go` is in PATH
+- Ensure Go 1.27+ is installed and `go` is in PATH
 - For linting and CI tools, use the pipelines project (https://github.com/rios0rios0/pipelines)
 - NEVER CANCEL: Build takes 15-20 seconds. NEVER CANCEL. Set timeout to 60+ minutes for safety.
 
