@@ -13,7 +13,7 @@ nothing.
 When a new release is proposed:
 
 1. Create a new branch `bump/x.x.x` (this isn't a long-lived branch!!!);
-2. The fragments pending under `.changes/unreleased/` are compiled into a version section by `chlog batch auto && chlog merge` (AutoBump does this for you — it reads the fragments directly);
+2. The fragments pending under `.changes/unreleased/` are compiled into a version section by `chlog batch auto && chlog merge` ([AutoBump](https://github.com/rios0rios0/autobump) does this for you — it reads the fragments directly);
 3. Open a Pull Request with the bump version changes targeting the `main` branch;
 4. When the Pull Request is merged, a new Git tag must be created using [GitHub environment](https://github.com/rios0rios0/terra/tags).
 
