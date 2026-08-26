@@ -47,7 +47,7 @@ make all     # Runs lint + sast + test
 
 **File Standards:**
 - **Use LF line endings** - All new and edited files must use LF (Unix) line endings, not CRLF (Windows)
-- **Update CHANGELOG.md** - Add entries to the `[Unreleased]` section for new features and bug fixes (not required for documentation-only changes)
+- **Write a changelog fragment** - Every change adds its own YAML fragment with `chlog new --kind <Kind> --body "..."`, committed from `.changes/unreleased/`. `CHANGELOG.md` is generated from the fragments at release time and is never edited by hand
 - The `.editorconfig` file enforces line ending standards for most editors
 
 - **Tests exist** in this repository with good coverage across domain and infrastructure layers
@@ -514,3 +514,28 @@ TF_VAR_*=value
 - **Install Failures**: `terra install` and `terra self-update` will fail in restricted network environments - this is expected behavior
 
 Always validate changes by building, testing, and running the basic terra commands to ensure functionality is preserved.
+
+<!-- chlog:start -->
+## Changelog (chlog) — MANDATORY
+
+If the repository you are working in uses chlog (a `.chlog.yaml` or `.chlog.yml`
+config file, or a `.changes/` directory, exists at the project root), the
+following is binding and ALWAYS applies: whenever you make ANY change, you MUST
+create a changelog fragment as part of the same change — automatically, without
+being asked, before committing.
+
+- Do NOT edit CHANGELOG.md directly; it is generated from fragments.
+- Create the fragment with:
+  `chlog new --kind <Kind> --body "<imperative description>"`
+- Valid kinds: Added, Changed, Deprecated, Removed, Fixed, Security
+- Choose the kind that best matches the change (e.g., new feature → Added,
+  bug fix → Fixed, behavior change → Changed, removal → Removed, security fix → Security).
+- If the change is backward-INCOMPATIBLE with the public API (a breaking
+  change), you MUST add the `--breaking` flag:
+  `chlog new --kind <Kind> --breaking --body "<description>"`.
+  This is the ONLY thing that triggers a major version bump — the kind alone
+  never does (per SemVer, major = incompatible change). When unsure whether a
+  change breaks compatibility, ask the user instead of guessing.
+- Fragments are YAML files in `.changes/unreleased/`; stage them with your commit.
+- `chlog check` fails the build when a fragment is missing — never skip it.
+<!-- chlog:end -->
