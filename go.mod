@@ -7,9 +7,9 @@ require (
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/rios0rios0/cliforge v0.3.18
+	github.com/rios0rios0/cliforge v0.3.19
 	github.com/rios0rios0/testkit v0.2.8
-	github.com/sirupsen/logrus v1.10.1
+	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
 	go.uber.org/dig v1.19.0
