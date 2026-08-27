@@ -19,10 +19,10 @@ github.com/kelseyhightower/envconfig v1.4.0 h1:Im6hONhd3pLkfDFsbRgu68RDNkGF1r3dv
 github.com/kelseyhightower/envconfig v1.4.0/go.mod h1:cccZRl6mQpaq41TPp5QxidR+Sa3axMbJDNb//FQX6Gg=
 github.com/leodido/go-urn v1.5.0 h1:pLqT2kq1zpHW/1D18QMjMpdtX7cekxqtJJjg5ANyWw0=
 github.com/leodido/go-urn v1.5.0/go.mod h1:9BORnCDhdPBJNDEX+w1bJisa8yOKYi116VeO96s4ifE=
-github.com/rios0rios0/cliforge v0.3.19 h1:NN8uXajhe6UevPxWVrDukgNDjyubX/mCSlcL7SaXMAk=
-github.com/rios0rios0/cliforge v0.3.19/go.mod h1:QUeC8Falyb517FcqaCXMGy3OEvM8+yeaiSTwiQTgdYs=
-github.com/rios0rios0/testkit v0.2.8 h1:ae/ssAbfPm9Awu13N7Kd71je5GNx6jiWDHPJcSZtG/k=
-github.com/rios0rios0/testkit v0.2.8/go.mod h1:V3QQvbOM++F+85HX3lMhPEXTRbVcwIhDZHqJngF8wB4=
+github.com/rios0rios0/cliforge v0.4.0 h1:GKWOECYBSfoAdnmD19cR5c3E1G3bOd86eFCT3OiJTb8=
+github.com/rios0rios0/cliforge v0.4.0/go.mod h1:DIp+ebLDpHF5axCeJUdSE3490X3IoMUpGKU/CtwSuHA=
+github.com/rios0rios0/testkit v0.3.0 h1:ciC4f5nvwr3Y5VOIc7UZAL9Umh8zijmaC0OZq4VjnSk=
+github.com/rios0rios0/testkit v0.3.0/go.mod h1:V3QQvbOM++F+85HX3lMhPEXTRbVcwIhDZHqJngF8wB4=
 github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/sirupsen/logrus v1.10.2 h1:G2SED73/qrAu6YwbdxOD6peLkCBI3z7L+ykJFTXJBBo=
 github.com/sirupsen/logrus v1.10.2/go.mod h1:SLEg8TqYulVKKfIGHldVp2K2aYz2DKSVBq4g/H5bR7Q=
