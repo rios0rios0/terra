@@ -1,0 +1,3 @@
+kind: 'Changed'
+body: 'changed the Go module dependencies to their latest versions'
+time: '2026-08-31T09:11:34.033640997Z'
