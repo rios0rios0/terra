@@ -7,8 +7,8 @@ require (
 	github.com/go-playground/validator/v10 v10.30.3
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/rios0rios0/cliforge v0.4.2
-	github.com/rios0rios0/testkit v0.3.2
+	github.com/rios0rios0/cliforge v0.4.3
+	github.com/rios0rios0/testkit v0.3.3
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
@@ -24,7 +24,7 @@ require (
 	github.com/leodido/go-urn v1.5.0 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	go.yaml.in/yaml/v3 v3.0.5 // indirect
-	golang.org/x/crypto v0.55.0 // indirect
+	golang.org/x/crypto v0.56.0 // indirect
 	golang.org/x/sys v0.47.0 // indirect
 	golang.org/x/text v0.41.0 // indirect
 )
