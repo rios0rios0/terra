@@ -22,6 +22,17 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.18.7] - 2026-09-06
+
+### Fixed
+
+- declared test files as test sources for SonarCloud Automatic Analysis so duplicated test setup no longer fails the quality gate
+- replaced the external `unzip`, `mv`, `rm`, `move`, `del` and `file` commands with Go standard library equivalents, so archive handling no longer depends on binaries resolved through `PATH`; the copy-then-delete fallback that replaces `mv` across filesystems now also reports write-back failures raised at close, instead of deleting the source after a partial copy
+
+### Security
+
+- hardened ZIP extraction by validating every archive entry against the destination directory in the same step that writes it, and by creating extracted directories with owner-only permissions
+
 ## [1.18.6] - 2026-09-04
 
 ### Changed
