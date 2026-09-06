@@ -3,6 +3,8 @@
 package repositorybuilders //nolint:revive,staticcheck // Test package naming follows established project structure
 
 import (
+	"archive/zip"
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -62,9 +64,23 @@ func (b *TestServerBuilder) WithBinaryStatus(status int) *TestServerBuilder {
 	return b
 }
 
-// WithZipContent sets up the server to return zip content.
-func (b *TestServerBuilder) WithZipContent() *TestServerBuilder {
-	b.binaryResponse = []byte("PK\x03\x04test")
+// WithZipContent sets up the server to return a real ZIP archive holding a
+// single executable entry named binaryName, so the install flow exercises
+// the actual extraction path instead of a placeholder that only carries the
+// ZIP magic number.
+func (b *TestServerBuilder) WithZipContent(binaryName string) *TestServerBuilder {
+	buffer := &bytes.Buffer{}
+	writer := zip.NewWriter(buffer)
+
+	header := &zip.FileHeader{Name: binaryName, Method: zip.Deflate}
+	header.SetMode(0o755)
+
+	if entry, err := writer.CreateHeader(header); err == nil {
+		_, _ = entry.Write([]byte("#!/bin/bash\necho 'mock binary'\n"))
+	}
+	_ = writer.Close()
+
+	b.binaryResponse = buffer.Bytes()
 	b.contentType = "application/zip"
 	return b
 }

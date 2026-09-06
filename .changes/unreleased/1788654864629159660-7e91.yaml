@@ -1,0 +1,3 @@
+kind: 'Fixed'
+body: 'replaced the external unzip, mv, rm, move, del and file commands with Go standard library equivalents, so archive handling no longer depends on binaries resolved through PATH'
+time: '2026-09-06T00:34:24.62907341Z'
