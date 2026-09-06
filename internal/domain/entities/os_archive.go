@@ -130,6 +130,14 @@ func extractZipEntry(entry *zip.File, destPath string, budget int64) (int64, err
 		return written, fmt.Errorf("failed to perform decompressing of %q: %w", entry.Name, err)
 	}
 
+	// Close explicitly for the same reason as in copyFile: a write-back
+	// failure is reported by close, so a deferred close would hand a
+	// silently truncated binary to findBinaryInArchive. The deferred Close
+	// above then becomes a no-op.
+	if err = target.Close(); err != nil {
+		return written, fmt.Errorf("failed to perform decompressing of %q: %w", entry.Name, err)
+	}
+
 	return written, nil
 }
 
@@ -193,6 +201,13 @@ func copyFile(srcPath, destPath string) error {
 
 	if _, err = io.Copy(target, source); err != nil {
 		return fmt.Errorf("failed to copy %q to %q: %w", srcPath, destPath, err)
+	}
+
+	// Close explicitly: write-back errors (ENOSPC, EDQUOT, an NFS commit
+	// failure) surface at close, and moveFile deletes the source once this
+	// returns nil. The deferred Close above then becomes a no-op.
+	if err = target.Close(); err != nil {
+		return fmt.Errorf("failed to finalize %q: %w", destPath, err)
 	}
 
 	return nil

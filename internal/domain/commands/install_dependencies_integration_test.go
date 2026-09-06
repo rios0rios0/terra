@@ -75,7 +75,7 @@ func TestInstallDependenciesCommand_Execute_Integration(t *testing.T) {
 		// GIVEN: A test server with zip content
 		versionServer, binaryServer := repositorybuilders.NewTestServerBuilder().
 			WithTerraformVersion("2.0.0").
-			WithZipContent("test-zip-integration-tool-not-installed").
+			WithZipContent(t, "test-zip-integration-tool-not-installed").
 			BuildServers()
 		defer versionServer.Close()
 		defer binaryServer.Close()
