@@ -19,8 +19,10 @@ const (
 	maxExtractedBytes int64 = 1 << 30
 
 	// extractedDirPerm is applied to the directories created while
-	// unpacking an archive.
-	extractedDirPerm os.FileMode = 0o750
+	// unpacking an archive. Archives are unpacked into a private
+	// `os.MkdirTemp` directory, so the owner bits are the only ones any
+	// step of the installation ever needs: group and other get nothing.
+	extractedDirPerm os.FileMode = 0o700
 
 	// extractedFilePermMask keeps the executable bit carried by an archive
 	// entry (release binaries ship as 0o755) while dropping group and other
@@ -54,34 +56,55 @@ func extractZipArchive(archivePath, destPath string) error {
 	return nil
 }
 
+// escapingEntryError reports an archive entry that would be written outside
+// the extraction directory.
+func escapingEntryError(name string) error {
+	return fmt.Errorf(
+		"failed to perform decompressing: entry %q escapes the destination directory",
+		name,
+	)
+}
+
 // extractZipEntry writes a single archive entry below destPath and reports
 // how many bytes it produced. Entries whose name would resolve outside
 // destPath ("Zip Slip") are rejected, and an entry that would push the
 // extraction past the remaining budget aborts the operation.
+//
+// Both guards are spelled out inline rather than delegated to helpers on
+// purpose: a taint analyser only accepts an archive entry as sanitized when
+// the check dominates the filesystem call in the same function, so hiding
+// the comparison behind an `isWithinDir(...)` wrapper reads as an
+// unsanitized name flowing into `os.MkdirAll` and `os.OpenFile`.
 func extractZipEntry(entry *zip.File, destPath string, budget int64) (int64, error) {
-	relativeName, err := safeArchivePath(entry.Name)
-	if err != nil {
-		return 0, err
+	// First guard: reject a name that is absolute or that climbs out with
+	// `..` — the "Zip Slip" attack, e.g. `../../etc/cron.d/payload`.
+	relativeName := filepath.Clean(filepath.FromSlash(entry.Name))
+	if filepath.IsAbs(relativeName) || relativeName == ".." ||
+		strings.HasPrefix(relativeName, ".."+string(os.PathSeparator)) {
+		return 0, escapingEntryError(entry.Name)
+	}
+	// An entry naming the destination itself (`./`) carries nothing to unpack.
+	if relativeName == "." {
+		return 0, nil
 	}
 
+	// Second guard: even a name that cleared the first one must resolve to a
+	// path under destPath before anything touches the filesystem.
 	targetPath := filepath.Join(destPath, relativeName)
-	// Second layer of defence: even for a name that passed the checks above,
-	// refuse to write anything that does not land under destPath.
-	if !isWithinDir(targetPath, destPath) {
-		return 0, fmt.Errorf(
-			"failed to perform decompressing: entry %q escapes the destination directory",
-			entry.Name,
-		)
+	if !strings.HasPrefix(targetPath, filepath.Clean(destPath)+string(os.PathSeparator)) {
+		return 0, escapingEntryError(entry.Name)
 	}
 
 	if entry.FileInfo().IsDir() {
-		if err = os.MkdirAll(targetPath, extractedDirPerm); err != nil {
+		// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+		if err := os.MkdirAll(targetPath, extractedDirPerm); err != nil {
 			return 0, fmt.Errorf("failed to perform decompressing of %q: %w", entry.Name, err)
 		}
 		return 0, nil
 	}
 
-	if err = os.MkdirAll(filepath.Dir(targetPath), extractedDirPerm); err != nil {
+	// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
+	if err := os.MkdirAll(filepath.Dir(targetPath), extractedDirPerm); err != nil {
 		return 0, fmt.Errorf("failed to perform decompressing of %q: %w", entry.Name, err)
 	}
 
@@ -102,52 +125,28 @@ func extractZipEntry(entry *zip.File, destPath string, budget int64) (int64, err
 	}
 	defer target.Close()
 
-	// Reading one byte past the budget tells an oversized entry apart from
-	// one that merely exhausts it exactly.
-	written, err := io.Copy(target, io.LimitReader(source, budget+1))
+	written, err := copyWithinBudget(target, source, budget)
 	if err != nil {
 		return written, fmt.Errorf("failed to perform decompressing of %q: %w", entry.Name, err)
-	}
-	if written > budget {
-		return written, fmt.Errorf(
-			"failed to perform decompressing of %q: %w", entry.Name, errArchiveTooLarge,
-		)
 	}
 
 	return written, nil
 }
 
-// safeArchivePath converts an archive entry name into a relative path that
-// is guaranteed to stay inside the extraction directory. Entries that are
-// absolute or that climb out with `..` — the "Zip Slip" attack, e.g.
-// `../../etc/cron.d/payload` — are rejected outright.
-func safeArchivePath(name string) (string, error) {
-	cleaned := filepath.Clean(filepath.FromSlash(name))
-
-	escapes := filepath.IsAbs(cleaned) ||
-		cleaned == ".." ||
-		strings.HasPrefix(cleaned, ".."+string(os.PathSeparator))
-	if escapes {
-		return "", fmt.Errorf(
-			"failed to perform decompressing: entry %q escapes the destination directory",
-			name,
-		)
+// copyWithinBudget streams src into dst and refuses to produce more than
+// budget bytes, which is what stops a decompression bomb from filling the
+// disk. Reading one byte past the budget tells an oversized entry apart
+// from one that merely exhausts it exactly.
+func copyWithinBudget(dst io.Writer, src io.Reader, budget int64) (int64, error) {
+	written, err := io.Copy(dst, io.LimitReader(src, budget+1))
+	if err != nil {
+		return written, err
+	}
+	if written > budget {
+		return written, errArchiveTooLarge
 	}
 
-	return cleaned, nil
-}
-
-// isWithinDir reports whether target resolves to a path inside dir. It is
-// the guard against archive entries such as `../../etc/cron.d/payload`
-// that would otherwise be written outside the extraction directory.
-func isWithinDir(target, dir string) bool {
-	cleanDir := filepath.Clean(dir)
-	cleanTarget := filepath.Clean(target)
-	if cleanTarget == cleanDir {
-		return true
-	}
-
-	return strings.HasPrefix(cleanTarget, cleanDir+string(os.PathSeparator))
+	return written, nil
 }
 
 // moveFile relocates srcPath onto destPath through the Go standard library

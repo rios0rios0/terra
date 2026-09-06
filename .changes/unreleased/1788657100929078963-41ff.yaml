@@ -1,0 +1,3 @@
+kind: 'Security'
+body: 'hardened ZIP extraction by validating every archive entry against the destination directory in the same step that writes it, and by creating extracted directories with owner-only permissions'
+time: '2026-09-06T01:11:40.9290199Z'

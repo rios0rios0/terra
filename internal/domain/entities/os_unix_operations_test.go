@@ -216,6 +216,87 @@ func TestOSUnix_Extract(t *testing.T) {
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to perform decompressing")
 	})
+
+	t.Run("should reject the archive when an entry is an absolute path", func(t *testing.T) {
+		t.Parallel()
+		// given
+		archivePath := buildZipArchive(t, []zipEntry{
+			{name: "/etc/cron.d/payload", content: "malicious", mode: 0o644},
+		})
+		destDir := t.TempDir()
+		osImpl := &entities.OSUnix{}
+
+		// when
+		err := osImpl.Extract(archivePath, destDir)
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "escapes the destination directory")
+	})
+
+	t.Run("should reject the archive when a nested entry climbs out", func(t *testing.T) {
+		t.Parallel()
+		// given
+		archivePath := buildZipArchive(t, []zipEntry{
+			{name: "dist/../../escaped.txt", content: "malicious", mode: 0o644},
+		})
+		destDir := t.TempDir()
+		osImpl := &entities.OSUnix{}
+
+		// when
+		err := osImpl.Extract(archivePath, destDir)
+
+		// then
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "escapes the destination directory")
+		_, statErr := os.Stat(filepath.Join(filepath.Dir(destDir), "escaped.txt"))
+		assert.True(t, os.IsNotExist(statErr), "Escaping entry must not be written")
+	})
+
+	t.Run("should unpack the remaining members when an entry names the destination", func(t *testing.T) {
+		t.Parallel()
+		// given
+		archivePath := buildZipArchive(t, []zipEntry{
+			{name: "./", content: "", mode: os.ModeDir | 0o755},
+			{name: "terraform", content: "binary payload", mode: 0o755},
+		})
+		destDir := t.TempDir()
+		osImpl := &entities.OSUnix{}
+
+		// when
+		err := osImpl.Extract(archivePath, destDir)
+
+		// then
+		require.NoError(t, err)
+		content, readErr := os.ReadFile(filepath.Join(destDir, "terraform"))
+		require.NoError(t, readErr)
+		assert.Equal(t, "binary payload", string(content))
+	})
+
+	t.Run("should keep extracted directories private when entries are nested", func(t *testing.T) {
+		t.Parallel()
+		// given
+		archivePath := buildZipArchive(t, []zipEntry{
+			{name: "dist/", content: "", mode: os.ModeDir | 0o777},
+			{name: "dist/bin/terragrunt", content: "nested payload", mode: 0o755},
+		})
+		destDir := t.TempDir()
+		osImpl := &entities.OSUnix{}
+
+		// when
+		err := osImpl.Extract(archivePath, destDir)
+
+		// then
+		require.NoError(t, err)
+		for _, dir := range []string{"dist", filepath.Join("dist", "bin")} {
+			info, statErr := os.Stat(filepath.Join(destDir, dir))
+			require.NoError(t, statErr)
+			assert.Equal(
+				t, os.FileMode(0o700), info.Mode().Perm(),
+				"Extracted directory %q must not be readable by group or other", dir,
+			)
+		}
+	})
 }
 
 func TestOSUnix_Remove(t *testing.T) {
