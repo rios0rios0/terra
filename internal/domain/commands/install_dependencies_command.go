@@ -3,6 +3,7 @@ package commands
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -280,16 +281,33 @@ func downloadDependency(url, name, tempFilePath string, currentOS entities.OS) {
 	}
 }
 
-// detectFileType determines if the downloaded file is a zip archive.
+// zipFileSignature is the local file header signature that opens every
+// non-empty ZIP archive ("PK\x03\x04").
+const zipFileSignature = "PK\x03\x04"
+
+// detectFileType determines if the downloaded file is a zip archive by
+// reading its magic number. Inspecting the bytes directly replaces a call
+// to `file`, which has to be resolved through PATH and does not exist on
+// Windows at all.
 func detectFileType(tempFilePath, name string) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
-	defer cancel()
-	fileTypeCmd := exec.CommandContext(ctx, "file", tempFilePath)
-	fileTypeOutput, err := fileTypeCmd.Output()
+	handle, err := os.Open(tempFilePath)
 	if err != nil {
 		logger.Fatalf("Failed to determine file type of %s: %s", name, err)
+		return false
 	}
-	return strings.Contains(string(fileTypeOutput), "Zip archive data")
+	defer handle.Close()
+
+	signature := make([]byte, len(zipFileSignature))
+	if _, err = io.ReadFull(handle, signature); err != nil {
+		// A file too short to hold the signature simply is not an archive.
+		if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) {
+			return false
+		}
+		logger.Fatalf("Failed to determine file type of %s: %s", name, err)
+		return false
+	}
+
+	return string(signature) == zipFileSignature
 }
 
 // processArchive extracts the zip archive and moves the binary to destination.

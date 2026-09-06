@@ -1,9 +1,7 @@
 package entities
 
 import (
-	"fmt"
 	"os"
-	"os/exec"
 )
 
 type OSWindows struct{}
@@ -13,40 +11,15 @@ func (it *OSWindows) Download(url, tempFilePath string) error {
 }
 
 func (it *OSWindows) Extract(tempFilePath, destPath string) error {
-	unzipCmd := exec.Command(
-		"powershell",
-		"Expand-Archive",
-		"-Path",
-		tempFilePath,
-		"-DestinationPath",
-		destPath,
-		"-Force",
-	)
-	unzipCmd.Stderr = os.Stderr
-	unzipCmd.Stdout = os.Stdout
-	err := unzipCmd.Run()
-	if err != nil {
-		err = fmt.Errorf("failed to perform decompressing using 'powershell': %w", err)
-	}
-	return err
+	return extractZipArchive(tempFilePath, destPath)
 }
 
 func (it *OSWindows) Move(tempFilePath, destPath string) error {
-	mvCmd := exec.Command("move", tempFilePath, destPath)
-	err := mvCmd.Run()
-	if err != nil {
-		err = fmt.Errorf("failed to perform moving folder using 'move': %w", err)
-	}
-	return err
+	return moveFile(tempFilePath, destPath)
 }
 
 func (it *OSWindows) Remove(tempFilePath string) error {
-	rmCmd := exec.Command("del", tempFilePath)
-	err := rmCmd.Run()
-	if err != nil {
-		err = fmt.Errorf("failed to perform deleting folder using 'del': %w", err)
-	}
-	return err
+	return removeFile(tempFilePath)
 }
 
 func (it *OSWindows) MakeExecutable(_ string) error {

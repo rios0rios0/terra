@@ -3,9 +3,12 @@
 package repositorybuilders //nolint:revive,staticcheck // Test package naming follows established project structure
 
 import (
+	"archive/zip"
+	"bytes"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"testing"
 
 	testkit "github.com/rios0rios0/testkit/pkg/test"
 )
@@ -62,9 +65,39 @@ func (b *TestServerBuilder) WithBinaryStatus(status int) *TestServerBuilder {
 	return b
 }
 
-// WithZipContent sets up the server to return zip content.
-func (b *TestServerBuilder) WithZipContent() *TestServerBuilder {
-	b.binaryResponse = []byte("PK\x03\x04test")
+// WithZipContent sets up the server to return a real ZIP archive holding a
+// single executable entry named binaryName, so the install flow exercises
+// the actual extraction path instead of a placeholder that only carries the
+// ZIP magic number.
+//
+// A failure to assemble the archive aborts the test instead of being
+// swallowed: an empty or truncated buffer would still be served as
+// `application/zip`, sending the install flow down the non-archive path and
+// making the test fail for a reason that has nothing to do with what it
+// covers.
+func (b *TestServerBuilder) WithZipContent(t *testing.T, binaryName string) *TestServerBuilder {
+	t.Helper()
+
+	buffer := &bytes.Buffer{}
+	writer := zip.NewWriter(buffer)
+
+	header := &zip.FileHeader{Name: binaryName, Method: zip.Deflate}
+	header.SetMode(0o755)
+
+	entry, err := writer.CreateHeader(header)
+	if err != nil {
+		t.Fatalf("Failed to create the ZIP entry %q: %v", binaryName, err)
+	}
+
+	if _, err = entry.Write([]byte("#!/bin/bash\necho 'mock binary'\n")); err != nil {
+		t.Fatalf("Failed to write the ZIP entry %q: %v", binaryName, err)
+	}
+
+	if err = writer.Close(); err != nil {
+		t.Fatalf("Failed to finalize the ZIP archive holding %q: %v", binaryName, err)
+	}
+
+	b.binaryResponse = buffer.Bytes()
 	b.contentType = "application/zip"
 	return b
 }

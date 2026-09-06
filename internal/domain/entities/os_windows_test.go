@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/rios0rios0/terra/internal/domain/entities"
+	repositories_helpers "github.com/rios0rios0/terra/test/infrastructure/repositoryhelpers"
 )
 
 func TestOSWindows_Download(t *testing.T) {
