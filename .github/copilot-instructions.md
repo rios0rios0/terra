@@ -501,6 +501,12 @@ TERRA_NO_WORKSPACE=true
 # Accepts time.ParseDuration values (30m, 1h, 20m30s); useful for slow transports
 TERRA_DOWNLOAD_TIMEOUT=30m
 
+# Auto-confirm dependency updates during terra install/update (optional, default: unset)
+# In a non-interactive session (CI) the update prompt never blocks on stdin:
+# a truthy value (1/true/on or a y* string) updates automatically, otherwise the
+# update is skipped with a warning
+TERRA_ASSUME_YES=true
+
 # Terraform variables (optional, any TF_VAR_* variables)
 TF_VAR_*=value
 ```
