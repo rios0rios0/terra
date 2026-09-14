@@ -22,6 +22,12 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.18.11] - 2026-09-14
+
+### Changed
+
+- documented the `TERRA_ASSUME_YES` environment variable in `.github/copilot-instructions.md`
+
 ## [1.18.10] - 2026-09-10
 
 ### Changed
