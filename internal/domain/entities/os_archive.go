@@ -123,18 +123,16 @@ func extractZipEntry(entry *zip.File, destPath string, budget int64) (int64, err
 	if err != nil {
 		return 0, fmt.Errorf("failed to perform decompressing of %q: %w", entry.Name, err)
 	}
-	defer target.Close()
 
 	written, err := copyWithinBudget(target, source, budget)
-	if err != nil {
-		return written, fmt.Errorf("failed to perform decompressing of %q: %w", entry.Name, err)
+	// Close here, once, and keep its error, for the same reason as in
+	// copyFile: a write-back failure is reported by close, so dropping it would
+	// hand a silently truncated binary to findBinaryInArchive. A copy that
+	// already failed reports its own error instead.
+	if closeErr := target.Close(); err == nil {
+		err = closeErr
 	}
-
-	// Close explicitly for the same reason as in copyFile: a write-back
-	// failure is reported by close, so a deferred close would hand a
-	// silently truncated binary to findBinaryInArchive. The deferred Close
-	// above then becomes a no-op.
-	if err = target.Close(); err != nil {
+	if err != nil {
 		return written, fmt.Errorf("failed to perform decompressing of %q: %w", entry.Name, err)
 	}
 
@@ -197,17 +195,17 @@ func copyFile(srcPath, destPath string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create %q: %w", destPath, err)
 	}
-	defer target.Close()
 
-	if _, err = io.Copy(target, source); err != nil {
-		return fmt.Errorf("failed to copy %q to %q: %w", srcPath, destPath, err)
+	_, copyErr := io.Copy(target, source)
+	// Close here, once, and keep its error: write-back errors (ENOSPC, EDQUOT,
+	// an NFS commit failure) surface at close, and moveFile deletes the source
+	// once this returns nil.
+	closeErr := target.Close()
+	if copyErr != nil {
+		return fmt.Errorf("failed to copy %q to %q: %w", srcPath, destPath, copyErr)
 	}
-
-	// Close explicitly: write-back errors (ENOSPC, EDQUOT, an NFS commit
-	// failure) surface at close, and moveFile deletes the source once this
-	// returns nil. The deferred Close above then becomes a no-op.
-	if err = target.Close(); err != nil {
-		return fmt.Errorf("failed to finalize %q: %w", destPath, err)
+	if closeErr != nil {
+		return fmt.Errorf("failed to finalize %q: %w", destPath, closeErr)
 	}
 
 	return nil
