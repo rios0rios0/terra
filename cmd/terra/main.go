@@ -2,6 +2,7 @@ package main
 
 import (
 	"os"
+	"slices"
 
 	"github.com/joho/godotenv"
 	"github.com/rios0rios0/cliforge/pkg/selfupdate"
@@ -18,17 +19,29 @@ import (
 var version = "dev"
 
 // runUpdateCheck queries the cliforge selfupdate command for a newer version,
-// skipping local dev builds and the self-update / version subcommands to avoid
-// redundant GitHub API calls and noisy warnings.
+// skipping local dev builds and the commands checksForUpdates leaves out.
 func runUpdateCheck(command *cobra.Command) {
-	if commands.TerraVersion == "dev" {
-		return
-	}
-	switch command.Name() {
-	case "self-update", "version":
+	if commands.TerraVersion == "dev" || !checksForUpdates(command) {
 		return
 	}
 	selfupdate.NewCommand("rios0rios0", "terra", "terra", commands.TerraVersion).CheckForUpdates()
+}
+
+// checksForUpdates reports whether running command also checks for a newer
+// release. The self-update and version subcommands skip it, to avoid redundant
+// GitHub API calls and noisy warnings, and so does
+// shell completion: `completion` runs from a shell's startup file every time a
+// shell starts, and cobra's hidden `__complete` on every TAB press. Both exit at
+// once, so a lookup started there would never be read and would only use up the
+// day's update check. `completion bash` is named `bash`, so a command is judged
+// by its ancestor directly under the root.
+func checksForUpdates(command *cobra.Command) bool {
+	for command.HasParent() && command.Parent().HasParent() {
+		command = command.Parent()
+	}
+	return !slices.Contains([]string{
+		"self-update", "version", "completion", cobra.ShellCompRequestCmd,
+	}, command.Name())
 }
 
 // buildRootCommand creates and configures the root cobra command.
