@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -15,7 +13,7 @@ import (
 
 // TestInstallDependenciesCommand_Execute_InstallScenarios tests install method coverage.
 //
-//nolint:tparallel // Cannot use t.Parallel() when creating temporary files
+
 func TestInstallDependenciesCommand_Execute_InstallScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when creating temporary files
 

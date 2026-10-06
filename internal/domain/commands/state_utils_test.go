@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -165,8 +163,18 @@ func TestGetOnlyValues(t *testing.T) {
 		{"should return false when not present", []string{"plan"}, nil, false},
 		{"should trim whitespace", []string{"--only= a , b "}, []string{"a", "b"}, true},
 		{"should return false when empty arguments", []string{}, nil, false},
-		{"should handle hyphens and underscores", []string{"--only=my-module,other_module"}, []string{"my-module", "other_module"}, true},
-		{"should skip empty and use later valid occurrence", []string{"--only=", "--only=a,b"}, []string{"a", "b"}, true},
+		{
+			"should handle hyphens and underscores",
+			[]string{"--only=my-module,other_module"},
+			[]string{"my-module", "other_module"},
+			true,
+		},
+		{
+			"should skip empty and use later valid occurrence",
+			[]string{"--only=", "--only=a,b"},
+			[]string{"a", "b"},
+			true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -237,8 +245,18 @@ func TestGetSkipValues(t *testing.T) {
 		{"should return false when not present", []string{"plan"}, nil, false},
 		{"should trim whitespace", []string{"--skip= a , b "}, []string{"a", "b"}, true},
 		{"should return false when empty arguments", []string{}, nil, false},
-		{"should handle hyphens and underscores", []string{"--skip=my-module,other_module"}, []string{"my-module", "other_module"}, true},
-		{"should skip empty and use later valid occurrence", []string{"--skip=", "--skip=a,b"}, []string{"a", "b"}, true},
+		{
+			"should handle hyphens and underscores",
+			[]string{"--skip=my-module,other_module"},
+			[]string{"my-module", "other_module"},
+			true,
+		},
+		{
+			"should skip empty and use later valid occurrence",
+			[]string{"--skip=", "--skip=a,b"},
+			[]string{"a", "b"},
+			true,
+		},
 	}
 
 	for _, tt := range tests {
@@ -635,10 +653,10 @@ func TestResolveConfirmation(t *testing.T) {
 	t.Parallel()
 
 	tests := []struct {
-		name       string
-		arguments  []string
-		expectYes  bool
-		expectNo   bool
+		name      string
+		arguments []string
+		expectYes bool
+		expectNo  bool
 	}{
 		{"should resolve --yes to yes", []string{"apply", "--yes"}, true, false},
 		{"should resolve --no to no", []string{"apply", "--no"}, false, true},
@@ -649,7 +667,12 @@ func TestResolveConfirmation(t *testing.T) {
 		{"should map --reply=no to no", []string{"apply", "--reply=no"}, false, true},
 		{"should map space-separated --reply y to yes", []string{"apply", "--reply", "y"}, true, false},
 		{"should map space-separated -r n to no", []string{"apply", "-r", "n"}, false, true},
-		{"should map bare --reply followed by another flag to yes", []string{"apply", "--reply", "--parallel=4"}, true, false},
+		{
+			"should map bare --reply followed by another flag to yes",
+			[]string{"apply", "--reply", "--parallel=4"},
+			true,
+			false,
+		},
 		{"should return false,false when no confirmation flag", []string{"apply"}, false, false},
 	}
 

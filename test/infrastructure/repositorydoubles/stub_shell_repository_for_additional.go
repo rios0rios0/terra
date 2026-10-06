@@ -1,6 +1,4 @@
-//go:build integration || unit || test
-
-package repositorydoubles //nolint:staticcheck // Test package naming follows established project structure
+package repositorydoubles
 
 // StubShellRepositoryForAdditional is a stub implementation of repositories.ShellRepository.
 type StubShellRepositoryForAdditional struct {
@@ -9,11 +7,7 @@ type StubShellRepositoryForAdditional struct {
 	LastArguments    []string
 	LastDirectory    string
 	ExecuteErrors    []error
-	CallHistory      []struct {
-		Command   string
-		Arguments []string
-		Directory string
-	}
+	CallHistory      []CallRecord
 }
 
 func (m *StubShellRepositoryForAdditional) ExecuteCommand(
@@ -21,11 +15,7 @@ func (m *StubShellRepositoryForAdditional) ExecuteCommand(
 	arguments []string,
 	directory string,
 ) error {
-	m.CallHistory = append(m.CallHistory, struct {
-		Command   string
-		Arguments []string
-		Directory string
-	}{
+	m.CallHistory = append(m.CallHistory, CallRecord{
 		Command:   command,
 		Arguments: arguments,
 		Directory: directory,

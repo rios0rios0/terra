@@ -1,5 +1,3 @@
-//go:build unit
-
 package repositories_test
 
 import (
@@ -59,7 +57,12 @@ func TestInteractiveShellRepository_ExecuteCommandWithAnswer(t *testing.T) {
 		repo := repositories.NewInteractiveShellRepository()
 
 		// WHEN: Executing a command that produces colored output
-		err := repo.ExecuteCommandWithAnswer("sh", []string{"-c", "printf '\\033[32mgreen\\033[0m\\n'; printf '\\033[31mred\\033[0m\\n'"}, ".", "y")
+		err := repo.ExecuteCommandWithAnswer(
+			"sh",
+			[]string{"-c", "printf '\\033[32mgreen\\033[0m\\n'; printf '\\033[31mred\\033[0m\\n'"},
+			".",
+			"y",
+		)
 
 		// THEN: Should handle ANSI codes without error
 		assert.NoError(t, err)

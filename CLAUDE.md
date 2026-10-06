@@ -27,13 +27,13 @@ go fmt ./...
 go vet ./...
 
 # Run tests by category
-go test -tags unit ./...         # Unit tests only
-go test -tags integration ./...  # Integration tests only
+go test ./...                    # Unit tests
+go test -tags integration ./...  # Unit and integration tests
 
-# Run a single test / subtest (pass the build tag the file declares)
-go test -tags unit ./internal/domain/commands -run TestRunFromRootCommand_Execute
-go test -tags unit ./internal/domain/commands -run 'TestRunFromRootCommand_Execute/should_error_when.*'
-go test -tags unit -v -run TestParallelStateCommand_Execute ./internal/domain/commands
+# Run a single test / subtest
+go test ./internal/domain/commands -run TestRunFromRootCommand_Execute
+go test ./internal/domain/commands -run 'TestRunFromRootCommand_Execute/should_error_when.*'
+go test -v -run TestParallelStateCommand_Execute ./internal/domain/commands
 ```
 
 Never call tool binaries directly — always use Makefile targets which load correct configs from the pipelines project.
@@ -88,8 +88,7 @@ Deep-dive docs for the parallel subsystem live in `docs/parallel-execution.md` a
 ## Testing Conventions
 
 - **Framework:** `stretchr/testify` with `github.com/rios0rios0/testkit` for shared builders
-- **Build tags required on every test file:** `//go:build unit` or `//go:build integration`
-- **Test helpers use:** `//go:build integration || unit || test`
+- **Build tags:** none on unit tests or on the helpers under `test/`, so `go test ./...`, the IDE and the linter all see them; `//go:build integration` marks only a test that needs real infrastructure
 - **BDD structure:** `// GIVEN` / `// WHEN` / `// THEN` comment blocks
 - **Naming:** `TestStructName_MethodName` with subtests `"should [behavior] when [condition]"`
 - **Parallel:** Use `t.Parallel()` unless test uses `t.Setenv()` or `t.Chdir()`

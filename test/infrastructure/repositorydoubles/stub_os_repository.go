@@ -1,5 +1,3 @@
-//go:build integration || unit || test
-
 package repositorydoubles
 
 import (

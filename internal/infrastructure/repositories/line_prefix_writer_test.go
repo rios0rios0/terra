@@ -1,5 +1,3 @@
-//go:build unit
-
 package repositories_test
 
 import (
@@ -133,13 +131,11 @@ func TestLinePrefixWriter_Concurrency(t *testing.T) {
 		for w := range writerCount {
 			label := fmt.Sprintf("mod%d", w)
 			writer := repositories.NewLinePrefixWriter(&dest, label, mu)
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 				for line := range linesPerWriter {
-					_, _ = writer.Write([]byte(fmt.Sprintf("%s-line-%d\n", label, line)))
+					_, _ = fmt.Fprintf(writer, "%s-line-%d\n", label, line)
 				}
-			}()
+			})
 		}
 		wg.Wait()
 
@@ -166,14 +162,12 @@ func TestLinePrefixWriter_Concurrency(t *testing.T) {
 		// when: goroutines Write complete lines concurrently and each Flushes after
 		var wg sync.WaitGroup
 		for g := range goroutines {
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
+			wg.Go(func() {
 				for line := range linesPerGoroutine {
-					_, _ = writer.Write([]byte(fmt.Sprintf("g%d-line-%d\n", g, line)))
+					_, _ = fmt.Fprintf(writer, "g%d-line-%d\n", g, line)
 					writer.Flush()
 				}
-			}()
+			})
 		}
 		wg.Wait()
 		writer.Flush()

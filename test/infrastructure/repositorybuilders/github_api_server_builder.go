@@ -1,5 +1,3 @@
-//go:build integration || unit || test
-
 package repositorybuilders
 
 import (
@@ -15,6 +13,7 @@ import (
 // GitHubAPIServerBuilder helps create mock GitHub API servers for testing.
 type GitHubAPIServerBuilder struct {
 	*testkit.BaseBuilder
+
 	t              *testing.T
 	releaseVersion string
 	assetName      string
@@ -54,7 +53,7 @@ func (b *GitHubAPIServerBuilder) WithErrorResponse(errorMsg string) *GitHubAPISe
 }
 
 // Build satisfies the testkit.Builder interface.
-func (b *GitHubAPIServerBuilder) Build() interface{} {
+func (b *GitHubAPIServerBuilder) Build() any {
 	return b.BuildServer()
 }
 
@@ -72,7 +71,7 @@ func (b *GitHubAPIServerBuilder) Reset() testkit.Builder {
 // Clone creates a deep copy of the GitHubAPIServerBuilder.
 func (b *GitHubAPIServerBuilder) Clone() testkit.Builder {
 	return &GitHubAPIServerBuilder{
-		BaseBuilder:    b.BaseBuilder.Clone().(*testkit.BaseBuilder),
+		BaseBuilder:    cloneBase(b.BaseBuilder),
 		t:              b.t,
 		releaseVersion: b.releaseVersion,
 		assetName:      b.assetName,
@@ -100,9 +99,9 @@ func (b *GitHubAPIServerBuilder) BuildServer() *httptest.Server {
 			return
 		}
 
-		response := map[string]interface{}{
+		response := map[string]any{
 			"tag_name": b.releaseVersion,
-			"assets": []map[string]interface{}{
+			"assets": []map[string]any{
 				{
 					"name":                 b.assetName,
 					"browser_download_url": b.assetURL,

@@ -1,17 +1,15 @@
-//go:build integration || unit || test
-
 package commanddoubles
 
 import "github.com/rios0rios0/terra/internal/domain/entities"
 
-// StubParallelState is a test double for parallel state commands
+// StubParallelState is a test double for parallel state commands.
 type StubParallelState struct {
-	ExecuteCalled       bool
-	LastTargetPath      string
-	LastArguments       []string
-	LastDependencies    []entities.Dependency
-	ShouldReturnError   bool
-	ErrorMessage        string
+	ExecuteCalled     bool
+	LastTargetPath    string
+	LastArguments     []string
+	LastDependencies  []entities.Dependency
+	ShouldReturnError bool
+	ErrorMessage      string
 }
 
 func (stub *StubParallelState) Execute(
@@ -25,15 +23,15 @@ func (stub *StubParallelState) Execute(
 	copy(stub.LastArguments, arguments)
 	stub.LastDependencies = make([]entities.Dependency, len(dependencies))
 	copy(stub.LastDependencies, dependencies)
-	
+
 	if stub.ShouldReturnError {
 		return &stubError{message: stub.ErrorMessage}
 	}
-	
+
 	return nil
 }
 
-// stubError represents a simple error for testing
+// stubError represents a simple error for testing.
 type stubError struct {
 	message string
 }

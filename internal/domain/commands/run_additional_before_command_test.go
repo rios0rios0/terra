@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -375,9 +373,12 @@ func TestRunAdditionalBeforeCommand_Execute_EnvironmentInit(t *testing.T) {
 				break
 			}
 		}
-		assert.True(t, workspaceCommandExecuted, "Should execute workspace change command when TERRA_NO_WORKSPACE is false")
+		assert.True(
+			t,
+			workspaceCommandExecuted,
+			"Should execute workspace change command when TERRA_NO_WORKSPACE is false",
+		)
 	})
-
 }
 
 // TestRunAdditionalBeforeCommand_Execute_CentralizedCache tests init behavior with
@@ -401,12 +402,8 @@ func TestRunAdditionalBeforeCommand_Execute_CentralizedCache(t *testing.T) {
 		cmd.Execute(targetPath, arguments)
 
 		// THEN: Should not execute terragrunt init because centralized cache has content
-		for _, call := range repository.CallHistory {
-			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
-				call.Arguments[0] == "init" {
-				assert.Fail(t, "Should not execute terragrunt init when centralized cache has content")
-			}
-		}
+		assert.Nil(t, firstCall(repository.CallHistory, isTerragruntInit),
+			"Should not execute terragrunt init when centralized cache has content")
 	})
 
 	t.Run("should init environment when centralized cache is empty", func(t *testing.T) {
@@ -425,15 +422,8 @@ func TestRunAdditionalBeforeCommand_Execute_CentralizedCache(t *testing.T) {
 		cmd.Execute(targetPath, arguments)
 
 		// THEN: Should execute terragrunt init because centralized cache is empty
-		initCommandExecuted := false
-		for _, call := range repository.CallHistory {
-			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
-				call.Arguments[0] == "init" {
-				initCommandExecuted = true
-				break
-			}
-		}
-		assert.True(t, initCommandExecuted, "Should execute terragrunt init when centralized cache is empty")
+		assert.NotNil(t, firstCall(repository.CallHistory, isTerragruntInit),
+			"Should execute terragrunt init when centralized cache is empty")
 	})
 
 	t.Run("should init environment when TG_DOWNLOAD_DIR is unset and no local cache", func(t *testing.T) {
@@ -451,16 +441,9 @@ func TestRunAdditionalBeforeCommand_Execute_CentralizedCache(t *testing.T) {
 		cmd.Execute(targetPath, arguments)
 
 		// THEN: Should execute terragrunt init command
-		initCommandExecuted := false
-		for _, call := range repository.CallHistory {
-			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
-				call.Arguments[0] == "init" {
-				initCommandExecuted = true
-				assert.Equal(t, targetPath, call.Directory)
-				break
-			}
-		}
-		assert.True(t, initCommandExecuted, "Should execute terragrunt init command")
+		initCall := firstCall(repository.CallHistory, isTerragruntInit)
+		require.NotNil(t, initCall, "Should execute terragrunt init command")
+		assert.Equal(t, targetPath, initCall.Directory)
 	})
 
 	t.Run("should execute all steps when all conditions met", func(t *testing.T) {
@@ -491,26 +474,38 @@ func TestRunAdditionalBeforeCommand_Execute_CentralizedCache(t *testing.T) {
 			"Should execute at least 3 commands",
 		)
 
-		accountChangeFound := false
-		initFound := false
-		workspaceFound := false
-
-		for _, call := range repository.CallHistory {
-			if call.Command == "aws" {
-				accountChangeFound = true
-			}
-			if call.Command == "terragrunt" && len(call.Arguments) > 0 &&
-				call.Arguments[0] == "init" {
-				initFound = true
-			}
-			if call.Command == "terragrunt" && len(call.Arguments) >= 4 &&
-				call.Arguments[0] == "workspace" && call.Arguments[3] == "staging" {
-				workspaceFound = true
-			}
-		}
-
-		assert.True(t, accountChangeFound, "Should execute account change command")
-		assert.True(t, initFound, "Should execute init command")
-		assert.True(t, workspaceFound, "Should execute workspace command")
+		assert.NotNil(t, firstCall(repository.CallHistory, isAccountChange), "Should execute account change command")
+		assert.NotNil(t, firstCall(repository.CallHistory, isTerragruntInit), "Should execute init command")
+		assert.NotNil(t, firstCall(repository.CallHistory, isStagingWorkspaceSelection),
+			"Should execute workspace command")
 	})
+}
+
+// firstCall returns the first of calls that matches, or nil when none does.
+func firstCall(
+	calls []repositorydoubles.CallRecord,
+	matches func(repositorydoubles.CallRecord) bool,
+) *repositorydoubles.CallRecord {
+	for i := range calls {
+		if matches(calls[i]) {
+			return &calls[i]
+		}
+	}
+	return nil
+}
+
+// isTerragruntInit reports whether call runs `terragrunt init`.
+func isTerragruntInit(call repositorydoubles.CallRecord) bool {
+	return call.Command == "terragrunt" && len(call.Arguments) > 0 && call.Arguments[0] == "init"
+}
+
+// isAccountChange reports whether call switches the cloud account.
+func isAccountChange(call repositorydoubles.CallRecord) bool {
+	return call.Command == "aws"
+}
+
+// isStagingWorkspaceSelection reports whether call selects the staging workspace.
+func isStagingWorkspaceSelection(call repositorydoubles.CallRecord) bool {
+	return call.Command == "terragrunt" && len(call.Arguments) >= 4 &&
+		call.Arguments[0] == "workspace" && call.Arguments[3] == "staging"
 }

@@ -1,6 +1,4 @@
-//go:build integration || unit || test
-
-package commanddoubles //nolint:staticcheck // Test package naming follows established project structure
+package commanddoubles
 
 // StubRunAdditionalBefore is a stub implementation for RunAdditionalBefore interface.
 type StubRunAdditionalBefore struct {

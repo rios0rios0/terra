@@ -1,6 +1,4 @@
-//go:build integration || unit || test
-
-package entitybuilders //nolint:revive,staticcheck // Test package naming follows established project structure
+package entitybuilders
 
 import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
@@ -10,6 +8,7 @@ import (
 // PlatformInfoBuilder helps create test PlatformInfo instances with a fluent interface.
 type PlatformInfoBuilder struct {
 	*testkit.BaseBuilder
+
 	os   string
 	arch string
 }
@@ -36,7 +35,7 @@ func (b *PlatformInfoBuilder) WithArch(arch string) *PlatformInfoBuilder {
 }
 
 // Build creates the PlatformInfo (satisfies testkit.Builder interface).
-func (b *PlatformInfoBuilder) Build() interface{} {
+func (b *PlatformInfoBuilder) Build() any {
 	return b.BuildPlatformInfo()
 }
 
@@ -59,7 +58,7 @@ func (b *PlatformInfoBuilder) Reset() testkit.Builder {
 // Clone creates a deep copy of the PlatformInfoBuilder.
 func (b *PlatformInfoBuilder) Clone() testkit.Builder {
 	return &PlatformInfoBuilder{
-		BaseBuilder: b.BaseBuilder.Clone().(*testkit.BaseBuilder),
+		BaseBuilder: cloneBase(b.BaseBuilder),
 		os:          b.os,
 		arch:        b.arch,
 	}

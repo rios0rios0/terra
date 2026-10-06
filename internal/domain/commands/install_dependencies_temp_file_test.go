@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -42,9 +40,9 @@ func TestInstallDependenciesCommand_TempFilePatterns(t *testing.T) {
 			"First temp file should have expected prefix")
 		assert.True(t, strings.HasPrefix(filepath.Base(tempFile2.Name()), "terraform_"),
 			"Second temp file should have expected prefix")
-		assert.True(t, strings.Contains(tempFile1.Name(), tempDir),
+		assert.Contains(t, tempFile1.Name(), tempDir,
 			"First temp file should be in expected directory")
-		assert.True(t, strings.Contains(tempFile2.Name(), tempDir),
+		assert.Contains(t, tempFile2.Name(), tempDir,
 			"Second temp file should be in expected directory")
 	})
 
@@ -65,7 +63,7 @@ func TestInstallDependenciesCommand_TempFilePatterns(t *testing.T) {
 		// THEN: Should be able to write to the file (no permission denied errors)
 		testContent := "test content for downloaded binary"
 		_, err = tempFile.WriteString(testContent)
-		assert.NoError(t, err, "Should be able to write to temp file without permission errors")
+		require.NoError(t, err, "Should be able to write to temp file without permission errors")
 
 		// Verify content was written correctly
 		_ = tempFile.Sync()
@@ -92,11 +90,19 @@ func TestInstallDependenciesCommand_TempDirectoryPatterns(t *testing.T) {
 		require.NotEmpty(t, tempDir, "Temp directory should be available")
 
 		// WHEN: Creating temp directories using the same pattern as install function
-		extractDir1, err := os.MkdirTemp(tempDir, "terraform_extract_*")
+		//nolint:usetesting // the install command creates its extraction directory with os.MkdirTemp too
+		extractDir1, err := os.MkdirTemp(
+			tempDir,
+			"terraform_extract_*",
+		)
 		require.NoError(t, err, "Should create first temp directory successfully")
 		defer os.RemoveAll(extractDir1)
 
-		extractDir2, err := os.MkdirTemp(tempDir, "terraform_extract_*")
+		//nolint:usetesting // the install command creates its extraction directory with os.MkdirTemp too
+		extractDir2, err := os.MkdirTemp(
+			tempDir,
+			"terraform_extract_*",
+		)
 		require.NoError(t, err, "Should create second temp directory successfully")
 		defer os.RemoveAll(extractDir2)
 
@@ -107,9 +113,9 @@ func TestInstallDependenciesCommand_TempDirectoryPatterns(t *testing.T) {
 			"First temp directory should have expected prefix")
 		assert.True(t, strings.HasPrefix(filepath.Base(extractDir2), "terraform_extract_"),
 			"Second temp directory should have expected prefix")
-		assert.True(t, strings.Contains(extractDir1, tempDir),
+		assert.Contains(t, extractDir1, tempDir,
 			"First temp directory should be in expected parent directory")
-		assert.True(t, strings.Contains(extractDir2, tempDir),
+		assert.Contains(t, extractDir2, tempDir,
 			"Second temp directory should be in expected parent directory")
 	})
 
@@ -122,7 +128,11 @@ func TestInstallDependenciesCommand_TempDirectoryPatterns(t *testing.T) {
 		require.NotEmpty(t, tempDir, "Temp directory should be available")
 
 		// WHEN: Creating a temp directory using the same pattern as install function
-		extractDir, err := os.MkdirTemp(tempDir, "terraform_extract_*")
+		//nolint:usetesting // the install command creates its extraction directory with os.MkdirTemp too
+		extractDir, err := os.MkdirTemp(
+			tempDir,
+			"terraform_extract_*",
+		)
 		require.NoError(t, err, "Should create temp directory successfully")
 		defer os.RemoveAll(extractDir)
 
@@ -130,7 +140,7 @@ func TestInstallDependenciesCommand_TempDirectoryPatterns(t *testing.T) {
 		testFile := filepath.Join(extractDir, "terraform")
 		testContent := "fake terraform binary content"
 		err = os.WriteFile(testFile, []byte(testContent), 0755)
-		assert.NoError(t, err, "Should be able to create files in temp directory without permission errors")
+		require.NoError(t, err, "Should be able to create files in temp directory without permission errors")
 
 		// Verify content was written correctly
 		readContent, err := os.ReadFile(testFile)
@@ -141,7 +151,7 @@ func TestInstallDependenciesCommand_TempDirectoryPatterns(t *testing.T) {
 		// Verify file permissions allow execution (for binary files)
 		fileInfo, err := os.Stat(testFile)
 		require.NoError(t, err)
-		assert.True(t, fileInfo.Mode()&0755 != 0,
+		assert.NotEqual(t, 0, fileInfo.Mode()&0755,
 			"Created file should have execution permissions")
 	})
 }

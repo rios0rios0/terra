@@ -80,14 +80,14 @@ them before the generic ones.
 - **`terra clear --global` deletes shared caches** (`~/.cache/terra/modules`, `~/.cache/terra/providers`) as well as local `.terraform` and `.terragrunt-cache` directories. Any new delete path needs a guard that refuses to walk outside those roots.
 - **Standalone commands must keep working without Terraform installed** — `clear`, `format` (warning only), `install`, `update`, `version`, `self-update`. A new hard dependency on the binaries in one of those paths is a regression.
 - **Bug fixes ship with a test that reproduces the bug first.** That is this repository's stated rule, and a fix without one should be sent back.
-- **Build tags are mandatory on test files here**: `//go:build unit` for unit tests in `internal/`, `//go:build integration` for `*_integration_test.go`, and `//go:build integration || unit || test` for helpers under `test/`. A missing tag breaks the pipeline's phase split.
+- **Unit tests and the helpers under `test/` carry no build tag**, so a plain `go test ./...` runs them and the linter sees them. `//go:build integration` marks a test that needs real infrastructure (`*_integration_test.go`); the pipeline's integration phase runs only the packages that tag adds files to. Flag a `//go:build unit` constraint, and flag `integration` on a test that needs no real infrastructure.
 - Never test private methods directly — exercise them through the public interface.
 
 ### Commands a reviewer should be able to quote
 
 ```bash
 make build && make lint && make test && make sast
-go test -tags unit ./internal/...
+go test ./internal/...
 ./bin/terra plan --parallel=3 --only=module1,module2 /path/to/infrastructure
 ```
 
@@ -254,7 +254,6 @@ See [Security](https://github.com/rios0rios0/guide/wiki/Security).
 
 A review that raises noise gets ignored. Do not report these:
 
-- The `//go:build unit` tags in this repository — unlike most repos here, they are the documented local convention and the pipeline depends on them.
 - Generated coverage artefacts in the working tree.
 - Anything the guide does not require and this file does not list, unless it is a genuine correctness or security defect — say so plainly and label it a Suggestion.
 

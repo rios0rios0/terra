@@ -1,5 +1,3 @@
-//go:build unit
-
 package internal_test
 
 import (

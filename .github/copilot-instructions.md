@@ -191,25 +191,20 @@ terra apply --reply=y /path/to/infrastructure/module
 - **Follow test method organization pattern**: One function per public method with t.Run() for test cases
 - **Never test private methods directly** - test through public interfaces with comprehensive coverage
 - **Use testify assertions**: `assert.*` for non-critical, `require.*` for critical, `mock.*` for test doubles
-- **ALL test files MUST include build tags** for proper categorization and test execution
+- **Build tags:** unit tests and test utilities carry none, so `go test ./...` runs them; only integration tests carry `//go:build integration`
 
 **Build Tag Requirements:**
 ```go
-// Unit tests (files in internal/ directories)
-//go:build unit
+// Unit tests and test utilities (files in /test folder): no build tag
 
 // Integration tests (*_integration_test.go, BDD examples)
 //go:build integration
-
-// Test utilities (files in /test folder)
-//go:build integration || unit || test
 ```
 
 **Running tests by category:**
 ```bash
-go test -tags unit ./...        # Unit tests only
-go test -tags integration ./... # Integration tests only
-go test ./...                   # All tests (default)
+go test ./...                   # Unit tests
+go test -tags integration ./... # Unit and integration tests
 ```
 
 **Required Test Structure Pattern:**
