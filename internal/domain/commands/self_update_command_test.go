@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -29,7 +27,7 @@ func TestNewSelfUpdateCommand(t *testing.T) {
 	})
 }
 
-// redirectTransport is an http.RoundTripper that redirects all requests to a test server.
+// redirectTransport is an [http.RoundTripper] that redirects all requests to a test server.
 type redirectTransport struct {
 	targetURL string
 }
@@ -45,7 +43,7 @@ func (t *redirectTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	return http.DefaultTransport.RoundTrip(newReq)
 }
 
-// helperWithRedirectedHTTPClient temporarily replaces http.DefaultClient transport
+// helperWithRedirectedHTTPClient temporarily replaces the [http.DefaultClient] transport
 // so that all HTTP calls go to the given test server. It returns a cleanup function
 // that restores the original transport.
 func helperWithRedirectedHTTPClient(serverURL string) func() {
@@ -74,7 +72,7 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 		err := cmd.Execute(true, false)
 
 		// THEN: Should return an error about failed fetch
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to fetch latest release")
 	})
 
@@ -94,7 +92,7 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 		err := cmd.Execute(true, false)
 
 		// THEN: Should return an error about parsing
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to fetch latest release")
 	})
 
@@ -122,16 +120,14 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 		err := cmd.Execute(true, false)
 
 		// THEN: Should return an error about missing asset for this platform
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to fetch latest release")
 		assert.Contains(t, err.Error(), "no asset")
 	})
 
 	t.Run("should report up to date when current version equals latest", func(t *testing.T) {
 		// GIVEN: A mock server that returns a version matching TerraVersion
-		originalVersion := commands.TerraVersion
-		commands.TerraVersion = "2.0.0"
-		defer func() { commands.TerraVersion = originalVersion }()
+		pinTerraVersion(t, "2.0.0")
 
 		archString := runtime.GOARCH
 		osString := runtime.GOOS
@@ -165,9 +161,7 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 
 	t.Run("should report dry run update info when current version is older", func(t *testing.T) {
 		// GIVEN: A mock server that returns a version newer than TerraVersion
-		originalVersion := commands.TerraVersion
-		commands.TerraVersion = "1.0.0"
-		defer func() { commands.TerraVersion = originalVersion }()
+		pinTerraVersion(t, "1.0.0")
 
 		archString := runtime.GOARCH
 		osString := runtime.GOOS
@@ -201,9 +195,7 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 
 	t.Run("should report newer version when current version is higher than latest", func(t *testing.T) {
 		// GIVEN: A mock server that returns a version older than TerraVersion
-		originalVersion := commands.TerraVersion
-		commands.TerraVersion = "99.0.0"
-		defer func() { commands.TerraVersion = originalVersion }()
+		pinTerraVersion(t, "99.0.0")
 
 		archString := runtime.GOARCH
 		osString := runtime.GOOS
@@ -236,3 +228,14 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 	})
 }
 
+// pinTerraVersion makes the command take version for the running build's until
+// the test ends. TerraVersion is the variable the build sets through ldflags, so
+// pinning it is how a test stands in for a released binary.
+func pinTerraVersion(t *testing.T, version string) {
+	t.Helper()
+	original := commands.TerraVersion
+	commands.TerraVersion = version //nolint:reassign // the build-time version, pinned for this test
+	t.Cleanup(func() {
+		commands.TerraVersion = original //nolint:reassign // restores the build-time version
+	})
+}

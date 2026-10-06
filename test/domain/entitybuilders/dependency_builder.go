@@ -1,6 +1,4 @@
-//go:build integration || unit || test
-
-package entitybuilders //nolint:revive,staticcheck // Test package naming follows established project structure
+package entitybuilders
 
 import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
@@ -10,6 +8,7 @@ import (
 // DependencyBuilder helps create test dependencies with a fluent interface.
 type DependencyBuilder struct {
 	*testkit.BaseBuilder
+
 	name              string
 	cli               string
 	binaryURL         string
@@ -78,7 +77,7 @@ func (b *DependencyBuilder) WithTerragruntPattern() *DependencyBuilder {
 }
 
 // Build creates the dependency (satisfies testkit.Builder interface).
-func (b *DependencyBuilder) Build() interface{} {
+func (b *DependencyBuilder) Build() any {
 	return b.BuildDependency()
 }
 
@@ -111,7 +110,7 @@ func (b *DependencyBuilder) Clone() testkit.Builder {
 	fmtCmd := make([]string, len(b.formattingCommand))
 	copy(fmtCmd, b.formattingCommand)
 	return &DependencyBuilder{
-		BaseBuilder:       b.BaseBuilder.Clone().(*testkit.BaseBuilder),
+		BaseBuilder:       cloneBase(b.BaseBuilder),
 		name:              b.name,
 		cli:               b.cli,
 		binaryURL:         b.binaryURL,

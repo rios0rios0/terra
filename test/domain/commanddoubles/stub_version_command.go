@@ -1,6 +1,4 @@
-//go:build integration || unit || test
-
-package commanddoubles //nolint:staticcheck // Test package naming follows established project structure
+package commanddoubles
 
 // StubVersionCommand is a stub implementation of the Version interface.
 type StubVersionCommand struct {

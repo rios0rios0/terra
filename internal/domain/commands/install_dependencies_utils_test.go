@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -91,7 +89,7 @@ func TestFindBinaryInArchive(t *testing.T) {
 		_, err := commands.FindBinaryInArchivePublic(tempDir, "nonexistent")
 
 		// then
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "could not find nonexistent binary")
 	})
 

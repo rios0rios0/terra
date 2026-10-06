@@ -1,10 +1,8 @@
-//go:build integration || unit || test
-
 package repositorydoubles
 
 import "github.com/rios0rios0/terra/internal/domain/repositories"
 
-// ParallelStateCallRecord represents a single command execution call for parallel state testing
+// ParallelStateCallRecord represents a single command execution call for parallel state testing.
 type ParallelStateCallRecord struct {
 	Command   string
 	Arguments []string
@@ -12,7 +10,7 @@ type ParallelStateCallRecord struct {
 	Prefix    string
 }
 
-// StubShellRepositoryForParallelState is a test double for shell repository focused on parallel state testing
+// StubShellRepositoryForParallelState is a test double for shell repository focused on parallel state testing.
 type StubShellRepositoryForParallelState struct {
 	ExecuteCallCount int
 	CallHistory      []ParallelStateCallRecord
@@ -20,7 +18,7 @@ type StubShellRepositoryForParallelState struct {
 	FailureMessage   string
 }
 
-// Verify it implements the interface
+// Verify it implements the interface.
 var _ repositories.ParallelShellRepository = (*StubShellRepositoryForParallelState)(nil)
 
 func (stub *StubShellRepositoryForParallelState) ExecuteCommandWithPrefix(
@@ -47,7 +45,7 @@ func (stub *StubShellRepositoryForParallelState) ExecuteCommandWithPrefix(
 	return nil
 }
 
-// stubParallelStateError represents a simple error for testing
+// stubParallelStateError represents a simple error for testing.
 type stubParallelStateError struct {
 	message string
 }

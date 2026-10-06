@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -13,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// Helper functions for file operations in tests
+// Helper functions for file operations in tests.
 func mkdir(dir string) error {
 	// nosemgrep: go.lang.correctness.permissions.file_permission.incorrect-default-permission
 	return os.MkdirAll(dir, 0755) // Directory requires execute permission (0700) for traversal in tests
@@ -247,7 +245,12 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 
 		// Verify --parallel=5 flag was removed from arguments
 		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
-		assert.NotContains(t, lastCall.Arguments, "--parallel=5", "Should remove --parallel=5 flag from individual module execution")
+		assert.NotContains(
+			t,
+			lastCall.Arguments,
+			"--parallel=5",
+			"Should remove --parallel=5 flag from individual module execution",
+		)
 	})
 
 	t.Run("should execute with --parallel=2 for any command", func(t *testing.T) {
@@ -328,7 +331,14 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		// GIVEN: A parallel state command with both --only and --skip flags
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
-		arguments := []string{"import", "--parallel=5", "--only=mod1,mod2,mod3", "--skip=mod2", "null_resource.test", "id"}
+		arguments := []string{
+			"import",
+			"--parallel=5",
+			"--only=mod1,mod2,mod3",
+			"--skip=mod2",
+			"null_resource.test",
+			"id",
+		}
 		dependencies := []entities.Dependency{}
 
 		tempDir := t.TempDir()
@@ -426,7 +436,12 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		for _, arg := range lastCall.Arguments {
 			assert.NotContains(t, arg, "--reply", "Should not pass --reply flag to terragrunt")
 		}
-		assert.Contains(t, lastCall.Arguments, "--non-interactive", "Should inject --non-interactive when --reply was present")
+		assert.Contains(
+			t,
+			lastCall.Arguments,
+			"--non-interactive",
+			"Should inject --non-interactive when --reply was present",
+		)
 		assert.Contains(t, lastCall.Arguments, "-auto-approve", "Should inject -auto-approve for apply commands")
 	})
 
@@ -470,7 +485,12 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 		require.NoError(t, err)
 		require.NotEmpty(t, repository.CallHistory)
 		lastCall := repository.CallHistory[len(repository.CallHistory)-1]
-		assert.NotContains(t, lastCall.Arguments, "--non-interactive", "Should not inject --non-interactive without a confirmation flag")
+		assert.NotContains(
+			t,
+			lastCall.Arguments,
+			"--non-interactive",
+			"Should not inject --non-interactive without a confirmation flag",
+		)
 	})
 
 	t.Run("should strip --yes and inject --non-interactive and -auto-approve for apply", func(t *testing.T) {
@@ -526,7 +546,7 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 }
 
-// testDirectoryHelper helps create test directories for parallel state tests
+// testDirectoryHelper helps create test directories for parallel state tests.
 type testDirectoryHelper struct {
 	t *testing.T
 }
@@ -545,7 +565,7 @@ func (h *testDirectoryHelper) createModuleDirectories(baseDir string, moduleName
 	}
 }
 
-// moduleTestHelper helps create individual terraform modules
+// moduleTestHelper helps create individual terraform modules.
 type moduleTestHelper struct {
 	t          *testing.T
 	baseDir    string

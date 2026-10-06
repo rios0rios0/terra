@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -13,7 +11,7 @@ import (
 
 // TestInstallDependenciesCommand_Execute_ZipScenarios tests findBinaryInArchive method indirectly.
 //
-//nolint:tparallel // Cannot use t.Parallel() when creating temporary files and directories
+
 func TestInstallDependenciesCommand_Execute_ZipScenarios(t *testing.T) {
 	// Note: Cannot use t.Parallel() when creating temporary files and directories
 

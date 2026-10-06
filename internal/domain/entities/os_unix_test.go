@@ -1,4 +1,4 @@
-//go:build unit && !windows
+//go:build !windows
 
 package entities_test
 

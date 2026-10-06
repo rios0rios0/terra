@@ -1,5 +1,3 @@
-//go:build unit
-
 package repositories_test
 
 import (
@@ -287,7 +285,7 @@ func TestUpgradeAwareShellRepository_ExecuteCommandWithUpgrade(t *testing.T) {
 		err := repo.ExecuteCommandWithUpgrade("false", []string{}, dir)
 
 		// THEN
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to perform command execution")
 	})
 
@@ -301,7 +299,7 @@ func TestUpgradeAwareShellRepository_ExecuteCommandWithUpgrade(t *testing.T) {
 		err := repo.ExecuteCommandWithUpgrade("nonexistent-command-xyz", []string{}, dir)
 
 		// THEN
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to perform command execution")
 	})
 
@@ -332,7 +330,7 @@ func TestUpgradeAwareShellRepository_ExecuteCommandWithUpgrade(t *testing.T) {
 		)
 
 		// THEN: Should return an error with the auto init upgrade failure message
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "auto init --upgrade failed")
 	})
 
@@ -399,7 +397,7 @@ exit 1
 		err := repo.ExecuteCommandWithUpgrade(scriptPath, []string{"plan"}, dir)
 
 		// THEN: Should succeed after the automatic init --upgrade and retry
-		assert.NoError(t, err)
+		require.NoError(t, err)
 
 		// Verify the init marker file was created (proving init --upgrade ran)
 		_, statErr := os.Stat(dir + "/.init_done")
@@ -430,7 +428,7 @@ exit 1
 		err := repo.ExecuteCommandWithUpgrade(scriptPath, []string{"plan"}, dir)
 
 		// THEN: Should return an error from the retry (executePassthrough)
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to perform command execution")
 	})
 
@@ -469,7 +467,7 @@ exit 1
 		)
 
 		// THEN: The retry succeeds because --all and the queue flag were forwarded
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		_, statErr := os.Stat(dir + "/.init_done")
 		assert.NoError(t, statErr, "init --upgrade --all <queue flags> must have run")
 	})
@@ -506,7 +504,7 @@ exit 1
 		)
 
 		// THEN: The retry succeeds because the equals-form flag was forwarded as-is
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		_, statErr := os.Stat(dir + "/.init_done")
 		assert.NoError(t, statErr, "init --upgrade --all --queue-exclude-dir=<dir> must have run")
 	})
@@ -543,7 +541,7 @@ exit 1
 		)
 
 		// THEN: The retry succeeds because --filter and its value were forwarded together
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		_, statErr := os.Stat(dir + "/.init_done")
 		assert.NoError(t, statErr, "init --upgrade --all --filter <query> must have run")
 	})
@@ -582,7 +580,7 @@ exit 1
 		)
 
 		// THEN: The retry runs as bare init --upgrade, with no extraneous args
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		_, statErr := os.Stat(dir + "/.init_done")
 		assert.NoError(t, statErr, "init --upgrade must have run without extra args")
 	})

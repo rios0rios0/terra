@@ -1,10 +1,9 @@
-//go:build integration || unit || test
-
-package repositorybuilders //nolint:revive,staticcheck // Test package naming follows established project structure
+package repositorybuilders
 
 import (
 	"archive/zip"
 	"bytes"
+	"maps"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -16,6 +15,7 @@ import (
 // TestServerBuilder helps create mock servers with a fluent interface.
 type TestServerBuilder struct {
 	*testkit.BaseBuilder
+
 	versionResponses map[string]string
 	binaryResponse   []byte
 	binaryStatus     int
@@ -24,6 +24,10 @@ type TestServerBuilder struct {
 }
 
 // NewTestServerBuilder creates a new test server builder.
+// archivedBinaryMode is the mode the fake release archive gives the binary it
+// holds: an executable, as a real release ships it.
+const archivedBinaryMode = 0o755
+
 func NewTestServerBuilder() *TestServerBuilder {
 	return &TestServerBuilder{
 		BaseBuilder:      testkit.NewBaseBuilder(),
@@ -82,7 +86,7 @@ func (b *TestServerBuilder) WithZipContent(t *testing.T, binaryName string) *Tes
 	writer := zip.NewWriter(buffer)
 
 	header := &zip.FileHeader{Name: binaryName, Method: zip.Deflate}
-	header.SetMode(0o755)
+	header.SetMode(archivedBinaryMode)
 
 	entry, err := writer.CreateHeader(header)
 	if err != nil {
@@ -116,7 +120,7 @@ type TestServers struct {
 }
 
 // Build satisfies the testkit.Builder interface and returns the servers.
-func (b *TestServerBuilder) Build() interface{} {
+func (b *TestServerBuilder) Build() any {
 	versionServer, binaryServer := b.BuildServers()
 	return &TestServers{
 		VersionServer: versionServer,
@@ -138,13 +142,11 @@ func (b *TestServerBuilder) Reset() testkit.Builder {
 // Clone creates a deep copy of the TestServerBuilder.
 func (b *TestServerBuilder) Clone() testkit.Builder {
 	responses := make(map[string]string)
-	for k, v := range b.versionResponses {
-		responses[k] = v
-	}
+	maps.Copy(responses, b.versionResponses)
 	binaryResp := make([]byte, len(b.binaryResponse))
 	copy(binaryResp, b.binaryResponse)
 	return &TestServerBuilder{
-		BaseBuilder:      b.BaseBuilder.Clone().(*testkit.BaseBuilder),
+		BaseBuilder:      cloneBase(b.BaseBuilder),
 		versionResponses: responses,
 		binaryResponse:   binaryResp,
 		binaryStatus:     b.binaryStatus,

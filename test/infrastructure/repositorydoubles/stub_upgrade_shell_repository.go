@@ -1,6 +1,4 @@
-//go:build integration || unit || test
-
-package repositorydoubles //nolint:staticcheck // Test package naming follows established project structure
+package repositorydoubles
 
 // StubUpgradeShellRepository is a stub implementation of the UpgradeShellRepository interface.
 type StubUpgradeShellRepository struct {

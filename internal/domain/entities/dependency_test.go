@@ -1,5 +1,3 @@
-//go:build unit
-
 package entities_test
 
 import (
@@ -135,7 +133,9 @@ func TestDependency_GetBinaryURL(t *testing.T) {
 	t.Run("should use simple version format when simple version format used", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: A dependency with simple version format
-		dependency := entitybuilders.NewDependencyBuilder().WithBinaryURL("https://example.com/tool_%s").BuildDependency()
+		dependency := entitybuilders.NewDependencyBuilder().
+			WithBinaryURL("https://example.com/tool_%s").
+			BuildDependency()
 		version := "1.0.0"
 
 		// WHEN: Getting the binary URL
@@ -152,7 +152,9 @@ func TestDependency_GetBinaryURL(t *testing.T) {
 		func(t *testing.T) {
 			t.Parallel()
 			// GIVEN: A dependency with platform format containing OS placeholder
-			dependency := entitybuilders.NewDependencyBuilder().WithBinaryURL("https://example.com/tool_%[1]s_%[2]s").BuildDependency()
+			dependency := entitybuilders.NewDependencyBuilder().
+				WithBinaryURL("https://example.com/tool_%[1]s_%[2]s").
+				BuildDependency()
 			version := "1.0.0"
 
 			// WHEN: Getting the binary URL
@@ -171,7 +173,9 @@ func TestDependency_GetBinaryURL(t *testing.T) {
 		func(t *testing.T) {
 			t.Parallel()
 			// GIVEN: A dependency with platform format containing architecture placeholder
-			dependency := entitybuilders.NewDependencyBuilder().WithBinaryURL("https://example.com/tool_%[1]s_%[3]s").BuildDependency()
+			dependency := entitybuilders.NewDependencyBuilder().
+				WithBinaryURL("https://example.com/tool_%[1]s_%[3]s").
+				BuildDependency()
 			version := "1.0.0"
 
 			// WHEN: Getting the binary URL
@@ -193,7 +197,10 @@ func TestDependency_GetBinaryURL(t *testing.T) {
 			dependency := entitybuilders.NewDependencyBuilder().
 				WithBinaryURL("https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip").
 				BuildDependency()
-			testPlatform := entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("android_arm64").BuildPlatformInfo()
+			testPlatform := entitybuilders.NewPlatformInfoBuilder().
+				WithOS("android").
+				WithArch("android_arm64").
+				BuildPlatformInfo()
 			version := "1.5.0"
 
 			// WHEN: Getting the binary URL (simulating android platform conversion to linux)
@@ -226,7 +233,10 @@ func TestDependency_GetBinaryURL(t *testing.T) {
 			dependency := entitybuilders.NewDependencyBuilder().
 				WithBinaryURL("https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s").
 				BuildDependency()
-			testPlatform := entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("android_arm64").BuildPlatformInfo()
+			testPlatform := entitybuilders.NewPlatformInfoBuilder().
+				WithOS("android").
+				WithArch("android_arm64").
+				BuildPlatformInfo()
 			version := "0.50.0"
 
 			// WHEN: Getting the binary URL (simulating android platform conversion to linux)

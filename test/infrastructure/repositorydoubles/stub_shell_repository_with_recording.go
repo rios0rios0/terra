@@ -1,6 +1,4 @@
-//go:build integration || unit || test
-
-package repositorydoubles //nolint:staticcheck // Test package naming follows established project structure
+package repositorydoubles
 
 import "github.com/rios0rios0/terra/test/domain/entitydoubles"
 

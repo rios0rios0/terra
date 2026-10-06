@@ -1,6 +1,4 @@
-//go:build integration || unit || test
-
-package entitydoubles //nolint:staticcheck // Test package naming follows established project structure
+package entitydoubles
 
 // StubRootError implements the error interface.
 type StubRootError struct {

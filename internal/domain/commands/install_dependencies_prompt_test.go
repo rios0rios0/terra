@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -33,7 +31,6 @@ func TestIsTruthyPublic(t *testing.T) {
 	}
 
 	for _, testCase := range cases {
-		testCase := testCase
 		t.Run(testCase.name, func(t *testing.T) {
 			t.Parallel()
 			// GIVEN: an environment-variable value

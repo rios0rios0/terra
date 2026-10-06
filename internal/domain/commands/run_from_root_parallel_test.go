@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -121,7 +119,11 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 
 		// Should NOT execute normal flow
 		assert.False(t, additionalBefore.ExecuteCalled, "Should not execute additional before for parallel command")
-		assert.Equal(t, 0, upgradeRepository.ExecuteCallCount, "Should not execute normal terragrunt command for parallel")
+		assert.Equal(
+			t,
+			0,
+			upgradeRepository.ExecuteCallCount,
+			"Should not execute normal terragrunt command for parallel",
+		)
 	})
-
 }

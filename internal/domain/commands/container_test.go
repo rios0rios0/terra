@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -38,7 +36,7 @@ func TestRegisterProviders(t *testing.T) {
 		err := commands.RegisterProviders(container)
 
 		// THEN: Should return an error due to conflicting provider
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "already provided")
 	})
 

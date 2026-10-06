@@ -1,5 +1,3 @@
-//go:build unit
-
 package entities_test
 
 import (
@@ -71,26 +69,35 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 			expectedURL string
 		}{
 			{
-				name:        "Terraform on Android arm64",
-				cli:         "terraform",
-				binaryURL:   "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
-				platform:    entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("android_arm64").BuildPlatformInfo(),
+				name:      "Terraform on Android arm64",
+				cli:       "terraform",
+				binaryURL: "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
+				platform: entitybuilders.NewPlatformInfoBuilder().
+					WithOS("android").
+					WithArch("android_arm64").
+					BuildPlatformInfo(),
 				version:     "1.13.3",
 				expectedURL: "https://releases.hashicorp.com/terraform/1.13.3/terraform_1.13.3_linux_arm64.zip",
 			},
 			{
-				name:        "Terragrunt on Android arm64",
-				cli:         "terragrunt",
-				binaryURL:   "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s",
-				platform:    entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("android_arm64").BuildPlatformInfo(),
+				name:      "Terragrunt on Android arm64",
+				cli:       "terragrunt",
+				binaryURL: "https://github.com/gruntwork-io/terragrunt/releases/download/v%s/terragrunt_%[2]s_%[3]s",
+				platform: entitybuilders.NewPlatformInfoBuilder().
+					WithOS("android").
+					WithArch("android_arm64").
+					BuildPlatformInfo(),
 				version:     "0.50.0",
 				expectedURL: "https://github.com/gruntwork-io/terragrunt/releases/download/v0.50.0/terragrunt_linux_arm64",
 			},
 			{
-				name:        "Terraform on Android amd64",
-				cli:         "terraform",
-				binaryURL:   "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
-				platform:    entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("android_amd64").BuildPlatformInfo(),
+				name:      "Terraform on Android amd64",
+				cli:       "terraform",
+				binaryURL: "https://releases.hashicorp.com/terraform/%[1]s/terraform_%[1]s_%[2]s_%[3]s.zip",
+				platform: entitybuilders.NewPlatformInfoBuilder().
+					WithOS("android").
+					WithArch("android_amd64").
+					BuildPlatformInfo(),
 				version:     "1.13.3",
 				expectedURL: "https://releases.hashicorp.com/terraform/1.13.3/terraform_1.13.3_linux_amd64.zip",
 			},
@@ -100,7 +107,10 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 			t.Run(tc.name, func(t *testing.T) {
 				t.Parallel()
 				// GIVEN: A dependency configured for Android platform
-				dependency := entitybuilders.NewDependencyBuilder().WithCLI(tc.cli).WithBinaryURL(tc.binaryURL).BuildDependency()
+				dependency := entitybuilders.NewDependencyBuilder().
+					WithCLI(tc.cli).
+					WithBinaryURL(tc.binaryURL).
+					BuildDependency()
 
 				// Create test implementation that simulates GetBinaryURL with our platform
 				testGetBinaryURL := func(version string) string {
@@ -144,7 +154,10 @@ func TestDependency_GetBinaryURL_AndroidPlatform(t *testing.T) {
 	t.Run("should use correct arch method when different dependencies used", func(t *testing.T) {
 		t.Parallel()
 		// GIVEN: An Android platform with android_arm64 architecture
-		platform := entitybuilders.NewPlatformInfoBuilder().WithOS("android").WithArch("android_arm64").BuildPlatformInfo()
+		platform := entitybuilders.NewPlatformInfoBuilder().
+			WithOS("android").
+			WithArch("android_arm64").
+			BuildPlatformInfo()
 
 		testCases := []struct {
 			name           string

@@ -1,6 +1,4 @@
-//go:build integration || unit || test
-
-package entitybuilders //nolint:revive,staticcheck // Test package naming follows established project structure
+package entitybuilders
 
 import (
 	"github.com/rios0rios0/terra/internal/domain/entities"
@@ -10,6 +8,7 @@ import (
 // SettingsBuilder helps create test Settings instances with a fluent interface.
 type SettingsBuilder struct {
 	*testkit.BaseBuilder
+
 	terraCloud               string
 	terraTerraformWorkspace  string
 	terraAwsRoleArn          string
@@ -90,7 +89,7 @@ func (b *SettingsBuilder) WithTerraNoWorkspace(noWorkspace bool) *SettingsBuilde
 }
 
 // Build creates the Settings (satisfies testkit.Builder interface).
-func (b *SettingsBuilder) Build() interface{} {
+func (b *SettingsBuilder) Build() any {
 	return b.BuildSettings()
 }
 
@@ -129,7 +128,7 @@ func (b *SettingsBuilder) Reset() testkit.Builder {
 // Clone creates a deep copy of the SettingsBuilder.
 func (b *SettingsBuilder) Clone() testkit.Builder {
 	return &SettingsBuilder{
-		BaseBuilder:              b.BaseBuilder.Clone().(*testkit.BaseBuilder),
+		BaseBuilder:              cloneBase(b.BaseBuilder),
 		terraCloud:               b.terraCloud,
 		terraTerraformWorkspace:  b.terraTerraformWorkspace,
 		terraAwsRoleArn:          b.terraAwsRoleArn,

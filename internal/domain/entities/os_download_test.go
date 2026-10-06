@@ -1,4 +1,4 @@
-//go:build unit && !windows
+//go:build !windows
 
 package entities_test
 
@@ -60,7 +60,7 @@ func TestOSUnix_Download(t *testing.T) {
 		err := osImpl.Download(server.URL, destPath)
 
 		// then
-		assert.Error(t, err)
+		require.Error(t, err)
 		assert.Contains(t, err.Error(), "404")
 	})
 
@@ -77,7 +77,6 @@ func TestOSUnix_Download(t *testing.T) {
 		// then
 		assert.Error(t, err)
 	})
-
 }
 
 // `TestOSUnix_DownloadTimeout` sets `TERRA_DOWNLOAD_TIMEOUT` via

@@ -1,5 +1,3 @@
-//go:build unit
-
 package commands_test
 
 import (
@@ -917,32 +915,35 @@ func TestRunFromRootCommand_configureCacheEnvironment(t *testing.T) {
 		assert.False(t, ok, "TG_NO_AUTO_PROVIDER_CACHE_DIR should be unset when Provider Cache is disabled")
 	})
 
-	t.Run("should enable Partial Parse Config Cache by default when TerraNoPartialParseCache is false", func(t *testing.T) {
-		// given
-		t.Setenv("TG_EXPERIMENT", "")
-		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
-		settings := entitybuilders.NewSettingsBuilder().
-			WithTerraModuleCacheDir(t.TempDir()).
-			WithTerraProviderCacheDir(t.TempDir()).
-			WithTerraNoPartialParseCache(false).
-			BuildSettings()
-		cmd := commands.NewRunFromRootCommand(
-			settings,
-			&commanddoubles.StubInstallDependencies{},
-			&commanddoubles.StubFormatFiles{},
-			&commanddoubles.StubRunAdditionalBefore{},
-			&commanddoubles.StubParallelState{},
-			&repositorydoubles.StubShellRepositoryForRoot{},
-			&repositorydoubles.StubUpgradeShellRepository{},
-			&repositorydoubles.StubInteractiveShellRepository{},
-		)
+	t.Run(
+		"should enable Partial Parse Config Cache by default when TerraNoPartialParseCache is false",
+		func(t *testing.T) {
+			// given
+			t.Setenv("TG_EXPERIMENT", "")
+			t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "")
+			settings := entitybuilders.NewSettingsBuilder().
+				WithTerraModuleCacheDir(t.TempDir()).
+				WithTerraProviderCacheDir(t.TempDir()).
+				WithTerraNoPartialParseCache(false).
+				BuildSettings()
+			cmd := commands.NewRunFromRootCommand(
+				settings,
+				&commanddoubles.StubInstallDependencies{},
+				&commanddoubles.StubFormatFiles{},
+				&commanddoubles.StubRunAdditionalBefore{},
+				&commanddoubles.StubParallelState{},
+				&repositorydoubles.StubShellRepositoryForRoot{},
+				&repositorydoubles.StubUpgradeShellRepository{},
+				&repositorydoubles.StubInteractiveShellRepository{},
+			)
 
-		// when
-		cmd.ConfigureCacheEnvironmentPublic()
+			// when
+			cmd.ConfigureCacheEnvironmentPublic()
 
-		// then
-		assert.Equal(t, "true", os.Getenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE"))
-	})
+			// then
+			assert.Equal(t, "true", os.Getenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE"))
+		},
+	)
 
 	t.Run("should not enable Partial Parse Config Cache when TerraNoPartialParseCache is true", func(t *testing.T) {
 		// given
@@ -1011,8 +1012,12 @@ func TestRunFromRootCommand_configureCacheEnvironment_allEnabled(t *testing.T) {
 		assert.Equal(t, moduleDir, os.Getenv("TG_DOWNLOAD_DIR"))
 		assert.Equal(t, providerDir, os.Getenv("TG_PROVIDER_CACHE_DIR"))
 		assert.Equal(t, "1", os.Getenv("TG_PROVIDER_CACHE"))
-		assert.Equal(t, "true", os.Getenv("TG_NO_AUTO_PROVIDER_CACHE_DIR"),
-			"TG_NO_AUTO_PROVIDER_CACHE_DIR must be set alongside TG_PROVIDER_CACHE so CAS does not override the cache path")
+		assert.Equal(
+			t,
+			"true",
+			os.Getenv("TG_NO_AUTO_PROVIDER_CACHE_DIR"),
+			"TG_NO_AUTO_PROVIDER_CACHE_DIR must be set alongside TG_PROVIDER_CACHE so CAS does not override the cache path",
+		)
 		_, ok := os.LookupEnv("TF_PLUGIN_CACHE_DIR")
 		assert.False(t, ok, "TF_PLUGIN_CACHE_DIR should be unset")
 		_, ok = os.LookupEnv("TG_NO_CAS")
@@ -1026,50 +1031,53 @@ func TestRunFromRootCommand_configureCacheEnvironment_allEnabled(t *testing.T) {
 		require.NoError(t, err, "Provider cache directory should be created")
 	})
 
-	t.Run("should unset all feature env vars when CAS, Provider Cache, and Partial Parse Cache all disabled", func(t *testing.T) {
-		// GIVEN: Settings with all features disabled, and pre-existing env vars
-		t.Setenv("TG_NO_CAS", "")
-		t.Setenv("TG_PROVIDER_CACHE", "1")
-		t.Setenv("TG_NO_AUTO_PROVIDER_CACHE_DIR", "true")
-		t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "true")
-		t.Setenv("TG_DOWNLOAD_DIR", "")
-		t.Setenv("TG_PROVIDER_CACHE_DIR", "")
-		t.Setenv("TF_PLUGIN_CACHE_DIR", "")
+	t.Run(
+		"should unset all feature env vars when CAS, Provider Cache, and Partial Parse Cache all disabled",
+		func(t *testing.T) {
+			// GIVEN: Settings with all features disabled, and pre-existing env vars
+			t.Setenv("TG_NO_CAS", "")
+			t.Setenv("TG_PROVIDER_CACHE", "1")
+			t.Setenv("TG_NO_AUTO_PROVIDER_CACHE_DIR", "true")
+			t.Setenv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE", "true")
+			t.Setenv("TG_DOWNLOAD_DIR", "")
+			t.Setenv("TG_PROVIDER_CACHE_DIR", "")
+			t.Setenv("TF_PLUGIN_CACHE_DIR", "")
 
-		settings := entitybuilders.NewSettingsBuilder().
-			WithTerraModuleCacheDir(t.TempDir()).
-			WithTerraProviderCacheDir(t.TempDir()).
-			WithTerraNoCAS(true).
-			WithTerraNoProviderCache(true).
-			WithTerraNoPartialParseCache(true).
-			BuildSettings()
-		cmd := commands.NewRunFromRootCommand(
-			settings,
-			&commanddoubles.StubInstallDependencies{},
-			&commanddoubles.StubFormatFiles{},
-			&commanddoubles.StubRunAdditionalBefore{},
-			&commanddoubles.StubParallelState{},
-			&repositorydoubles.StubShellRepositoryForRoot{},
-			&repositorydoubles.StubUpgradeShellRepository{},
-			&repositorydoubles.StubInteractiveShellRepository{},
-		)
+			settings := entitybuilders.NewSettingsBuilder().
+				WithTerraModuleCacheDir(t.TempDir()).
+				WithTerraProviderCacheDir(t.TempDir()).
+				WithTerraNoCAS(true).
+				WithTerraNoProviderCache(true).
+				WithTerraNoPartialParseCache(true).
+				BuildSettings()
+			cmd := commands.NewRunFromRootCommand(
+				settings,
+				&commanddoubles.StubInstallDependencies{},
+				&commanddoubles.StubFormatFiles{},
+				&commanddoubles.StubRunAdditionalBefore{},
+				&commanddoubles.StubParallelState{},
+				&repositorydoubles.StubShellRepositoryForRoot{},
+				&repositorydoubles.StubUpgradeShellRepository{},
+				&repositorydoubles.StubInteractiveShellRepository{},
+			)
 
-		// WHEN
-		cmd.ConfigureCacheEnvironmentPublic()
+			// WHEN
+			cmd.ConfigureCacheEnvironmentPublic()
 
-		// THEN: disabled features are reflected — CAS opt-out set, the rest unset
-		assert.Equal(t, "true", os.Getenv("TG_NO_CAS"),
-			"TG_NO_CAS should be set to disable Terragrunt's default-on CAS")
+			// THEN: disabled features are reflected — CAS opt-out set, the rest unset
+			assert.Equal(t, "true", os.Getenv("TG_NO_CAS"),
+				"TG_NO_CAS should be set to disable Terragrunt's default-on CAS")
 
-		_, ok := os.LookupEnv("TG_PROVIDER_CACHE")
-		assert.False(t, ok, "TG_PROVIDER_CACHE should be unset when Provider Cache disabled")
+			_, ok := os.LookupEnv("TG_PROVIDER_CACHE")
+			assert.False(t, ok, "TG_PROVIDER_CACHE should be unset when Provider Cache disabled")
 
-		_, ok = os.LookupEnv("TG_NO_AUTO_PROVIDER_CACHE_DIR")
-		assert.False(t, ok, "TG_NO_AUTO_PROVIDER_CACHE_DIR should be unset when Provider Cache disabled")
+			_, ok = os.LookupEnv("TG_NO_AUTO_PROVIDER_CACHE_DIR")
+			assert.False(t, ok, "TG_NO_AUTO_PROVIDER_CACHE_DIR should be unset when Provider Cache disabled")
 
-		_, ok = os.LookupEnv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE")
-		assert.False(t, ok, "TG_USE_PARTIAL_PARSE_CONFIG_CACHE should be unset when Partial Parse Cache disabled")
-	})
+			_, ok = os.LookupEnv("TG_USE_PARTIAL_PARSE_CONFIG_CACHE")
+			assert.False(t, ok, "TG_USE_PARTIAL_PARSE_CONFIG_CACHE should be unset when Partial Parse Cache disabled")
+		},
+	)
 
 	t.Run("should set module and provider dirs when directories do not exist yet", func(t *testing.T) {
 		// GIVEN: Settings with directories that need to be created
