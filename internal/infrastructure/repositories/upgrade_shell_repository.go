@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 
 	logger "github.com/sirupsen/logrus"
@@ -128,7 +129,9 @@ func (it *UpgradeAwareShellRepository) executeAndCapture(
 	cmd.Dir = directory
 	cmd.Stdin = os.Stdin
 
-	var outputBuf bytes.Buffer
+	// Both streams land in one buffer, and os/exec copies each of them from a
+	// goroutine of its own, so the buffer has to serialize their writes.
+	var outputBuf lockedBuffer
 	cmd.Stdout = io.MultiWriter(os.Stdout, &outputBuf)
 	cmd.Stderr = io.MultiWriter(os.Stderr, &outputBuf)
 
@@ -278,4 +281,27 @@ func needsUpgrade(output string) string {
 // NeedsUpgradePublic is a public wrapper for testing the private needsUpgrade function.
 func NeedsUpgradePublic(output string) string {
 	return needsUpgrade(output)
+}
+
+// lockedBuffer is a [bytes.Buffer] that several goroutines can write at once.
+// os/exec serializes the writes to Stdout and Stderr only when both are the same
+// writer, which they cannot be here: each stream is echoed to its own terminal
+// stream as well as captured.
+type lockedBuffer struct {
+	mu  sync.Mutex
+	buf bytes.Buffer
+}
+
+// Write appends p to the buffer.
+func (b *lockedBuffer) Write(p []byte) (int, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.Write(p)
+}
+
+// String returns the contents written so far.
+func (b *lockedBuffer) String() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.buf.String()
 }

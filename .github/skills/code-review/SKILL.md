@@ -81,6 +81,7 @@ them before the generic ones.
 - **Standalone commands must keep working without Terraform installed** — `clear`, `format` (warning only), `install`, `update`, `version`, `self-update`. A new hard dependency on the binaries in one of those paths is a regression.
 - **Bug fixes ship with a test that reproduces the bug first.** That is this repository's stated rule, and a fix without one should be sent back.
 - **Unit tests and the helpers under `test/` carry no build tag**, so a plain `go test ./...` runs them and the linter sees them. `//go:build integration` marks a test that needs real infrastructure (`*_integration_test.go`); the pipeline's integration phase runs only the packages that tag adds files to. Flag a `//go:build unit` constraint, and flag `integration` on a test that needs no real infrastructure.
+- **Shared state written from goroutines needs a lock**, and CI's `tests > test:race` job is what catches it. Watch for a test double the parallel workers call, and for one buffer given to both a command's `Stdout` and `Stderr` through different writers: os/exec copies the two streams from separate goroutines unless they are the very same writer.
 - Never test private methods directly — exercise them through the public interface.
 
 ### Commands a reviewer should be able to quote
