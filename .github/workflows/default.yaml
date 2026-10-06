@@ -11,14 +11,18 @@ on:
       - 'main'
   workflow_dispatch:
 
+# Read-only unless a job asks for more: write access is granted to the one job that
+# needs it rather than inherited by every job the workflow gains.
 permissions:
-  checks: 'write' # code_check-style_golangci_lint
-  security-events: 'write' # security-sast_codeql
-  contents: 'write' # delivery-release
+  contents: 'read'
 
 jobs:
   default:
     uses: 'rios0rios0/pipelines/.github/workflows/go-binary.yaml@main'
+    permissions:
+      checks: 'write' # code_check-style_golangci_lint
+      security-events: 'write' # security-sast_codeql
+      contents: 'write' # delivery-release
     with:
       binary_name: 'terra'
 
