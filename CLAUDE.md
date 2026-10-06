@@ -28,6 +28,7 @@ go vet ./...
 
 # Run tests by category
 go test ./...                    # Unit tests
+go test -race ./...              # Unit tests under the race detector (CI runs this as `tests > test:race`)
 go test -tags integration ./...  # Unit and integration tests
 
 # Run a single test / subtest
@@ -89,6 +90,7 @@ Deep-dive docs for the parallel subsystem live in `docs/parallel-execution.md` a
 
 - **Framework:** `stretchr/testify` with `github.com/rios0rios0/testkit` for shared builders
 - **Build tags:** none on unit tests or on the helpers under `test/`, so `go test ./...`, the IDE and the linter all see them; `//go:build integration` marks only a test that needs real infrastructure
+- **Race detector:** the unit tests must pass `go test -race ./...`, which CI runs. A double that the parallel workers call records under a lock, and a buffer that both of a command's output streams write to must serialize them (`lockedBuffer`): os/exec copies stdout and stderr from separate goroutines
 - **BDD structure:** `// GIVEN` / `// WHEN` / `// THEN` comment blocks
 - **Naming:** `TestStructName_MethodName` with subtests `"should [behavior] when [condition]"`
 - **Parallel:** Use `t.Parallel()` unless test uses `t.Setenv()` or `t.Chdir()`

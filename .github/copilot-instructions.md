@@ -204,6 +204,7 @@ terra apply --reply=y /path/to/infrastructure/module
 **Running tests by category:**
 ```bash
 go test ./...                   # Unit tests
+go test -race ./...             # Unit tests under the race detector (also run in CI)
 go test -tags integration ./... # Unit and integration tests
 ```
 
