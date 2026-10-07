@@ -1,3 +1,0 @@
-kind: 'Changed'
-body: 'changed the unit tests and the helpers under `test/` to build without the `unit` tag, so a plain `go test ./...`, the IDE and the linter all see them, and fixed what the linter then found in them: error assertions that kept going after a failure, unchecked type assertions in the builders, and repeated searches through recorded shell calls'
-time: '2026-10-06T15:20:54.849065733Z'

@@ -22,6 +22,25 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.18.14] - 2026-10-07
+
+### Changed
+
+- changed `.gitignore` to carry the block `make gitignore` generates from the shared pipeline, so the reports `make sast` writes under `reports/` and the other files the pipeline leaves in the working tree are ignored instead of waiting to be committed
+- changed `install.sh` to stop using `local`, which POSIX `sh` does not define, so the script runs under any POSIX shell and passes ShellCheck
+- changed archive extraction and the cross-filesystem move to close each file they write once, keeping the error of that close, instead of also deferring a second close whose error was dropped
+- changed the CI workflow to grant write access only to the job that calls the shared pipeline, leaving every other job read-only, instead of granting it to the whole workflow
+- changed the Go module dependencies to their latest versions
+- changed the unit tests and the helpers under `test/` to build without the `unit` tag, so a plain `go test ./...`, the IDE and the linter all see them, and fixed what the linter then found in them: error assertions that kept going after a failure, unchecked type assertions in the builders, and repeated searches through recorded shell calls
+
+### Fixed
+
+- fixed `install.sh` ending in a 404 on 32-bit x86 and ARM machines, for a release asset that is never built: it now stops with a message that releases are published for amd64 and arm64 only
+- fixed `install.sh` failing with a 404 for every pinned version: it prefixed the version given with `--version` or `TERRA_VERSION` with a `v` that the release tags do not carry, so it now accepts `1.0.0` and `v1.0.0` alike, and pointed the README example at a release that has assets
+- fixed `install.sh` installing the Windows binary without its `.exe` extension, which left it unrunnable from PowerShell and cmd: it now installs `terra.exe` and checks for `unzip` before downloading
+- fixed shell completion checking for a newer release: `completion`, which a shell runs from its startup file, and the `__complete` requests behind every TAB press each started a lookup that never answered before they exited, spending the day's update check where nobody could see it
+- fixed the output `terra` captures to decide whether a command needs `init --upgrade` being written by two goroutines at once, which could garble it: stdout and stderr were copied into one unguarded buffer. The test double the parallel state workers share now records its calls under a lock too, and CI runs the unit tests under the race detector so neither comes back unnoticed
+
 ## [1.18.13] - 2026-09-30
 
 ### Changed
