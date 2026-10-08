@@ -1,0 +1,3 @@
+kind: 'Changed'
+body: 'changed the Go modules `github.com/rios0rios0/cliforge` from `v0.4.7` to `v0.5.0` and `github.com/rios0rios0/testkit` from `v0.3.4` to `v0.3.5`'
+time: '2026-10-08T09:15:23.556151361Z'

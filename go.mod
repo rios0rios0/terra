@@ -7,8 +7,8 @@ require (
 	github.com/go-playground/validator/v10 v10.30.5
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/rios0rios0/cliforge v0.4.7
-	github.com/rios0rios0/testkit v0.3.4
+	github.com/rios0rios0/cliforge v0.5.0
+	github.com/rios0rios0/testkit v0.3.5
 	github.com/sirupsen/logrus v1.10.2
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.12.1
