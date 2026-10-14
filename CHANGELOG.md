@@ -22,6 +22,14 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.18.15] - 2026-10-14
+
+### Changed
+
+- changed the Go modules `github.com/rios0rios0/cliforge` from `v0.4.7` to `v0.5.0` and `github.com/rios0rios0/testkit` from `v0.3.4` to `v0.3.5`
+- changed the Go modules `golang.org/x/crypto` from `v0.57.0` to `v0.58.0`, `golang.org/x/sys` from `v0.48.0` to `v0.49.0`, `golang.org/x/term` from `v0.46.0` to `v0.47.0` and `golang.org/x/text` from `v0.42.0` to `v0.43.0`
+- changed the Go version from `1.27.1` to `1.27.2`
+
 ## [1.18.14] - 2026-10-07
 
 ### Changed
