@@ -13,7 +13,11 @@ import (
 )
 
 func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should execute normal flow when import without --all", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A command with normal import arguments (no --all)
 		installCommand := &commanddoubles.StubInstallDependencies{}
 		formatCommand := &commanddoubles.StubFormatFiles{}
@@ -50,6 +54,8 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 	})
 
 	t.Run("should execute normal flow when plan with --all", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A command with plan arguments and --all (not a state manipulation command)
 		installCommand := &commanddoubles.StubInstallDependencies{}
 		formatCommand := &commanddoubles.StubFormatFiles{}
@@ -86,6 +92,8 @@ func TestRunFromRootCommand_ExecuteParallelState(t *testing.T) {
 	})
 
 	t.Run("should execute parallel command when --parallel=N used with non-state command", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A command with --parallel=2 flag on a plan command (not a state command)
 		installCommand := &commanddoubles.StubInstallDependencies{}
 		formatCommand := &commanddoubles.StubFormatFiles{}

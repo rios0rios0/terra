@@ -90,7 +90,11 @@ func TestArgumentsHelper_RemovePathFromArguments(t *testing.T) {
 }
 
 func TestArgumentsHelper_FindAbsolutePath(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should return absolute path when existing directory provided as first argument", func(t *testing.T) {
+		t.Parallel()
+
 		// given
 		tempDir := t.TempDir()
 		helper := helpers.ArgumentsHelper{}
@@ -106,6 +110,8 @@ func TestArgumentsHelper_FindAbsolutePath(t *testing.T) {
 	})
 
 	t.Run("should return current directory when no path in arguments", func(t *testing.T) {
+		t.Parallel()
+
 		// given
 		helper := helpers.ArgumentsHelper{}
 		args := []string{"plan", "--detailed-exitcode"}
@@ -120,6 +126,8 @@ func TestArgumentsHelper_FindAbsolutePath(t *testing.T) {
 	})
 
 	t.Run("should return absolute path when existing directory provided as last argument", func(t *testing.T) {
+		t.Parallel()
+
 		// given
 		tempDir := t.TempDir()
 		helper := helpers.ArgumentsHelper{}

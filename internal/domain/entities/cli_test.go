@@ -9,7 +9,11 @@ import (
 )
 
 func TestNewCLI(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should return nil when no cloud and no credential variables are set", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN:
 		settings := &entities.Settings{}
 
@@ -25,6 +29,8 @@ func TestNewCLI(t *testing.T) {
 	})
 
 	t.Run("should return Azure adapter when TERRA_CLOUD is azure", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN:
 		settings := &entities.Settings{TerraCloud: "azure"}
 
@@ -37,6 +43,8 @@ func TestNewCLI(t *testing.T) {
 	})
 
 	t.Run("should return AWS adapter when TERRA_CLOUD is aws", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN:
 		settings := &entities.Settings{TerraCloud: "aws"}
 
@@ -49,6 +57,8 @@ func TestNewCLI(t *testing.T) {
 	})
 
 	t.Run("should auto-detect Azure when only TERRA_AZURE_SUBSCRIPTION_ID is set", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN:
 		settings := &entities.Settings{
 			TerraAzureSubscriptionID: "12345678-1234-1234-1234-123456789012",
@@ -72,6 +82,8 @@ func TestNewCLI(t *testing.T) {
 	})
 
 	t.Run("should auto-detect AWS when only TERRA_AWS_ROLE_ARN is set", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN:
 		settings := &entities.Settings{
 			TerraAwsRoleArn: "arn:aws:iam::123456789012:role/terraform-role",
@@ -91,6 +103,8 @@ func TestNewCLI(t *testing.T) {
 	})
 
 	t.Run("should prefer explicit TERRA_CLOUD over conflicting credential variables", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN:
 		settings := &entities.Settings{
 			TerraCloud:               "azure",
@@ -114,6 +128,8 @@ func TestNewCLI(t *testing.T) {
 	t.Run(
 		"should return nil and warn when both credential variables are set without explicit TERRA_CLOUD",
 		func(t *testing.T) {
+			t.Parallel()
+
 			// GIVEN:
 			settings := &entities.Settings{
 				TerraAwsRoleArn:          "arn:aws:iam::123456789012:role/terraform-role",

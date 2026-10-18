@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 func TestRunAdditionalBeforeCommand_Execute_AccountChangeError(t *testing.T) {
 	t.Run("should fatalf when account change command fails", func(t *testing.T) {
 		// GIVEN: A command with CLI that can change account but the command fails
