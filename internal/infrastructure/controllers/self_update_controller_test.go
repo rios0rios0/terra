@@ -48,7 +48,11 @@ func TestSelfUpdateController_GetBind(t *testing.T) {
 }
 
 func TestSelfUpdateController_Execute(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should call command execute with correct flags when dry run flag provided", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A mock command and controller
 		mockCommand := commanddoubles.NewStubSelfUpdateCommand()
 		controller := controllers.NewSelfUpdateController(mockCommand)
@@ -70,6 +74,8 @@ func TestSelfUpdateController_Execute(t *testing.T) {
 	})
 
 	t.Run("should call command execute with correct flags when force flag provided", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A mock command and controller
 		mockCommand := commanddoubles.NewStubSelfUpdateCommand()
 		controller := controllers.NewSelfUpdateController(mockCommand)

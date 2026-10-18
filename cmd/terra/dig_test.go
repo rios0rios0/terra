@@ -30,7 +30,11 @@ func TestNewAppContext(t *testing.T) {
 }
 
 func TestInjectAppContext(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should resolve full DIG container when all providers registered", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: The full DIG container with all real providers
 
 		// WHEN: Injecting the app context (exercises the entire registration chain)
@@ -43,7 +47,11 @@ func TestInjectAppContext(t *testing.T) {
 }
 
 func TestInjectRootController(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should resolve root controller from DIG container when all providers registered", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: The full DIG container with all real providers
 
 		// WHEN: Injecting the root controller

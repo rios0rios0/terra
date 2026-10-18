@@ -9,6 +9,7 @@ import (
 )
 
 func TestNewSettings(t *testing.T) {
+	//nolint:paralleltest // subtests of this group stay sequential: a sibling calls t.Setenv, and t.Setenv is refused anywhere under a parallel ancestor
 	t.Run("should create valid instance when empty terra cloud provided", func(t *testing.T) {
 		// GIVEN: Empty TERRA_CLOUD environment variable
 		// Note: No environment variable set means empty string
@@ -84,6 +85,7 @@ func TestCLIAws_GetName(t *testing.T) {
 }
 
 func TestCLIAws_CanChangeAccount(t *testing.T) {
+	//nolint:paralleltest // subtests of this group stay sequential: a sibling calls t.Setenv, and t.Setenv is refused anywhere under a parallel ancestor
 	t.Run("should not allow account change when no role arn provided", func(t *testing.T) {
 		// GIVEN: AWS CLI with settings without role ARN
 		settings := entities.NewSettings()
@@ -167,6 +169,7 @@ func TestCLIAzm_GetName(t *testing.T) {
 }
 
 func TestCLIAzm_CanChangeAccount(t *testing.T) {
+	//nolint:paralleltest // subtests of this group stay sequential: a sibling calls t.Setenv, and t.Setenv is refused anywhere under a parallel ancestor
 	t.Run("should not allow account change when no subscription id provided", func(t *testing.T) {
 		// GIVEN: Azure CLI with settings without subscription ID
 		settings := entities.NewSettings()

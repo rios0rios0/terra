@@ -38,7 +38,11 @@ func TestNewParallelStateCommand(t *testing.T) {
 }
 
 func TestParallelStateCommand_Execute(t *testing.T) {
+	t.Parallel()
+
 	t.Run("should execute import command in parallel when --parallel flag present", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command and import arguments with --parallel=5
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -59,6 +63,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute state rm command in parallel when --parallel flag present", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command and state rm arguments with --parallel=5
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -79,6 +85,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should return error when command is not state manipulation", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command and non-state arguments without --parallel=N flag
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -95,6 +103,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should skip hidden directories when discovering modules", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A directory with hidden and non-hidden module directories
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -118,6 +128,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should not descend into .terragrunt-cache and discover cached dependencies", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A directory with a real module and a .terragrunt-cache containing cached dependency modules
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -144,6 +156,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should skip directories without terraform files", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A directory with one tf module and one non-tf directory
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -167,6 +181,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should detect terragrunt.hcl files as valid modules", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A directory with a terragrunt.hcl module (no .tf files)
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -187,6 +203,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should detect tfvars files as valid modules", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A directory with only .tfvars files
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -207,6 +225,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should return error when no modules found", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command and empty directory
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -225,6 +245,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should handle state mv command correctly", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command and state mv arguments
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -254,6 +276,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute with --parallel=2 for any command", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with --parallel=2 flag
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -273,6 +297,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute with --only when only flag present", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with --only flag
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -292,6 +318,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute with --skip when skip flag present", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with --skip flag
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -311,6 +339,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should return error when only matches no valid paths", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with --only pointing to nonexistent dirs
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -328,6 +358,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute with both --only and --skip when both flags present", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with both --only and --skip flags
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -354,6 +386,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should execute with --skip only discovering all modules first", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with only --skip flag (no --only)
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -373,6 +407,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should return error when skip removes all discovered modules", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command where --skip removes all modules
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -392,6 +428,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should not pass --only or --skip flags to terragrunt", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with both --only and --skip flags
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -416,6 +454,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should strip --reply flag and inject --non-interactive and -auto-approve for apply", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with --reply=y flag on an apply command
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -446,6 +486,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should inject --non-interactive but not -auto-approve for plan with --reply", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with --reply=y flag on a plan command (non-interactive)
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -468,6 +510,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should not inject --non-interactive when no confirmation flag present", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command without any confirmation flag
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -494,6 +538,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should strip --yes and inject --non-interactive and -auto-approve for apply", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with the new --yes flag on apply
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)
@@ -520,6 +566,8 @@ func TestParallelStateCommand_Execute(t *testing.T) {
 	})
 
 	t.Run("should strip --no and inject only --non-interactive", func(t *testing.T) {
+		t.Parallel()
+
 		// GIVEN: A parallel state command with the new --no flag on apply
 		repository := &repositorydoubles.StubShellRepositoryForParallelState{}
 		cmd := commands.NewParallelStateCommand(repository)

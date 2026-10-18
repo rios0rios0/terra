@@ -54,9 +54,11 @@ func helperWithRedirectedHTTPClient(serverURL string) func() {
 	}
 }
 
+//nolint:paralleltest // replaces http.DefaultClient.Transport and pins the process-wide TerraVersion
 func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 	// NOTE: Cannot use t.Parallel() because these tests modify http.DefaultClient.Transport
 
+	//nolint:paralleltest // replaces http.DefaultClient.Transport and pins the process-wide TerraVersion
 	t.Run("should return error when GitHub API returns non-200 status", func(t *testing.T) {
 		// GIVEN: A mock server that returns HTTP 403 Forbidden
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -76,6 +78,7 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 		assert.Contains(t, err.Error(), "failed to fetch latest release")
 	})
 
+	//nolint:paralleltest // replaces http.DefaultClient.Transport and pins the process-wide TerraVersion
 	t.Run("should return error when GitHub API returns invalid JSON", func(t *testing.T) {
 		// GIVEN: A mock server that returns invalid JSON
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -96,6 +99,7 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 		assert.Contains(t, err.Error(), "failed to fetch latest release")
 	})
 
+	//nolint:paralleltest // replaces http.DefaultClient.Transport and pins the process-wide TerraVersion
 	t.Run("should return error when no matching asset found for platform", func(t *testing.T) {
 		// GIVEN: A mock server that returns a release without a matching asset
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
@@ -125,6 +129,7 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 		assert.Contains(t, err.Error(), "no asset")
 	})
 
+	//nolint:paralleltest // replaces http.DefaultClient.Transport and pins the process-wide TerraVersion
 	t.Run("should report up to date when current version equals latest", func(t *testing.T) {
 		// GIVEN: A mock server that returns a version matching TerraVersion
 		pinTerraVersion(t, "2.0.0")
@@ -159,6 +164,7 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	//nolint:paralleltest // replaces http.DefaultClient.Transport and pins the process-wide TerraVersion
 	t.Run("should report dry run update info when current version is older", func(t *testing.T) {
 		// GIVEN: A mock server that returns a version newer than TerraVersion
 		pinTerraVersion(t, "1.0.0")
@@ -193,6 +199,7 @@ func TestSelfUpdateCommand_Execute_WithMockedAPI(t *testing.T) {
 		assert.NoError(t, err)
 	})
 
+	//nolint:paralleltest // replaces http.DefaultClient.Transport and pins the process-wide TerraVersion
 	t.Run("should report newer version when current version is higher than latest", func(t *testing.T) {
 		// GIVEN: A mock server that returns a version older than TerraVersion
 		pinTerraVersion(t, "99.0.0")

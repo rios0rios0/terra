@@ -47,7 +47,9 @@ func newRunFromRootForValidation() *commands.RunFromRootCommand {
 	)
 }
 
+//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when -a short flag is used", func(t *testing.T) {
 		// GIVEN: Arguments containing the deprecated -a short flag
 		hook, cleanup := setupFatalInterceptor()
@@ -66,6 +68,7 @@ func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "-a short flag has been removed")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when -a boolean flag is used", func(t *testing.T) {
 		// GIVEN: Arguments containing the deprecated -a boolean flag
 		hook, cleanup := setupFatalInterceptor()
@@ -84,6 +87,7 @@ func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "-a short flag has been removed")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --auto-answer flag is used", func(t *testing.T) {
 		// GIVEN: Arguments containing the deprecated --auto-answer flag
 		hook, cleanup := setupFatalInterceptor()
@@ -102,6 +106,7 @@ func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "--auto-answer has been replaced by --yes")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --auto-answer boolean flag is used", func(t *testing.T) {
 		// GIVEN: Arguments containing the deprecated --auto-answer boolean flag
 		hook, cleanup := setupFatalInterceptor()
@@ -120,6 +125,7 @@ func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "--auto-answer has been replaced by --yes")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --all is used with state commands", func(t *testing.T) {
 		// GIVEN: Arguments containing --all with a state manipulation command
 		hook, cleanup := setupFatalInterceptor()
@@ -138,6 +144,7 @@ func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "--all cannot be used with state commands")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --no-parallel-bypass flag is used", func(t *testing.T) {
 		// GIVEN: Arguments containing the removed --no-parallel-bypass flag
 		hook, cleanup := setupFatalInterceptor()
@@ -156,6 +163,7 @@ func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "--no-parallel-bypass has been removed")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --include flag is used", func(t *testing.T) {
 		// GIVEN: Arguments containing the deprecated --include flag
 		hook, cleanup := setupFatalInterceptor()
@@ -174,6 +182,7 @@ func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "--include has been renamed to --only")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --exclude flag is used", func(t *testing.T) {
 		// GIVEN: Arguments containing the deprecated --exclude flag
 		hook, cleanup := setupFatalInterceptor()
@@ -193,7 +202,9 @@ func TestRunFromRootCommand_validateDeprecatedFlags(t *testing.T) {
 	})
 }
 
+//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --parallel and --all are used together", func(t *testing.T) {
 		// GIVEN: Arguments containing both --parallel and --all
 		hook, cleanup := setupFatalInterceptor()
@@ -215,6 +226,7 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "terra plan --all /test/path")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --parallel is used with apply without confirmation flag", func(t *testing.T) {
 		// GIVEN: Arguments containing --parallel with apply but no --yes/--no/--reply
 		hook, cleanup := setupFatalInterceptor()
@@ -237,6 +249,7 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		)
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --parallel is used with destroy without confirmation flag", func(t *testing.T) {
 		// GIVEN: Arguments containing --parallel with destroy but no --yes/--no/--reply
 		hook, cleanup := setupFatalInterceptor()
@@ -259,6 +272,7 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		)
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should not fatalf when --parallel is used with apply and --yes", func(t *testing.T) {
 		// GIVEN: Arguments containing --parallel with apply and the new --yes flag
 		hook, cleanup := setupFatalInterceptor()
@@ -292,6 +306,7 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		assert.True(t, parallelState.ExecuteCalled, "Should proceed to parallel execution")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should warn when --reply is used with any command", func(t *testing.T) {
 		// GIVEN: Arguments containing the deprecated --reply flag
 		hook, cleanup := setupFatalInterceptor()
@@ -315,6 +330,7 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 		assert.True(t, foundWarning, "Should log a deprecation warning for --reply")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should not fatalf when --all is used with --reply=y", func(t *testing.T) {
 		// GIVEN: Arguments containing --all with --reply=y (valid under the new
 		// flag-injection path; the old PTY-era "requires explicit value" rule is gone).
@@ -349,7 +365,9 @@ func TestRunFromRootCommand_validateFlagCombinations(t *testing.T) {
 	})
 }
 
+//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 func TestRunFromRootCommand_validateSelectionFlags(t *testing.T) {
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --only is used without --parallel", func(t *testing.T) {
 		// GIVEN: Arguments containing --only without --parallel
 		hook, cleanup := setupFatalInterceptor()
@@ -371,6 +389,7 @@ func TestRunFromRootCommand_validateSelectionFlags(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "terra plan --all --filter='mod1' --filter='mod2' /test/path")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --skip is used without --parallel", func(t *testing.T) {
 		// GIVEN: Arguments containing --skip without --parallel
 		hook, cleanup := setupFatalInterceptor()
@@ -393,6 +412,7 @@ func TestRunFromRootCommand_validateSelectionFlags(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "terra plan --all --filter='!mod1' /test/path")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should include --yes in the --parallel suggestion for apply", func(t *testing.T) {
 		// GIVEN: apply with --skip but without --parallel (and without --all)
 		hook, cleanup := setupFatalInterceptor()
@@ -417,7 +437,9 @@ func TestRunFromRootCommand_validateSelectionFlags(t *testing.T) {
 	})
 }
 
+//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 func TestRunFromRootCommand_warnWhenTerragruntQueueFlagsUsedWithParallel(t *testing.T) {
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should warn when --filter is used with --parallel", func(t *testing.T) {
 		// GIVEN: A terra-managed parallel command that also passes terragrunt's --filter
 		hook, cleanup := setupFatalInterceptor()
@@ -463,6 +485,7 @@ func TestRunFromRootCommand_warnWhenTerragruntQueueFlagsUsedWithParallel(t *test
 		assert.True(t, parallelState.ExecuteCalled, "Should still proceed to parallel execution")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run(
 		"should warn when --queue-exclude-dir is used with --parallel",
 		func(t *testing.T) {
@@ -510,6 +533,7 @@ func TestRunFromRootCommand_warnWhenTerragruntQueueFlagsUsedWithParallel(t *test
 		},
 	)
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should not warn when --filter is used with --all", func(t *testing.T) {
 		// GIVEN: Arguments combining --all with terragrunt's own --filter flag (valid)
 		hook, cleanup := setupFatalInterceptor()
@@ -551,7 +575,9 @@ func TestRunFromRootCommand_warnWhenTerragruntQueueFlagsUsedWithParallel(t *test
 	})
 }
 
+//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 func TestRunFromRootCommand_validateSelectionFlagValues(t *testing.T) {
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --only flag has empty value", func(t *testing.T) {
 		// GIVEN: Arguments containing --only= with empty value and --parallel
 		hook, cleanup := setupFatalInterceptor()
@@ -570,6 +596,7 @@ func TestRunFromRootCommand_validateSelectionFlagValues(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "--only flag is present but has no values")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when --skip flag has empty value", func(t *testing.T) {
 		// GIVEN: Arguments containing --skip= with empty value and --parallel
 		hook, cleanup := setupFatalInterceptor()
@@ -589,7 +616,9 @@ func TestRunFromRootCommand_validateSelectionFlagValues(t *testing.T) {
 	})
 }
 
+//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 func TestRunFromRootCommand_validateSelectionFlagConflicts(t *testing.T) {
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when same module appears in both --only and --skip", func(t *testing.T) {
 		// GIVEN: Arguments containing the same module in both --only and --skip
 		hook, cleanup := setupFatalInterceptor()
@@ -609,6 +638,7 @@ func TestRunFromRootCommand_validateSelectionFlagConflicts(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "mod2")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should not fatalf when --only and --skip have no overlapping modules", func(t *testing.T) {
 		// GIVEN: Arguments with non-overlapping --only and --skip values
 		hook, cleanup := setupFatalInterceptor()
@@ -642,6 +672,7 @@ func TestRunFromRootCommand_validateSelectionFlagConflicts(t *testing.T) {
 		assert.True(t, parallelState.ExecuteCalled, "Should proceed to parallel execution")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should not fatalf when only --only is used without --skip", func(t *testing.T) {
 		// GIVEN: Arguments with only --only flag (no --skip)
 		hook, cleanup := setupFatalInterceptor()
@@ -676,6 +707,7 @@ func TestRunFromRootCommand_validateSelectionFlagConflicts(t *testing.T) {
 	})
 }
 
+//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 func TestRunFromRootCommand_validateDeprecatedFlags_stateUtils(t *testing.T) {
 	t.Run("should not fatalf when --all is used with non-state command", func(t *testing.T) {
 		// GIVEN: Arguments containing --all with a non-state command (plan)
@@ -711,6 +743,7 @@ func TestRunFromRootCommand_validateDeprecatedFlags_stateUtils(t *testing.T) {
 	})
 }
 
+//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 func TestRunFromRootCommand_Execute_parallelStateFails(t *testing.T) {
 	t.Run("should fatalf when parallel state command returns error", func(t *testing.T) {
 		// GIVEN: A parallel state stub that returns an error
@@ -748,7 +781,9 @@ func TestRunFromRootCommand_Execute_parallelStateFails(t *testing.T) {
 	})
 }
 
+//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 func TestRunFromRootCommand_Execute_terragruntFails(t *testing.T) {
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when upgrade-aware repository returns error", func(t *testing.T) {
 		// GIVEN: An upgrade repository that returns an error
 		hook, cleanup := setupFatalInterceptor()
@@ -783,6 +818,7 @@ func TestRunFromRootCommand_Execute_terragruntFails(t *testing.T) {
 		assert.Contains(t, lastEntry.Message, "Terragrunt command failed")
 	})
 
+	//nolint:paralleltest // captures the process-wide logrus Fatal hook, so it cannot run beside parallel tests
 	t.Run("should fatalf when upgrade repository returns error with --yes", func(t *testing.T) {
 		// GIVEN: An upgrade repository that returns an error while --yes is set
 		hook, cleanup := setupFatalInterceptor()
