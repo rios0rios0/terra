@@ -22,6 +22,18 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.18.16] - 2026-10-21
+
+### Changed
+
+- changed the Go module `github.com/gabriel-vasile/mimetype` from `v1.4.15` to `v1.4.16`
+- changed the Go modules `github.com/rios0rios0/cliforge` from `v0.5.0` to `v0.5.1` and `github.com/rios0rios0/testkit` from `v0.3.5` to `v0.3.6`
+- changed the Go version from `1.27.2` to `1.27.3`
+
+### Fixed
+
+- fixed the CI style check failing on golangci-lint paralleltest findings: the parallel-safe tests now run with t.Parallel(), and the genuinely sequential ones — tests capturing the process-wide logrus Fatal hook, tests replacing http.DefaultClient.Transport or pinning the process-wide TerraVersion, tests using t.Chdir, and test groups whose sibling subtests call t.Setenv — document that with nolint directives
+
 ## [1.18.15] - 2026-10-14
 
 ### Changed

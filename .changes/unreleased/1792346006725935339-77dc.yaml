@@ -1,3 +1,0 @@
-kind: 'Fixed'
-body: 'fixed the CI style check failing on golangci-lint paralleltest findings: the parallel-safe tests now run with t.Parallel(), and the genuinely sequential ones — tests capturing the process-wide logrus Fatal hook, tests replacing http.DefaultClient.Transport or pinning the process-wide TerraVersion, tests using t.Chdir, and test groups whose sibling subtests call t.Setenv — document that with nolint directives'
-time: '2026-10-18T17:53:26.725875241Z'
