@@ -1,0 +1,3 @@
+kind: 'Changed'
+body: 'changed the imports and the module requirement of `github.com/creack/pty` to `github.com/creack/pty/v2`'
+time: '2026-10-22T09:13:40.606660743Z'

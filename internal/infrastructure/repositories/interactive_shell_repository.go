@@ -9,7 +9,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/creack/pty"
+	"github.com/creack/pty/v2"
 	logger "github.com/sirupsen/logrus"
 )
 
