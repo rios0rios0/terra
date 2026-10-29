@@ -1,0 +1,3 @@
+kind: 'Fixed'
+body: 'fixed the `style:golangci-lint` CI job by removing the `//nolint:paralleltest` directives from the `DeleteCacheCommand` tests, which golangci-lint `2.15.0` reports as unused now that `paralleltest` recognises `t.Chdir` on its own'
+time: '2026-10-29T17:35:49.289544052Z'

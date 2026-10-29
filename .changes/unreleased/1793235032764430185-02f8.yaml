@@ -1,0 +1,3 @@
+kind: 'Changed'
+body: 'moved the agent instructions from `CLAUDE.md` to `AGENTS.md`, keeping a `CLAUDE.md` that imports it, and refreshed `AGENTS.md`, `.github/copilot-instructions.md`, the code-review skill, `README.md` and `CONTRIBUTING.md` to match the current CAS handling, optional `TERRA_CLOUD` and build-tag policy'
+time: '2026-10-29T00:50:32.764351208Z'

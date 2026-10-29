@@ -34,20 +34,16 @@ development practices, refer to the **[Development Guide](https://github.com/rio
    ```bash
    chlog new --kind Added --body 'added the thing that was not there before'
    ```
-8. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Life-Cycle/Git-Flow)
+8. Commit following the [commit conventions](https://github.com/rios0rios0/guide/wiki/Git-Flow)
 9. Open a pull request against `main`
 
 ## Local Environment
 
-Copy `.env.example` to `.env` and fill in the required values:
-
-```bash
-cp .env.example .env
-```
+Create a `.env` file with the values you need (see the README's "Environment Configuration" section for the full list). None is required; commands such as `clear`, `format`, and `version` run without any:
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `TERRA_CLOUD` | Cloud provider (`aws` or `azure`) | Yes |
+| `TERRA_CLOUD` | Cloud provider (`aws` or `azure`); auto-selected from the credential variable when only one is set | No |
 | `TERRA_AWS_ROLE_ARN` | AWS IAM role ARN for Terraform | If AWS |
 | `TERRA_AZURE_SUBSCRIPTION_ID` | Azure subscription ID | If Azure |
 | `TERRA_WORKSPACE` | Terraform workspace name | No |

@@ -278,7 +278,7 @@ TF_VAR_region=us-west-2
 # TERRA_MODULE_CACHE_DIR=~/.cache/terra/modules
 # TERRA_PROVIDER_CACHE_DIR=~/.cache/terra/providers
 
-# Optional: Disable Terragrunt CAS (Content Addressable Store) experiment
+# Optional: Disable Terragrunt CAS (Content Addressable Store); sets TG_NO_CAS=true
 # TERRA_NO_CAS=true
 
 # Optional: Disable Terragrunt Partial Parse Config Cache
