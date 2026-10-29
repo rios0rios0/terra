@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to AI coding agents (Claude Code, Codex, Cursor, GitHub Copilot) when working with code in this repository.
 
 ## What is Terra?
 
@@ -17,7 +17,7 @@ make debug              # Build with debug symbols (-N -l)
 make run                # go run ./cmd/terra
 
 # Quality gates (use pipelines project, auto-cloned via HTTPS)
-make lint               # golangci-lint (~2-5 min, never cancel)
+make lint               # golangci-lint (~2-5 min; allow a timeout above that)
 make test               # Tests with coverage (~1-2 min)
 make sast               # Security scanning (CodeQL, Semgrep, Trivy, Gitleaks)
 make all                # lint + sast + test
@@ -74,7 +74,7 @@ test/                  # Test helpers only (never in production folders)
 ## Key Mechanisms
 
 - **Centralized caching:** Sets `TG_DOWNLOAD_DIR` and `TG_PROVIDER_CACHE_DIR` automatically
-- **CAS:** Terragrunt `1.1+` ships CAS (Content Addressable Store) as a stable, default-on feature, so terra no longer sets the completed `TG_EXPERIMENT=cas` (which now emits an "experiment already completed" warning). `TERRA_NO_CAS=true` opts out by setting the stable `TG_NO_CAS=true` flag; the default leaves CAS on and clears any stray inherited `TG_NO_CAS`
+- **CAS:** Terragrunt `1.1+` runs CAS (Content Addressable Store) by default. Terra never sets `TG_EXPERIMENT=cas` and strips `cas` from an inherited `TG_EXPERIMENT` (`pruneCompletedExperiment`), because Terragrunt warns that the experiment is already completed. `TERRA_NO_CAS=true` sets `TG_NO_CAS=true`; otherwise terra clears any inherited `TG_NO_CAS`
 - **Provider caching:** Uses `TG_PROVIDER_CACHE` (Provider Cache Server) for concurrent-safe provider deduplication with file locking; disable with `TERRA_NO_PROVIDER_CACHE=true`. Terra also sets `TG_NO_AUTO_PROVIDER_CACHE_DIR=true` alongside it — without this, Terragrunt 0.99+'s CAS-auto-enabled `auto-provider-cache-dir` experiment silently overrides `TG_PROVIDER_CACHE_DIR` and writes providers per-module inside `TG_DOWNLOAD_DIR`, which bypasses the shared cache terra advertises. Keep these two env vars paired in `configureCacheEnvironment`
 - **Partial Parse Config Cache:** Enables `TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true` by default (disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`)
 - **Auto-upgrade:** `UpgradeAwareShellRepository` detects backend/provider failures and retries with `init --upgrade`. When the original command included queue-scoping flags (`--all`, `--filter`, `--queue-include-dir`, `--queue-exclude-dir`, `--queue-include-units-reading`, `--queue-strict-include`, `--queue-include-external`, `--queue-exclude-external`), they are forwarded to the retry so init walks the same queue — without this the retry would be `terragrunt init --upgrade` in a parent directory that has no `terragrunt.hcl` and fail with "You attempted to run terragrunt in a folder that does not contain a terragrunt.hcl file"
@@ -103,7 +103,7 @@ Deep-dive docs for the parallel subsystem live in `docs/parallel-execution.md` a
 1. Create command in `internal/domain/commands/`
 2. Create controller in `internal/infrastructure/controllers/`
 3. Register DIG providers in respective `container.go` files
-4. Add tests with build tags, following existing patterns
+4. Add tests following the Testing Conventions above (no build tag unless the test needs real infrastructure)
 
 ## File Standards
 

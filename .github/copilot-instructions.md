@@ -2,14 +2,12 @@
 
 Terra is a Go CLI application that wraps Terraform and Terragrunt functionality, providing simplified path-based infrastructure management inspired by Kubernetes.
 
-Always reference these instructions first and fallback to search or bash commands only when you encounter unexpected information that does not match the info here.
-
 ## Working Effectively
 
 ### Prerequisites and Environment Setup
 - Ensure Go 1.27+ is installed and `go` is in PATH
 - For linting and CI tools, use the pipelines project (https://github.com/rios0rios0/pipelines)
-- NEVER CANCEL: Build takes 15-20 seconds. NEVER CANCEL. Set timeout to 60+ minutes for safety.
+- `make build` takes 15-20 seconds.
 
 ### Building and Installing
 Bootstrap and build the repository:
@@ -31,7 +29,7 @@ make build
 ```
 
 ### Code Quality and Validation
-- **NEVER CANCEL**: golangci-lint takes 2-5 minutes. Set timeout to 30+ minutes.
+- `make lint` (golangci-lint) takes 2-5 minutes; allow a timeout above that.
 - Always run code formatting, linting and testing before committing using Makefile targets:
 ```bash
 # Standard Go tools (fast)
@@ -76,7 +74,7 @@ TERRA_WORKSPACE=dev
 # TERRA_MODULE_CACHE_DIR=~/.cache/terra/modules
 # TERRA_PROVIDER_CACHE_DIR=~/.cache/terra/providers
 
-# Optional: Disable Terragrunt CAS (Content Addressable Store) experiment
+# Optional: Disable Terragrunt CAS (Content Addressable Store); sets TG_NO_CAS=true
 # TERRA_NO_CAS=true
 
 # Optional: Disable Terragrunt Partial Parse Config Cache
@@ -183,9 +181,9 @@ terra apply --reply=y /path/to/infrastructure/module
 
 ## Validation and Testing
 
-### Testing Guidelines (See CONTRIBUTING.md for detailed requirements)
+### Testing Guidelines (shared standard: [Tests](https://github.com/rios0rios0/guide/wiki/Tests))
 
-**CRITICAL Testing Requirements:**
+**Testing Requirements:**
 - **Bug fixes MUST include unit tests** that reproduce the issue before fixing it
 - **All new tests MUST use testify framework** (`github.com/stretchr/testify`)
 - **Follow test method organization pattern**: One function per public method with t.Run() for test cases
@@ -253,7 +251,7 @@ When multiple test files test the same method, use descriptive suffixes to avoid
 - Avoid `t.Parallel()` when using environment variables or shared resources
 - **NEVER use `t.Parallel()` with `t.Chdir()`** - This causes runtime panic: "testing: test using t.Setenv or t.Chdir can not use t.Parallel"
 
-**CRITICAL Test Helper Rules:**
+**Test Helper Rules:**
 - **Test helpers MUST be placed in domain-specific subfolders within `/test` folder** - NEVER in production folders (internal/, cmd/, pkg/)
 - **Organization by domain**:
   - `/test/domain/entitydoubles/` - Stubs implementing entity interfaces (CLI, OS, etc.)
@@ -375,9 +373,8 @@ Always test terra functionality after making changes:
 
 3. **Environment Validation**:
    ```bash
-   # Create test .env file
-   echo "TERRA_CLOUD=aws" > .env
-   ./bin/terra clear  # Should work without warnings
+   # Inline variable, so an existing .env is left untouched
+   TERRA_CLOUD=aws ./bin/terra clear  # Should work without warnings
    ```
 
 4. **Format Command Validation**:
@@ -396,7 +393,7 @@ Always test terra functionality after making changes:
 ### Known Limitations and Issues
 - **Network Restrictions**: `terra install` and `terra self-update` fail in environments with restricted internet access due to HashiCorp API calls and GitHub API calls respectively
 - **Dependencies**: terraform and terragrunt must be manually installed if `terra install` fails
-- **Validation Requirements**: Application requires TERRA_CLOUD to be set to "aws" or "azure" for cloud-specific features; commands that don't need cloud access (clear, format, install, version, self-update) work without it
+- **Cloud configuration**: `TERRA_CLOUD` is optional (`aws` or `azure` when set); account/subscription switching also auto-selects from `TERRA_AWS_ROLE_ARN` or `TERRA_AZURE_SUBSCRIPTION_ID`. Commands that don't need cloud access (clear, format, install, version, self-update) work without any of them
 
 ## Project Structure
 
@@ -411,7 +408,7 @@ test/                    # Test helpers organized by domain/infrastructure layer
 
 ### Important Files
 - `Makefile` - Build and install targets
-- `CONTRIBUTING.md` - Comprehensive contributing guidelines including mandatory testing requirements
+- `CONTRIBUTING.md` - Contributor workflow; coding and testing standards live in the rios0rios0/guide wiki it links to
 - `go.mod` - Go module dependencies (includes testify, cobra, and testkit for testing)
 - `internal/domain/entities/settings.go` - Environment variable configuration
 - `internal/domain/entities/app_context.go` - AppContext interface for DIG container
@@ -436,7 +433,7 @@ test/                    # Test helpers organized by domain/infrastructure layer
 ### Concurrency and Caching
 - **Centralized module cache**: Terra sets `TG_DOWNLOAD_DIR` before invoking Terragrunt so all stacks share a single module download directory (default `~/.cache/terra/modules`). Override with `TERRA_MODULE_CACHE_DIR`.
 - **Centralized provider cache**: Terra sets `TG_PROVIDER_CACHE_DIR` so provider plugins are downloaded once and reused (default `~/.cache/terra/providers`). Override with `TERRA_PROVIDER_CACHE_DIR`.
-- **CAS (Content Addressable Store)**: Terragrunt graduated CAS from an experiment to a stable, default-on feature in `1.1`, so terra no longer sets the completed `TG_EXPERIMENT=cas` opt-in (which now emits a `The following experiment(s) are already completed: cas` warning on every run). CAS deduplicates Git clones via hard links, reducing disk usage and speeding up subsequent clones. It is left at its default (enabled); `TERRA_NO_CAS=true` opts out through Terragrunt's stable `TG_NO_CAS=true` flag.
+- **CAS (Content Addressable Store)**: Terragrunt `1.1+` runs CAS by default; it deduplicates Git clones via hard links. Terra never sets `TG_EXPERIMENT=cas` and strips `cas` from an inherited `TG_EXPERIMENT`, because Terragrunt warns that the experiment is already completed. `TERRA_NO_CAS=true` opts out through Terragrunt's `TG_NO_CAS=true` flag; otherwise terra clears any inherited `TG_NO_CAS`.
 - **Provider caching**: Terra uses the Terragrunt Provider Cache Server (`TG_PROVIDER_CACHE=1`) for concurrent-safe provider deduplication with file locking. This replaced `TF_PLUGIN_CACHE_DIR` which caused "text file busy" errors during parallel execution. Disable with `TERRA_NO_PROVIDER_CACHE=true`. Terra also sets `TG_NO_AUTO_PROVIDER_CACHE_DIR=true` whenever the Provider Cache Server is enabled; without this, Terragrunt 0.99+ silently auto-enables `auto-provider-cache-dir` alongside CAS, which overrides `TG_PROVIDER_CACHE_DIR` and duplicates providers per go-getter source inside `TG_DOWNLOAD_DIR`. The two flags must stay paired in `configureCacheEnvironment`.
 - **Partial Parse Config Cache**: Terra enables the Terragrunt Partial Parse Config Cache by default (`TG_USE_PARTIAL_PARSE_CONFIG_CACHE=true`), which caches parsed HCL configs across modules sharing the same root include. Disable with `TERRA_NO_PARTIAL_PARSE_CACHE=true`.
 - **Auto-initialization with upgrade**: `UpgradeAwareShellRepository` wraps command execution. When a terragrunt command fails with output matching upgrade-needed patterns (backend changed, provider conflicts, uninitialized modules, module source changes), it automatically runs `init --upgrade` and retries the original command. When the original command included queue-scoping flags (`--all`, `--filter`, `--queue-include-dir`, `--queue-exclude-dir`, `--queue-include-units-reading`, `--queue-strict-include`, `--queue-include-external`, `--queue-exclude-external`), they are forwarded to the retry so init walks the same queue. This is used in the normal (non-interactive) execution path of `RunFromRootCommand`.
@@ -507,9 +504,9 @@ TERRA_ASSUME_YES=true
 TF_VAR_*=value
 ```
 
-## CRITICAL Build and Timing Information
-- **Build Time**: 15-20 seconds typical, NEVER CANCEL builds
-- **Linting Time**: 2-5 minutes with `make lint`, NEVER CANCEL
+## Build and Timing Information
+- **Build Time**: 15-20 seconds typical
+- **Linting Time**: 2-5 minutes with `make lint`
 - **Testing Time**: 1-2 minutes with `make test`, includes coverage reporting
 - **Dependencies**: DIG-based dependency injection with cobra CLI, no code generation needed
 - **Pipelines**: Use Makefile targets which automatically handle pipelines project via HTTPS
