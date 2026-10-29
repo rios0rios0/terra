@@ -26,10 +26,8 @@ func TestNewDeleteCacheCommand(t *testing.T) {
 	})
 }
 
-//nolint:paralleltest // t.Chdir changes the working directory, which the runtime forbids in parallel tests
 func TestDeleteCacheCommand_Execute(t *testing.T) {
 	// Note: Cannot use t.Parallel() when using t.Chdir()
-	//nolint:paralleltest // t.Chdir changes the working directory, which the runtime forbids in parallel tests
 	t.Run("should delete target directories when called with valid paths", func(t *testing.T) {
 		// GIVEN: A delete cache command and test directory structure with cache directories
 		cmd := commands.NewDeleteCacheCommand(entitybuilders.NewSettingsBuilder().BuildSettings())
@@ -102,7 +100,6 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		assert.False(t, os.IsNotExist(err), "Source directory should be preserved")
 	})
 
-	//nolint:paralleltest // t.Chdir changes the working directory, which the runtime forbids in parallel tests
 	t.Run("should complete without error when empty list provided", func(t *testing.T) {
 		// GIVEN: A delete cache command and temporary directory with test directories
 		cmd := commands.NewDeleteCacheCommand(entitybuilders.NewSettingsBuilder().BuildSettings())
@@ -125,7 +122,6 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		)
 	})
 
-	//nolint:paralleltest // t.Chdir changes the working directory, which the runtime forbids in parallel tests
 	t.Run(
 		"should complete without error when non-existent directories provided",
 		func(t *testing.T) {
@@ -140,7 +136,6 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		},
 	)
 
-	//nolint:paralleltest // t.Chdir changes the working directory, which the runtime forbids in parallel tests
 	t.Run(
 		"should delete only specified directories when selective execution requested",
 		func(t *testing.T) {
@@ -169,7 +164,6 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		},
 	)
 
-	//nolint:paralleltest // t.Chdir changes the working directory, which the runtime forbids in parallel tests
 	t.Run("should remove global cache directories when global flag is true", func(t *testing.T) {
 		// GIVEN: A delete cache command with custom cache directories that exist
 		tempDir := t.TempDir()
@@ -200,7 +194,6 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		assert.True(t, os.IsNotExist(err), "Provider cache directory should be deleted")
 	})
 
-	//nolint:paralleltest // t.Chdir changes the working directory, which the runtime forbids in parallel tests
 	t.Run("should skip non-existent global cache directories gracefully when global flag is true", func(t *testing.T) {
 		// GIVEN: A delete cache command with cache directories that do not exist
 		tempDir := t.TempDir()
@@ -217,7 +210,6 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		cmd.Execute([]string{}, true)
 	})
 
-	//nolint:paralleltest // t.Chdir changes the working directory, which the runtime forbids in parallel tests
 	t.Run("should respect custom cache paths from settings when global flag is true", func(t *testing.T) {
 		// GIVEN: A delete cache command with custom settings and only module cache exists
 		tempDir := t.TempDir()
@@ -244,7 +236,6 @@ func TestDeleteCacheCommand_Execute(t *testing.T) {
 		assert.True(t, os.IsNotExist(err), "Module cache directory should be deleted")
 	})
 
-	//nolint:paralleltest // t.Chdir changes the working directory, which the runtime forbids in parallel tests
 	t.Run("should not remove global cache when global flag is false", func(t *testing.T) {
 		// GIVEN: A delete cache command with custom cache directories that exist
 		tempDir := t.TempDir()
