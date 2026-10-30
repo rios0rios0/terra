@@ -1,0 +1,3 @@
+kind: 'Changed'
+body: 'changed the race-detector run into an input of the shared Go pipeline (`extra_test_*`), so `tests > test:race` runs in its tests stage, after the security stage and before delivery, instead of as a job of its own that started at once beside the first stage'
+time: '2026-10-30T20:28:11.158359525Z'
