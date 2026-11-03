@@ -4,7 +4,7 @@ go 1.27.3
 
 require (
 	github.com/creack/pty/v2 v2.0.1
-	github.com/go-playground/validator/v10 v10.30.5
+	github.com/go-playground/validator/v10 v10.30.6
 	github.com/joho/godotenv v1.5.1
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rios0rios0/cliforge v0.5.2
