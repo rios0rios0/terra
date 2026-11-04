@@ -22,6 +22,21 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.18.17] - 2026-11-04
+
+### Changed
+
+- changed the Go module `github.com/go-playground/validator/v10` from `v10.30.5` to `v10.30.6`
+- changed the Go module `go.yaml.in/yaml/v3` from `v3.0.5` to `v3.0.6`
+- changed the Go modules `github.com/rios0rios0/cliforge` from `v0.5.1` to `v0.5.2` and `github.com/rios0rios0/testkit` from `v0.3.6` to `v0.3.7`
+- changed the imports and the module requirement of `github.com/creack/pty` to `github.com/creack/pty/v2`
+- changed the race-detector run into an input of the shared Go pipeline (`extra_test_*`), so `tests > test:race` runs in its tests stage, after the security stage and before delivery, instead of as a job of its own that started at once beside the first stage
+- moved the agent instructions from `CLAUDE.md` to `AGENTS.md`, keeping a `CLAUDE.md` that imports it, and refreshed `AGENTS.md`, `.github/copilot-instructions.md`, the code-review skill, `README.md` and `CONTRIBUTING.md` to match the current CAS handling, optional `TERRA_CLOUD` and build-tag policy
+
+### Fixed
+
+- fixed the `style:golangci-lint` CI job by removing the `//nolint:paralleltest` directives from the `DeleteCacheCommand` tests, which golangci-lint `2.15.0` reports as unused now that `paralleltest` recognises `t.Chdir` on its own
+
 ## [1.18.16] - 2026-10-21
 
 ### Changed
