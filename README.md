@@ -295,6 +295,12 @@ TF_VAR_region=us-west-2
 # by `time.ParseDuration` -- e.g. `30m`, `1h`, `20m30s`. Malformed
 # or non-positive values fall back to the default and log a warning.
 # TERRA_DOWNLOAD_TIMEOUT=30m
+
+# Optional: Token `terra install` sends to the GitHub API, and only there, when it
+# looks up the latest Terragrunt version. Without one, GitHub allows 60 lookups an
+# hour per IP address, which machines sharing an address can use up between them.
+# If a lookup still fails, an installed tool is kept and a missing one is an error.
+# GITHUB_TOKEN=your-token
 ```
 
 **Note**: If `TERRA_CLOUD` is specified, it must be set to either "aws" or "azure". This enables cloud-specific features like role switching for AWS or subscription switching for Azure.
