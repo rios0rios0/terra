@@ -1,0 +1,3 @@
+kind: 'Fixed'
+body: 'fixed `terra install` stopping with a regex error on any failed version lookup: it now reports the HTTP status and the start of the response, retries rate limits and server errors, keeps an already installed tool when the lookup still fails, and sends `GITHUB_TOKEN` to the GitHub API when it is set'
+time: '2026-11-07T05:07:02.718862612Z'

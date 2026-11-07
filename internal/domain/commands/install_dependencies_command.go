@@ -28,6 +28,29 @@ const contextTimeout = 10 * time.Second
 // blocking on stdin would hang the job forever.
 const assumeYesEnvVar = "TERRA_ASSUME_YES"
 
+// githubTokenEnvVar names the token `terra install` sends to the GitHub API when
+// it is set. Without one, GitHub allows 60 lookups an hour per IP address, and
+// machines sharing an address can use that up between them.
+const githubTokenEnvVar = "GITHUB_TOKEN" //nolint:gosec // the name of an environment variable, not a credential
+
+// githubAPIURL scopes that token: no other host may ever receive it.
+const githubAPIURL = "https://api.github.com/"
+
+const (
+	// versionLookupAttempts is how many times a version lookup is tried.
+	versionLookupAttempts = 3
+	// versionLookupBackoff is the wait before the second attempt. It grows with
+	// each attempt after that.
+	versionLookupBackoff = time.Second
+	// versionLookupErrorBodyLimit bounds how much of a failed response is logged.
+	versionLookupErrorBodyLimit = 200
+)
+
+var (
+	errNoVersionMatch      = errors.New("no version match found, check the regex pattern")
+	errVersionLookupStatus = errors.New("version lookup failed")
+)
+
 type InstallDependenciesCommand struct{}
 
 func NewInstallDependenciesCommand() *InstallDependenciesCommand {
@@ -36,7 +59,11 @@ func NewInstallDependenciesCommand() *InstallDependenciesCommand {
 
 func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency) {
 	for _, dependency := range dependencies {
-		latestVersion := fetchLatestVersion(dependency.VersionURL, dependency.RegexVersion)
+		latestVersion, err := fetchLatestVersion(dependency.VersionURL, dependency.RegexVersion)
+		if err != nil {
+			handleFailedVersionLookup(dependency, err)
+			continue
+		}
 
 		if !isDependencyCLIAvailable(dependency.CLI) {
 			logger.Warnf("%s is not installed, installing now...", dependency.Name)
@@ -73,35 +100,118 @@ func (it *InstallDependenciesCommand) Execute(dependencies []entities.Dependency
 	}
 }
 
-// fetch the latest version of software from a URL.
-func fetchLatestVersion(url, regexPattern string) string {
+// handleFailedVersionLookup keeps a tool that is already installed, because the
+// lookup only decides whether to update it. A missing tool has no version to
+// install, so that case stays fatal.
+func handleFailedVersionLookup(dependency entities.Dependency, err error) {
+	if !isDependencyCLIAvailable(dependency.CLI) {
+		logger.Fatalf("Could not find the latest %s version to install: %s", dependency.Name, err)
+	}
+	logger.Warnf("Could not check for a newer %s, keeping the installed one: %s", dependency.Name, err)
+}
+
+// fetch the latest version of software from a URL, retrying the failures that
+// can pass on their own.
+func fetchLatestVersion(url, regexPattern string) (string, error) {
+	var lastErr error
+	for attempt := range versionLookupAttempts {
+		if attempt > 0 {
+			time.Sleep(time.Duration(attempt) * versionLookupBackoff)
+		}
+
+		body, retryable, err := requestVersionInfo(url)
+		if err == nil {
+			return matchVersion(body, regexPattern)
+		}
+
+		lastErr = err
+		if !retryable {
+			break
+		}
+		logger.Debugf("Version lookup attempt %d of %d failed: %s", attempt+1, versionLookupAttempts, err)
+	}
+
+	return "", lastErr
+}
+
+// FetchLatestVersionPublic exposes fetchLatestVersion for external (black-box) tests.
+func FetchLatestVersionPublic(url, regexPattern string) (string, error) {
+	return fetchLatestVersion(url, regexPattern)
+}
+
+// requestVersionInfo makes one lookup. It returns the response body and, on a
+// failure, whether trying again could help. A non-200 is reported with its status
+// and the start of its body, so a rate limit does not read as a regex mismatch.
+func requestVersionInfo(url string) (string, bool, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), contextTimeout)
 	defer cancel()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
-		logger.Fatalf("Error creating request: %s", err)
+		return "", false, fmt.Errorf("creating the version request: %w", err)
 	}
+	authorizeVersionRequest(req)
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		logger.Fatalf("Error fetching version info: %s", err)
+		return "", true, fmt.Errorf("fetching version info: %w", err)
 	}
 	defer resp.Body.Close()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		logger.Fatalf("Error reading response body: %s", err)
+		return "", true, fmt.Errorf("reading the version response: %w", err)
 	}
 
-	re := regexp.MustCompile(regexPattern)
-	matches := re.FindStringSubmatch(string(body))
+	if resp.StatusCode != http.StatusOK {
+		return "", isRetryableVersionStatus(resp.StatusCode), fmt.Errorf(
+			"%w: HTTP %d from %s: %s", errVersionLookupStatus, resp.StatusCode, url, summarizeBody(body),
+		)
+	}
+
+	return string(body), false, nil
+}
+
+// authorizeVersionRequest adds the GitHub token to a request for the GitHub API,
+// and to nothing else.
+func authorizeVersionRequest(req *http.Request) {
+	token := os.Getenv(githubTokenEnvVar)
+	if token != "" && strings.HasPrefix(req.URL.String(), githubAPIURL) {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
+}
+
+// AuthorizeVersionRequestPublic exposes authorizeVersionRequest for external (black-box) tests.
+func AuthorizeVersionRequestPublic(req *http.Request) {
+	authorizeVersionRequest(req)
+}
+
+// isRetryableVersionStatus reports whether a status can pass on its own. GitHub
+// answers 403 as well as 429 when a client is rate limited.
+func isRetryableVersionStatus(status int) bool {
+	return status == http.StatusForbidden ||
+		status == http.StatusTooManyRequests ||
+		status >= http.StatusInternalServerError
+}
+
+// summarizeBody keeps a failed response short enough to log.
+func summarizeBody(body []byte) string {
+	summary := strings.TrimSpace(string(body))
+	if len(summary) > versionLookupErrorBodyLimit {
+		return summary[:versionLookupErrorBodyLimit] + "..."
+	}
+
+	return summary
+}
+
+// matchVersion reads the version out of a successful response.
+func matchVersion(body, regexPattern string) (string, error) {
+	matches := regexp.MustCompile(regexPattern).FindStringSubmatch(body)
 	if len(matches) > 1 {
-		return matches[1]
+		return matches[1], nil
 	}
 
-	logger.Fatalf("No version match found, check the regex pattern: %s", regexPattern)
-	return ""
+	return "", fmt.Errorf("%w: %s", errNoVersionMatch, regexPattern)
 }
 
 // checking if a dependency is available.
