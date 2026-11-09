@@ -22,6 +22,17 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.18.18] - 2026-11-09
+
+### Changed
+
+- changed the Go module `github.com/rios0rios0/testkit` from `v0.3.7` to `v0.3.8`
+- changed the Go module `github.com/spf13/pflag` from `v1.0.10` to `v1.1.0`
+
+### Fixed
+
+- fixed `terra install` stopping with a regex error on any failed version lookup: it now reports the HTTP status and the start of the response, retries rate limits and server errors, keeps an already installed tool when the lookup still fails, and sends `GITHUB_TOKEN` to the GitHub API when it is set
+
 ## [1.18.17] - 2026-11-04
 
 ### Changed
