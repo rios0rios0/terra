@@ -22,6 +22,14 @@ Exceptions are acceptable depending on the circumstances (critical bug fixes tha
 
 ## [Unreleased]
 
+## [1.18.19] - 2026-11-16
+
+### Changed
+
+- changed the Go module `golang.org/x/crypto` from `v0.58.0` to `v0.59.0`
+- changed the Go modules `golang.org/x/sys` from `v0.49.0` to `v0.50.0`, `golang.org/x/term` from `v0.47.0` to `v0.48.0` and `golang.org/x/text` from `v0.43.0` to `v0.44.0`
+- changed the Go version from `1.27.3` to `1.27.4`
+
 ## [1.18.18] - 2026-11-09
 
 ### Changed
