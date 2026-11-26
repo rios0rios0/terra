@@ -1,0 +1,3 @@
+kind: 'Changed'
+body: 'refreshed the generated pipelines block of `.gitignore` (`make gitignore`) to the current shared rules of `rios0rios0/pipelines`, so it also ignores the `bin/golangci-lint` binary that `make lint` installs, the project-local Go module cache `.go/`, the `go-test-selection.txt` the Go test runner writes and the `.ansible/` directory where the shared `ansible-lint` runner keeps the collections it installs, and dropped the hand-written `.semgrepignore` rule below it, which repeated an entry the block already has; the shared pipelines are adding a pull request check that fails while the block is out of date'
+time: '2026-11-26T17:42:10.627647165Z'
